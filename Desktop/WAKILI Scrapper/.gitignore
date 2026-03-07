@@ -1,0 +1,10 @@
+output/
+test_output/
+test_output2/
+scraper_state.db
+scraper.log
+*.log
+__pycache__/
+.playwright-mcp/
+*.pyc
+.DS_Store
