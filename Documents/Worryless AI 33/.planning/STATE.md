@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
+stopped_at: Completed 01-database-foundation/01-01-PLAN.md
+last_updated: "2026-03-12T17:24:16.251Z"
+last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
+progress:
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 1
+  percent: 20
+---
+
 # Project State
 
 ## Project Reference
@@ -14,7 +30,7 @@ Plan: 0 of TBD in current phase
 Status: Ready to plan
 Last activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -34,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01-database-foundation P01 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -47,6 +64,8 @@ Recent decisions affecting current work:
 - Fixed 12-agent catalog for v1 — ships faster with better quality defaults than freeform creation
 - HEARTBEAT_OK suppression: no DB write on suppressed runs — reduces DB writes ~90% on quiet days
 - Agent Team Selector at onboarding tail-end (Step 12) — users are most engaged right after finishing onboarding
+- [Phase 01-database-foundation]: TEXT PK on available_agent_types to avoid ALTER TYPE issues with existing agent_type ENUM
+- [Phase 01-database-foundation]: No INSERT policy on agent_heartbeat_log for authenticated users — service role only for audit integrity
 
 ### Pending Todos
 
@@ -60,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12
-Stopped at: Roadmap written; STATE.md initialized; REQUIREMENTS.md traceability updated
+Last session: 2026-03-12T17:24:16.249Z
+Stopped at: Completed 01-database-foundation/01-01-PLAN.md
 Resume file: None

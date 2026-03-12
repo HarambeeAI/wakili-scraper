@@ -9,13 +9,13 @@
 
 ### Database Foundation
 
-- [ ] **DB-01**: System stores a catalog of 12 agent types (`available_agent_types`) with default MD workspace templates, skill configs, and heartbeat defaults
-- [ ] **DB-02**: System tracks which agents each user has activated (`user_agents`) including heartbeat config (interval, active hours, enabled flag) and activation timestamp
-- [ ] **DB-03**: Each activated agent has a 6-file MD workspace (`agent_workspaces`): IDENTITY.md, SOUL.md, SOPs.md, MEMORY.md, HEARTBEAT.md, TOOLS.md — stored as text rows, one row per file per agent per user
+- [x] **DB-01**: System stores a catalog of 12 agent types (`available_agent_types`) with default MD workspace templates, skill configs, and heartbeat defaults
+- [x] **DB-02**: System tracks which agents each user has activated (`user_agents`) including heartbeat config (interval, active hours, enabled flag) and activation timestamp
+- [x] **DB-03**: Each activated agent has a 6-file MD workspace (`agent_workspaces`): IDENTITY.md, SOUL.md, SOPs.md, MEMORY.md, HEARTBEAT.md, TOOLS.md — stored as text rows, one row per file per agent per user
 - [ ] **DB-04**: Workspace files are auto-populated from catalog defaults via Postgres trigger when a `user_agents` row is inserted
-- [ ] **DB-05**: System logs heartbeat outcomes (`agent_heartbeat_log`) for surfaced and error runs only — suppressed (HEARTBEAT_OK) runs are not written to reduce DB load
-- [ ] **DB-06**: Unique constraint on `user_agents(user_id, agent_type)` prevents double-activation at DB level
-- [ ] **DB-07**: `profiles` table gains `timezone` column (used for business-hours heartbeat enforcement and morning digest scheduling)
+- [x] **DB-05**: System logs heartbeat outcomes (`agent_heartbeat_log`) for surfaced and error runs only — suppressed (HEARTBEAT_OK) runs are not written to reduce DB load
+- [x] **DB-06**: Unique constraint on `user_agents(user_id, agent_type)` prevents double-activation at DB level
+- [x] **DB-07**: `profiles` table gains `timezone` column (used for business-hours heartbeat enforcement and morning digest scheduling)
 
 ### Agent Spawner & Team Selector
 
@@ -128,13 +128,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DB-01 | Phase 1 — Database Foundation | Pending |
-| DB-02 | Phase 1 — Database Foundation | Pending |
-| DB-03 | Phase 1 — Database Foundation | Pending |
+| DB-01 | Phase 1 — Database Foundation | Complete |
+| DB-02 | Phase 1 — Database Foundation | Complete |
+| DB-03 | Phase 1 — Database Foundation | Complete |
 | DB-04 | Phase 1 — Database Foundation | Pending |
-| DB-05 | Phase 1 — Database Foundation | Pending |
-| DB-06 | Phase 1 — Database Foundation | Pending |
-| DB-07 | Phase 1 — Database Foundation | Pending |
+| DB-05 | Phase 1 — Database Foundation | Complete |
+| DB-06 | Phase 1 — Database Foundation | Complete |
+| DB-07 | Phase 1 — Database Foundation | Complete |
 | SEC-01 | Phase 1 — Database Foundation | Pending |
 | SEC-02 | Phase 4 — Heartbeat System | Pending |
 | SEC-03 | Phase 1 — Database Foundation | Pending |
