@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-database-foundation/01-01-PLAN.md
-last_updated: "2026-03-12T17:24:16.251Z"
+stopped_at: Completed 01-database-foundation/01-05-PLAN.md
+last_updated: "2026-03-12T17:28:52.112Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
   percent: 20
 ---
 
@@ -51,6 +51,7 @@ Progress: [██░░░░░░░░] 20%
 
 *Updated after each plan completion*
 | Phase 01-database-foundation P01 | 2 | 1 tasks | 1 files |
+| Phase 01-database-foundation P05 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,8 @@ Recent decisions affecting current work:
 - Agent Team Selector at onboarding tail-end (Step 12) — users are most engaged right after finishing onboarding
 - [Phase 01-database-foundation]: TEXT PK on available_agent_types to avoid ALTER TYPE issues with existing agent_type ENUM
 - [Phase 01-database-foundation]: No INSERT policy on agent_heartbeat_log for authenticated users — service role only for audit integrity
+- [Phase 01-database-foundation]: Two Supabase clients per function: anon-key for JWT verification (auth.getUser), service-role for DB writes — service role unchanged in planning-agent
+- [Phase 01-database-foundation]: crawl-business-website validation guard simplified: !websiteUrl only (userId now guaranteed by JWT check)
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T17:24:16.249Z
-Stopped at: Completed 01-database-foundation/01-01-PLAN.md
+Last session: 2026-03-12T17:28:52.109Z
+Stopped at: Completed 01-database-foundation/01-05-PLAN.md
 Resume file: None

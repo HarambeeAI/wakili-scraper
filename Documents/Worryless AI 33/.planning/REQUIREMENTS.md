@@ -82,9 +82,9 @@
 
 ### Security
 
-- [ ] **SEC-01**: All new edge functions that execute agent actions verify the calling user's identity via JWT (from Authorization header), not from a `userId` field in the request body
+- [x] **SEC-01**: All new edge functions that execute agent actions verify the calling user's identity via JWT (from Authorization header), not from a `userId` field in the request body
 - [ ] **SEC-02**: Heartbeat dispatcher (cron-originated, no user JWT) uses a service-role key and fetches user identity from `user_agents` table directly — never from caller input
-- [ ] **SEC-03**: Workspace content is sanitized on write (strip `IGNORE PREVIOUS INSTRUCTIONS`, `<system>`, and known injection patterns) before storage and before LLM injection
+- [x] **SEC-03**: Workspace content is sanitized on write (strip `IGNORE PREVIOUS INSTRUCTIONS`, `<system>`, and known injection patterns) before storage and before LLM injection
 
 ---
 
@@ -135,9 +135,9 @@
 | DB-05 | Phase 1 — Database Foundation | Complete |
 | DB-06 | Phase 1 — Database Foundation | Complete |
 | DB-07 | Phase 1 — Database Foundation | Complete |
-| SEC-01 | Phase 1 — Database Foundation | Pending |
+| SEC-01 | Phase 1 — Database Foundation | Complete |
 | SEC-02 | Phase 4 — Heartbeat System | Pending |
-| SEC-03 | Phase 1 — Database Foundation | Pending |
+| SEC-03 | Phase 1 — Database Foundation | Complete |
 | SPAWN-01 | Phase 2 — Agent Spawner + Team Selector | Pending |
 | SPAWN-02 | Phase 2 — Agent Spawner + Team Selector | Pending |
 | SPAWN-03 | Phase 2 — Agent Spawner + Team Selector | Pending |
