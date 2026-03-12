@@ -43,7 +43,14 @@ Plans:
   3. The `spawn-agent-team` edge function returns only agent type IDs that exist in `available_agent_types` — hallucinated or misspelled agent type IDs never reach the database
   4. Each agent in the activated team has a `skill_config` that matches its role definition from `available_agent_types` — an HR agent's config does not include invoice or calendar-write tool categories
   5. Existing users with the 4 default agents are not affected by this phase; their agent records remain intact
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Verify + patch skill_config for all 13 agent types (TOOLS-01, TOOLS-02, TOOLS-03)
+- [ ] 02-02-PLAN.md — spawn-agent-team edge function with catalog ID guard + unit tests (SPAWN-01, SPAWN-02)
+- [ ] 02-03-PLAN.md — Onboarding Step 12: AgentTeamSelector component + ConversationalOnboarding integration (SPAWN-03–07)
+- [ ] 02-04-PLAN.md — Dynamic dashboard sidebar + GenericAgentPanel for new agent types (SPAWN-04)
+- [ ] 02-05-PLAN.md — Orchestrator tool boundary enforcement via skill_config injection (TOOLS-04)
 
 ### Phase 3: MD Workspace Editor + Agent Marketplace
 **Goal**: Users can view and customize any agent's identity, soul, SOPs, heartbeat checklist, and tools through a purpose-built markdown editor — and can add or remove agents from their team at any time post-onboarding
@@ -89,7 +96,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 5/5 | Complete   | 2026-03-12 |
-| 2. Agent Spawner + Team Selector | 0/TBD | Not started | - |
+| 2. Agent Spawner + Team Selector | 0/5 | Not started | - |
 | 3. MD Workspace Editor + Marketplace | 0/TBD | Not started | - |
 | 4. Heartbeat System | 0/TBD | Not started | - |
 | 5. Org View + Notifications | 0/TBD | Not started | - |
