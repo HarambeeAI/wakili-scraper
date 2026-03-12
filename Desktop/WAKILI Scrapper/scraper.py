@@ -35,8 +35,10 @@ Usage:
   python3 scraper.py --mode legislation
   python3 scraper.py --mode gazettes
   python3 scraper.py --mode gazettes --years 2020 2021
-  python3 scraper.py --mode all --workers 30           # More concurrency
+  python3 scraper.py --mode all --workers 50           # More concurrency
   python3 scraper.py --mode all --output-dir /data/kenyalaw
+  python3 scraper.py --stats                           # Print DB stats and exit
+  python3 scraper.py --mode all --fresh-days 7         # Re-check batches scraped <7 days ago (weekly runs)
 """
 
 import asyncio
@@ -48,6 +50,7 @@ import argparse
 import logging
 import re
 import sys
+import shutil
 import time
 import hashlib
 from pathlib import Path
@@ -55,18 +58,21 @@ from dataclasses import dataclass, asdict, field
 from typing import Optional
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
-# ─── Defaults (override via CLI) ──────────────────────────────────────────────
+# ─── Defaults (override via CLI or env vars) ──────────────────────────────────
 
-DEFAULT_WORKERS     = 20          # Concurrent HTTP connections — raise for VPS
+DEFAULT_WORKERS     = 50          # Async IO-bound — safe to run high
 DEFAULT_DELAY       = 0.1         # Seconds between requests per worker
 DEFAULT_OUTPUT_DIR  = Path("./output")
 DEFAULT_PER_PAGE    = 20          # Listing page size (site ignores this, uses ~50)
+DEFAULT_FRESH_DAYS  = 7           # Re-scrape batches last done within N days (weekly mode)
 REQUEST_TIMEOUT     = 90          # Seconds
 MAX_RETRIES         = 4
 RETRY_BACKOFF       = [2, 4, 8, 16]  # Seconds per retry attempt
 DB_PATH             = Path("./scraper_state.db")
+DISK_RESERVE_MB     = 500         # Stop downloading PDFs if free space drops below this
+PROGRESS_LOG_EVERY  = 200         # Log a running total every N new docs
 
 BASE_URL = "https://new.kenyalaw.org"
 
@@ -116,6 +122,60 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger(__name__)
+
+# ─── Progress counter (shared across all workers) ─────────────────────────────
+
+class ProgressTracker:
+    def __init__(self):
+        self._lock = asyncio.Lock()
+        self.new_docs = 0          # New docs added this session
+        self.skipped = 0           # Already-done docs skipped
+        self.pdf_failed = 0        # Docs where PDF download failed
+        self.start_time = time.time()
+
+    async def record_new(self, had_pdf: bool):
+        async with self._lock:
+            self.new_docs += 1
+            if not had_pdf:
+                self.pdf_failed += 1
+            if self.new_docs % PROGRESS_LOG_EVERY == 0:
+                elapsed = time.time() - self.start_time
+                rate = self.new_docs / elapsed * 60 if elapsed > 0 else 0
+                log.info(
+                    f"── Progress: {self.new_docs:,} new docs this session "
+                    f"| {self.skipped:,} skipped | {self.pdf_failed} pdf-failures "
+                    f"| {rate:.0f} docs/min ──"
+                )
+
+    async def record_skip(self):
+        async with self._lock:
+            self.skipped += 1
+
+_progress = ProgressTracker()
+
+# ─── Disk space guard ─────────────────────────────────────────────────────────
+
+_disk_full = False   # Set to True once we detect low space; stops PDF writes
+
+def check_disk_space(output_dir: Path) -> bool:
+    """Returns True if there is enough free space to continue writing PDFs."""
+    global _disk_full
+    if _disk_full:
+        return False
+    try:
+        usage = shutil.disk_usage(output_dir)
+        free_mb = usage.free / (1024 * 1024)
+        if free_mb < DISK_RESERVE_MB:
+            log.error(
+                f"DISK SPACE CRITICAL: only {free_mb:.0f} MB free "
+                f"(reserve is {DISK_RESERVE_MB} MB). "
+                f"PDF downloads paused — metadata still being saved."
+            )
+            _disk_full = True
+            return False
+    except OSError:
+        pass
+    return True
 
 # ─── Data model ───────────────────────────────────────────────────────────────
 
@@ -188,6 +248,7 @@ def init_db(db_path: Path) -> sqlite3.Connection:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_docs_type ON docs(doc_type)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_docs_court ON docs(court)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_docs_year ON docs(year)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_docs_pdf_ok ON docs(pdf_ok)")
     conn.commit()
     return conn
 
@@ -196,9 +257,25 @@ def init_db(db_path: Path) -> sqlite3.Connection:
 _db_lock = asyncio.Lock()
 
 
-async def db_is_done(conn, key: str) -> bool:
-    row = conn.execute("SELECT done FROM crawl_state WHERE key=?", (key,)).fetchone()
-    return bool(row and row[0])
+async def db_is_done(conn, key: str, fresh_days: int = 0) -> bool:
+    """
+    Returns True if this key is marked done.
+    If fresh_days > 0, treats entries older than fresh_days as NOT done
+    so they get re-crawled (catches new documents added to the site).
+    """
+    row = conn.execute(
+        "SELECT done, updated_at FROM crawl_state WHERE key=?", (key,)
+    ).fetchone()
+    if not row or not row[0]:
+        return False
+    if fresh_days > 0 and row[1]:
+        try:
+            updated = datetime.fromisoformat(row[1])
+            if datetime.now(timezone.utc) - updated < timedelta(days=fresh_days):
+                return False  # Re-crawl — may have new docs since last visit
+        except ValueError:
+            pass
+    return True
 
 
 async def db_mark_done(conn, key: str, count: int = 0):
@@ -211,24 +288,30 @@ async def db_mark_done(conn, key: str, count: int = 0):
 
 
 async def db_doc_exists(conn, url: str) -> bool:
+    """
+    Returns True only if the doc was successfully saved WITH a PDF.
+    Docs with pdf_ok=0 (failed PDF download) will be retried.
+    """
     row = conn.execute("SELECT pdf_ok FROM docs WHERE url=?", (url,)).fetchone()
-    return bool(row and row[0])
+    return bool(row and row[0] == 1)
 
 
 async def db_save_doc(conn, rec: DocRecord, meta_dir: Path):
+    pdf_ok = 1 if rec.pdf_size_bytes > 0 else 0  # Only mark OK if PDF actually saved
+
     async with _db_lock:
         conn.execute("""
             INSERT OR REPLACE INTO docs
             (url,doc_type,title,court,court_class,court_station,court_division,
              case_number,judges,date,year,citation,outcome,language,action_type,
              cap_number,pdf_url,local_path,pdf_size_bytes,scraped_at,pdf_ok)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             rec.url, rec.doc_type, rec.title, rec.court, rec.court_class,
             rec.court_station, rec.court_division, rec.case_number, rec.judges,
             rec.date, rec.year, rec.citation, rec.outcome, rec.language,
             rec.action_type, rec.cap_number, rec.pdf_url, rec.local_path,
-            rec.pdf_size_bytes, rec.scraped_at,
+            rec.pdf_size_bytes, rec.scraped_at, pdf_ok,
         ))
         conn.commit()
 
@@ -236,6 +319,76 @@ async def db_save_doc(conn, rec: DocRecord, meta_dir: Path):
     jsonl_path = meta_dir / f"{rec.doc_type}s.jsonl"
     async with aiofiles.open(jsonl_path, "a", encoding="utf-8") as f:
         await f.write(json.dumps(asdict(rec), ensure_ascii=False) + "\n")
+
+
+def print_stats(db_path: Path):
+    """Print current DB stats and exit. Used by --stats flag."""
+    if not db_path.exists():
+        print(f"No database found at {db_path}")
+        return
+
+    conn = sqlite3.connect(str(db_path))
+    print("\n" + "═" * 60)
+    print("  WAKILI SCRAPER — CURRENT PROGRESS")
+    print("═" * 60)
+
+    total_docs = 0
+    total_pdfs = 0
+    total_bytes = 0
+
+    for dt in ["judgment", "legislation", "gazette"]:
+        total   = conn.execute("SELECT COUNT(*) FROM docs WHERE doc_type=?", (dt,)).fetchone()[0]
+        with_pdf = conn.execute(
+            "SELECT COUNT(*) FROM docs WHERE doc_type=? AND pdf_ok=1", (dt,)
+        ).fetchone()[0]
+        no_pdf  = conn.execute(
+            "SELECT COUNT(*) FROM docs WHERE doc_type=? AND pdf_ok=0", (dt,)
+        ).fetchone()[0]
+        size    = conn.execute(
+            "SELECT SUM(pdf_size_bytes) FROM docs WHERE doc_type=?", (dt,)
+        ).fetchone()[0] or 0
+        print(f"\n  {dt.upper()}S")
+        print(f"    Records      : {total:>10,}")
+        print(f"    PDFs saved   : {with_pdf:>10,}")
+        print(f"    PDF missing  : {no_pdf:>10,}  ← will retry on next run")
+        print(f"    Storage used : {size/1e9:>10.2f} GB")
+        total_docs  += total
+        total_pdfs  += with_pdf
+        total_bytes += size
+
+    # Crawl state summary
+    done_batches = conn.execute("SELECT COUNT(*) FROM crawl_state WHERE done=1").fetchone()[0]
+    total_batches = conn.execute("SELECT COUNT(*) FROM crawl_state").fetchone()[0]
+
+    print("\n" + "─" * 60)
+    print(f"  TOTAL DOCUMENTS  : {total_docs:>10,}")
+    print(f"  TOTAL PDFs SAVED : {total_pdfs:>10,}")
+    print(f"  TOTAL STORAGE    : {total_bytes/1e9:>10.2f} GB")
+    print(f"  CRAWL BATCHES    : {done_batches:,} / {total_batches:,} done")
+
+    # Per-court breakdown
+    print("\n  JUDGMENTS BY COURT:")
+    rows = conn.execute("""
+        SELECT court, COUNT(*) as n, SUM(pdf_size_bytes)/1e6 as mb
+        FROM docs WHERE doc_type='judgment'
+        GROUP BY court ORDER BY n DESC
+    """).fetchall()
+    for court, n, mb in rows:
+        print(f"    {(court or 'UNKNOWN'):<12}  {n:>8,} docs   {(mb or 0):>8.0f} MB")
+
+    # Recent activity
+    recent = conn.execute("""
+        SELECT DATE(scraped_at) as day, COUNT(*) as n
+        FROM docs WHERE scraped_at IS NOT NULL
+        GROUP BY day ORDER BY day DESC LIMIT 7
+    """).fetchall()
+    if recent:
+        print("\n  RECENT ACTIVITY (last 7 days scraped):")
+        for day, n in recent:
+            print(f"    {day}  {n:>8,} docs")
+
+    print("\n" + "═" * 60 + "\n")
+    conn.close()
 
 # ─── HTTP ─────────────────────────────────────────────────────────────────────
 
@@ -306,8 +459,7 @@ def parse_listing(html: str) -> tuple[list[dict], bool]:
                 seen.add(url)
                 docs.append({"url": url, "title": a.get_text(strip=True) or href})
 
-    # Pagination: stop when we get < half a page or no docs at all
-    has_more = len(docs) >= 10  # continue if we got a reasonable number of results
+    has_more = len(docs) >= 10
     return docs, has_more
 
 
@@ -315,11 +467,9 @@ def parse_doc_page(html: str, url: str, doc_type: str) -> DocRecord:
     """Extract metadata from a document page."""
     soup = BeautifulSoup(html, "html.parser")
 
-    # Title
     h1 = soup.find("h1")
     title = h1.get_text(strip=True) if h1 else url.split("/")[-1]
 
-    # Metadata from dt/dd pairs — strip button text ("Copy")
     meta = {}
     for dt, dd in zip(soup.find_all("dt"), soup.find_all("dd")):
         key = dt.get_text(strip=True).lower()
@@ -328,7 +478,6 @@ def parse_doc_page(html: str, url: str, doc_type: str) -> DocRecord:
             btn.decompose()
         meta[key] = dd_c.get_text(strip=True)
 
-    # PDF link — "Download PDF" anchor or fallback to /source
     pdf_url = ""
     for a in soup.find_all("a", href=True):
         if re.search(r"download pdf", a.get_text(strip=True), re.I):
@@ -338,13 +487,11 @@ def parse_doc_page(html: str, url: str, doc_type: str) -> DocRecord:
     if not pdf_url:
         pdf_url = url + "/source"
 
-    # Court from URL
     court = ""
     m = re.search(r"/akn/ke/judgment/([^/]+)/", url)
     if m:
         court = m.group(1).upper()
 
-    # Year from URL or date
     year = ""
     m = re.search(r"/(\d{4})/", url)
     if m:
@@ -377,9 +524,9 @@ def doc_local_path(rec: DocRecord, variant: str = "") -> str:
     """
     Determine the organised local path for a document's PDF.
 
-    Judgments:  case_law/{COURT}/{station_slug}/{year}/{month}/{citation_slug}.pdf
+    Judgments:   case_law/{COURT}/{station_slug}/{year}/{month}/{citation_slug}.pdf
     Legislation: legislation/{variant}/{title_slug}.pdf
-    Gazettes:   gazettes/{year}/{title_slug}.pdf
+    Gazettes:    gazettes/{year}/{title_slug}.pdf
     """
     def slug(s: str) -> str:
         s = re.sub(r"[^\w\s-]", "", s or "unknown").strip()
@@ -389,17 +536,18 @@ def doc_local_path(rec: DocRecord, variant: str = "") -> str:
         court = rec.court or "UNKNOWN"
         station = slug(rec.court_station) or "general"
         year = rec.year or "unknown_year"
-        # Extract month from date if available
         month = "00"
         if rec.date:
             m = re.search(r"\b(0?[1-9]|1[0-2])\b", rec.date)
             if m:
                 month = m.group(1).zfill(2)
             else:
-                # Try month name
-                months = {"january":"01","february":"02","march":"03","april":"04",
-                          "may":"05","june":"06","july":"07","august":"08",
-                          "september":"09","october":"10","november":"11","december":"12"}
+                months = {
+                    "january": "01", "february": "02", "march": "03",
+                    "april": "04", "may": "05", "june": "06",
+                    "july": "07", "august": "08", "september": "09",
+                    "october": "10", "november": "11", "december": "12",
+                }
                 for name, num in months.items():
                     if name in rec.date.lower():
                         month = num
@@ -413,7 +561,10 @@ def doc_local_path(rec: DocRecord, variant: str = "") -> str:
         return f"legislation/{var}/{title}.pdf"
 
     if rec.doc_type == "gazette":
-        year = rec.year or re.search(r"/(\d{4})/", rec.url).group(1) if re.search(r"/(\d{4})/", rec.url) else "unknown"
+        year = rec.year
+        if not year:
+            m = re.search(r"/(\d{4})/", rec.url)
+            year = m.group(1) if m else "unknown"
         title = slug(rec.title or rec.url.split("/")[-1])
         return f"gazettes/{year}/{title}.pdf"
 
@@ -455,7 +606,8 @@ async def download_doc(
 ) -> bool:
     """Fetch a document page, extract metadata, download the PDF, save both."""
     if await db_doc_exists(conn, doc_url):
-        return False  # Already done
+        await _progress.record_skip()
+        return False  # Already done with PDF confirmed
 
     html = await fetch(session, doc_url, sem, delay)
     if not html:
@@ -466,20 +618,22 @@ async def download_doc(
 
     pdf_dest = output_dir / rec.local_path
     if pdf_dest.exists() and pdf_dest.stat().st_size > 1024:
-        # File already downloaded — just record metadata
+        # File already on disk — just record metadata
         rec.pdf_size_bytes = pdf_dest.stat().st_size
-    else:
+    elif check_disk_space(output_dir):
         pdf_dest.parent.mkdir(parents=True, exist_ok=True)
         pdf_data = await fetch(session, rec.pdf_url, sem, delay, binary=True)
-        if pdf_data and len(pdf_data) > 1024:  # Ignore empty/error responses
+        if pdf_data and len(pdf_data) > 1024:
             async with aiofiles.open(pdf_dest, "wb") as f:
                 await f.write(pdf_data)
             rec.pdf_size_bytes = len(pdf_data)
         else:
-            # PDF not available — record metadata only (doc may still be processing)
-            rec.pdf_size_bytes = 0
+            rec.pdf_size_bytes = 0  # PDF unavailable — will retry next run
+    else:
+        rec.pdf_size_bytes = 0  # Disk full — save metadata only, retry next run
 
     await db_save_doc(conn, rec, meta_dir)
+    await _progress.record_new(had_pdf=rec.pdf_size_bytes > 0)
     return True
 
 
@@ -495,6 +649,7 @@ async def process_listing_url(
     label: str,
     pbar: tqdm,
     variant: str = "",
+    fresh_days: int = 0,
 ):
     """Paginate through a listing URL and download all documents."""
     page = 1
@@ -502,7 +657,7 @@ async def process_listing_url(
 
     while True:
         page_key = f"page::{listing_url}::{page}"
-        if await db_is_done(conn, page_key):
+        if await db_is_done(conn, page_key, fresh_days=fresh_days):
             page += 1
             if page > 5000:
                 break
@@ -520,12 +675,11 @@ async def process_listing_url(
         items, has_more = parse_listing(html)
 
         if not items:
-            break  # Empty page — we're past the end
+            break
 
         consecutive_empty = 0
         log.info(f"{label} p{page}: {len(items)} docs")
 
-        # Download all docs on this page concurrently
         tasks = [
             download_doc(session, sem, conn, item["url"], doc_type,
                          output_dir, meta_dir, delay, variant)
@@ -546,11 +700,11 @@ async def process_listing_url(
 # ─── Judgment scraper — full hierarchy ────────────────────────────────────────
 
 async def scrape_judgments(
-    session, sem, conn, output_dir, meta_dir, delay, courts_filter, pbar
+    session, sem, conn, output_dir, meta_dir, delay, courts_filter, pbar, fresh_days
 ):
     """
     Traverse: court → station → year → month
-    This keeps each leaf listing small (<200 docs) — no pagination limit issues.
+    Keeps each leaf listing small (<200 docs) — no pagination limit issues.
     """
     target = courts_filter or list(COURTS.keys())
 
@@ -564,7 +718,6 @@ async def scrape_judgments(
             log.warning(f"  Could not reach {court_code}")
             continue
 
-        # Station level
         station_paths = [
             p for p in get_sub_links(court_html, court_path)
             if not re.search(r"/\d{4}/?$", p)
@@ -575,7 +728,6 @@ async def scrape_judgments(
             if not station_html:
                 continue
 
-            # Year level
             year_paths = [
                 p for p in get_sub_links(station_html, station_path)
                 if re.search(r"/\d{4}/?$", p)
@@ -584,20 +736,26 @@ async def scrape_judgments(
             if not year_paths:
                 await process_listing_url(
                     session, sem, conn, BASE_URL + station_path, "judgment",
-                    output_dir, meta_dir, delay, f"[{station_path.strip('/')}]", pbar
+                    output_dir, meta_dir, delay,
+                    f"[{station_path.strip('/')}]", pbar,
+                    fresh_days=fresh_days,
                 )
                 continue
 
             for year_path in sorted(year_paths, reverse=True):
                 year_key = f"year::{year_path}"
-                if await db_is_done(conn, year_key):
+                # For fresh_days runs, always re-check the 2 most recent years
+                year_match = re.search(r"/(\d{4})/?$", year_path)
+                current_year = datetime.now().year
+                is_recent_year = year_match and int(year_match.group(1)) >= current_year - 1
+
+                if not is_recent_year and await db_is_done(conn, year_key, fresh_days=0):
                     continue
 
                 year_html = await fetch(session, BASE_URL + year_path, sem, delay)
                 if not year_html:
                     continue
 
-                # Month level
                 month_paths = [
                     p for p in get_sub_links(year_html, year_path)
                     if re.search(r"/\d{4}/\d{1,2}/?$", p)
@@ -607,17 +765,25 @@ async def scrape_judgments(
                     await process_listing_url(
                         session, sem, conn, BASE_URL + year_path, "judgment",
                         output_dir, meta_dir, delay,
-                        f"[{year_path.strip('/')}]", pbar
+                        f"[{year_path.strip('/')}]", pbar,
+                        fresh_days=fresh_days if is_recent_year else 0,
                     )
                 else:
                     for month_path in sorted(month_paths, reverse=True):
                         month_key = f"month::{month_path}"
-                        if await db_is_done(conn, month_key):
+                        month_match = re.search(r"/(\d{4})/(\d{1,2})/?$", month_path)
+                        is_recent_month = (
+                            month_match and
+                            int(month_match.group(1)) >= current_year - 1
+                        )
+                        effective_fresh = fresh_days if is_recent_month else 0
+                        if await db_is_done(conn, month_key, fresh_days=effective_fresh):
                             continue
                         await process_listing_url(
                             session, sem, conn, BASE_URL + month_path, "judgment",
                             output_dir, meta_dir, delay,
-                            f"[{month_path.strip('/')}]", pbar
+                            f"[{month_path.strip('/')}]", pbar,
+                            fresh_days=effective_fresh,
                         )
                         await db_mark_done(conn, month_key)
 
@@ -626,23 +792,27 @@ async def scrape_judgments(
 
 # ─── Legislation scraper ───────────────────────────────────────────────────────
 
-async def scrape_legislation(session, sem, conn, output_dir, meta_dir, delay, pbar):
+async def scrape_legislation(
+    session, sem, conn, output_dir, meta_dir, delay, pbar, fresh_days
+):
     for variant_name, variant_path in LEGISLATION_VARIANTS:
         var_key = f"legislation_variant::{variant_name}"
-        if await db_is_done(conn, var_key):
+        if await db_is_done(conn, var_key, fresh_days=fresh_days):
             continue
         log.info(f"Legislation: {variant_name}")
         await process_listing_url(
             session, sem, conn, BASE_URL + variant_path, "legislation",
             output_dir, meta_dir, delay, f"[LEG:{variant_name}]", pbar,
-            variant=variant_name,
+            variant=variant_name, fresh_days=fresh_days,
         )
         await db_mark_done(conn, var_key)
 
 
 # ─── Gazette scraper ───────────────────────────────────────────────────────────
 
-async def scrape_gazettes(session, sem, conn, output_dir, meta_dir, delay, years_filter, pbar):
+async def scrape_gazettes(
+    session, sem, conn, output_dir, meta_dir, delay, years_filter, pbar, fresh_days
+):
     index_html = await fetch(session, f"{BASE_URL}/gazettes/", sem, delay)
     if not index_html:
         log.error("Cannot reach gazettes index")
@@ -652,9 +822,12 @@ async def scrape_gazettes(session, sem, conn, output_dir, meta_dir, delay, years
     years = years_filter or all_years
     log.info(f"Gazettes: {len(years)} years to scrape")
 
+    current_year = datetime.now().year
     for year in sorted(years, reverse=True):
         year_key = f"gazette_year::{year}"
-        if await db_is_done(conn, year_key):
+        is_recent = year >= current_year - 1
+        effective_fresh = fresh_days if is_recent else 0
+        if await db_is_done(conn, year_key, fresh_days=effective_fresh):
             continue
 
         year_html = await fetch(session, f"{BASE_URL}/gazettes/{year}", sem, delay)
@@ -685,6 +858,23 @@ async def scrape_gazettes(session, sem, conn, output_dir, meta_dir, delay, years
         await db_mark_done(conn, year_key, len(issue_links))
 
 
+# ─── Final stats ──────────────────────────────────────────────────────────────
+
+def log_final_stats(db_path: Path, elapsed: float):
+    conn = sqlite3.connect(str(db_path))
+    log.info("─" * 50)
+    log.info("FINAL STATS")
+    for dt in ["judgment", "legislation", "gazette"]:
+        total    = conn.execute("SELECT COUNT(*) FROM docs WHERE doc_type=?", (dt,)).fetchone()[0]
+        with_pdf = conn.execute("SELECT COUNT(*) FROM docs WHERE doc_type=? AND pdf_ok=1", (dt,)).fetchone()[0]
+        no_pdf   = conn.execute("SELECT COUNT(*) FROM docs WHERE doc_type=? AND pdf_ok=0", (dt,)).fetchone()[0]
+        size     = conn.execute("SELECT SUM(pdf_size_bytes) FROM docs WHERE doc_type=?", (dt,)).fetchone()[0] or 0
+        log.info(f"  {dt}s: {total:,} records | {with_pdf:,} PDFs saved | {no_pdf:,} PDF-missing | {size/1e9:.2f} GB")
+    log.info(f"  New this session: {_progress.new_docs:,} | Skipped (already done): {_progress.skipped:,}")
+    log.info(f"  Total time: {elapsed/3600:.1f}h ({elapsed:.0f}s)")
+    conn.close()
+
+
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 async def run(
@@ -694,12 +884,14 @@ async def run(
     delay: float,
     courts_filter: Optional[list[str]],
     years_filter: Optional[list[int]],
+    fresh_days: int,
+    db_path: Path,
 ):
     output_dir.mkdir(parents=True, exist_ok=True)
     meta_dir = output_dir / "metadata"
     meta_dir.mkdir(exist_ok=True)
 
-    conn = init_db(DB_PATH)
+    conn = init_db(db_path)
     sem = asyncio.Semaphore(workers)
 
     connector = aiohttp.TCPConnector(
@@ -717,40 +909,30 @@ async def run(
             with tqdm(desc="Judgments (PDFs)", unit="doc", dynamic_ncols=True) as pbar:
                 await scrape_judgments(
                     session, sem, conn, output_dir, meta_dir, delay,
-                    courts_filter, pbar
+                    courts_filter, pbar, fresh_days
                 )
 
         if "legislation" in modes:
             with tqdm(desc="Legislation (PDFs)", unit="doc", dynamic_ncols=True) as pbar:
-                await scrape_legislation(session, sem, conn, output_dir, meta_dir, delay, pbar)
+                await scrape_legislation(
+                    session, sem, conn, output_dir, meta_dir, delay, pbar, fresh_days
+                )
 
         if "gazettes" in modes:
             with tqdm(desc="Gazettes (PDFs)", unit="doc", dynamic_ncols=True) as pbar:
                 await scrape_gazettes(
-                    session, sem, conn, output_dir, meta_dir, delay, years_filter, pbar
+                    session, sem, conn, output_dir, meta_dir, delay,
+                    years_filter, pbar, fresh_days
                 )
-
-    # Final stats
-    conn2 = sqlite3.connect(str(DB_PATH))
-    log.info("─" * 50)
-    log.info("FINAL STATS")
-    for dt in ["judgment", "legislation", "gazette"]:
-        total = conn2.execute("SELECT COUNT(*) FROM docs WHERE doc_type=?", (dt,)).fetchone()[0]
-        with_pdf = conn2.execute("SELECT COUNT(*) FROM docs WHERE doc_type=? AND pdf_size_bytes>0", (dt,)).fetchone()[0]
-        size = conn2.execute("SELECT SUM(pdf_size_bytes) FROM docs WHERE doc_type=?", (dt,)).fetchone()[0] or 0
-        log.info(f"  {dt}s: {total:,} records | {with_pdf:,} PDFs downloaded | {size/1e9:.2f} GB")
-    conn2.close()
 
 
 def main():
-    global DEFAULT_WORKERS, DEFAULT_DELAY
-
     parser = argparse.ArgumentParser(
         description="Kenya Law document scraper — downloads actual PDFs",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument("--mode", choices=["all","judgments","legislation","gazettes"],
+    parser.add_argument("--mode", choices=["all", "judgments", "legislation", "gazettes"],
                         default="all")
     parser.add_argument("--court", nargs="+", metavar="CODE",
                         help="Filter courts, e.g. --court KEHC KECA")
@@ -761,7 +943,17 @@ def main():
                         help=f"Concurrent connections (default: {DEFAULT_WORKERS})")
     parser.add_argument("--delay", type=float, default=DEFAULT_DELAY,
                         help=f"Delay per request in seconds (default: {DEFAULT_DELAY})")
-    parser.add_argument("--list-courts", action="store_true")
+    parser.add_argument("--fresh-days", type=int, default=0,
+                        help=(
+                            "Re-crawl batches last scraped within N days to pick up new docs. "
+                            "Set to 7 for weekly runs. Default: 0 (full resume, skip done batches)."
+                        ))
+    parser.add_argument("--db-path", type=Path, default=DB_PATH,
+                        help=f"Path to SQLite state DB (default: {DB_PATH})")
+    parser.add_argument("--stats", action="store_true",
+                        help="Print current DB stats and exit (no scraping)")
+    parser.add_argument("--list-courts", action="store_true",
+                        help="List all court codes and exit")
 
     args = parser.parse_args()
 
@@ -772,7 +964,11 @@ def main():
             print(f"{code:<12} {cls:<22} {name}")
         sys.exit(0)
 
-    modes = [args.mode] if args.mode != "all" else ["judgments","legislation","gazettes"]
+    if args.stats:
+        print_stats(args.db_path)
+        sys.exit(0)
+
+    modes = [args.mode] if args.mode != "all" else ["judgments", "legislation", "gazettes"]
     courts_filter = [c.upper() for c in args.court] if args.court else None
     years_filter = args.years or None
 
@@ -784,7 +980,8 @@ def main():
     log.info(f"  Output:     {args.output_dir}")
     log.info(f"  Workers:    {args.workers}")
     log.info(f"  Delay:      {args.delay}s")
-    log.info(f"  DB:         {DB_PATH}")
+    log.info(f"  DB:         {args.db_path}")
+    log.info(f"  Fresh days: {args.fresh_days} ({'re-check recent batches' if args.fresh_days else 'full resume mode'})")
     log.info("  Downloads:  PDFs saved to disk (always on)")
     log.info("=" * 60)
 
@@ -796,9 +993,10 @@ def main():
         delay=args.delay,
         courts_filter=courts_filter,
         years_filter=years_filter,
+        fresh_days=args.fresh_days,
+        db_path=args.db_path,
     ))
-    elapsed = time.time() - t0
-    log.info(f"Total time: {elapsed/3600:.1f}h ({elapsed:.0f}s)")
+    log_final_stats(args.db_path, time.time() - t0)
 
 
 if __name__ == "__main__":
