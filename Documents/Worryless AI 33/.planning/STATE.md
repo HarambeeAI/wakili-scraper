@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-database-foundation/01-03-PLAN.md
-last_updated: "2026-03-12T17:41:13.176Z"
+stopped_at: Completed 01-database-foundation/01-04-PLAN.md
+last_updated: "2026-03-12T17:44:47.414Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 20
 ---
 
@@ -54,6 +54,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 01-database-foundation P05 | 3 | 2 tasks | 4 files |
 | Phase 01-database-foundation P02 | 1 | 1 tasks | 1 files |
 | Phase 01-database-foundation P03 | 6 | 1 tasks | 1 files |
+| Phase 01-database-foundation P04 | 1 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 01-database-foundation]: ON CONFLICT DO NOTHING on workspace trigger inserts — makes trigger idempotent, safe to re-run on partial failures
 - [Phase 01-database-foundation]: Separate INSERT per agent rather than multi-row VALUES — avoids dollar-quote tag collision across 13 agents x 6 columns
 - [Phase 01-database-foundation]: Unique dollar-quote tag per column per agent (e.g., chief_identity, acct_soul) — prevents PostgreSQL parser ambiguity in large markdown strings
+- [Phase 01-database-foundation]: ON CONFLICT DO NOTHING on backfill INSERT — idempotent, safe to re-apply on any database state
+- [Phase 01-database-foundation]: WHERE onboarding_completed = true filter on backfill — prevents agent rows for users mid-onboarding
+- [Phase 01-database-foundation]: DB-07 (profiles.timezone) fulfilled by comment artifact referencing migration 20251216134813 — no additional ALTER TABLE needed
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T17:41:13.174Z
-Stopped at: Completed 01-database-foundation/01-03-PLAN.md
+Last session: 2026-03-12T17:44:47.412Z
+Stopped at: Completed 01-database-foundation/01-04-PLAN.md
 Resume file: None

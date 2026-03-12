@@ -6,7 +6,7 @@ This milestone transforms Worryless AI from a reactive 4-agent chat platform int
 
 ## Phases
 
-- [ ] **Phase 1: Database Foundation** - Schema, seed catalog, triggers, and security hardening that every subsequent phase depends on
+- [x] **Phase 1: Database Foundation** - Schema, seed catalog, triggers, and security hardening that every subsequent phase depends on (completed 2026-03-12)
 - [ ] **Phase 2: Agent Spawner + Team Selector** - Onboarding Step 12, spawn-agent-team edge function, role tooling configs, and activation animation
 - [ ] **Phase 3: MD Workspace Editor + Agent Marketplace** - CodeMirror workspace editor, auto-save, reset-to-defaults, and marketplace panel
 - [ ] **Phase 4: Heartbeat System** - Dispatcher, pgmq queue, runner, HEARTBEAT_OK suppression, business-hours enforcement, and call budgets
@@ -88,7 +88,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Foundation | 4/5 | In Progress|  |
+| 1. Database Foundation | 5/5 | Complete   | 2026-03-12 |
 | 2. Agent Spawner + Team Selector | 0/TBD | Not started | - |
 | 3. MD Workspace Editor + Marketplace | 0/TBD | Not started | - |
 | 4. Heartbeat System | 0/TBD | Not started | - |
