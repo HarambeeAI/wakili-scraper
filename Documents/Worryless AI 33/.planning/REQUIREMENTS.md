@@ -22,7 +22,7 @@
 - [x] **SPAWN-01**: On onboarding completion, a `spawn-agent-team` edge function analyzes the user's business context (industry, description, website artifacts, location) and returns a ranked list of recommended additional agents with per-agent reasoning and first-week value description
 - [x] **SPAWN-02**: Agent Spawner uses structured JSON output (temperature 0.3, response_format: json_object) and is constrained to catalog agent type IDs to prevent hallucinated agent types
 - [ ] **SPAWN-03**: Onboarding flow gains a new final step (Step 12: Agent Team Selector) rendered after validator setup and before `onboarding_completed` is set to true
-- [ ] **SPAWN-04**: Agent Team Selector displays: (a) default 5 agents pre-checked and locked, (b) AI-recommended additional agents pre-checked with reasoning card explaining why they fit this specific business, (c) remaining catalog agents unchecked
+- [x] **SPAWN-04**: Agent Team Selector displays: (a) default 5 agents pre-checked and locked, (b) AI-recommended additional agents pre-checked with reasoning card explaining why they fit this specific business, (c) remaining catalog agents unchecked
 - [ ] **SPAWN-05**: User can accept the suggested team in one click ("Accept Suggested Team" CTA) or customize by checking/unchecking agents before accepting
 - [ ] **SPAWN-06**: After team acceptance, a 2–3 second animated "Briefing your team on [Business Name]..." screen runs before the dashboard loads — establishing the AI-employee mental model
 - [ ] **SPAWN-07**: Activated agents (beyond the 4 defaults) are inserted as `user_agents` rows and their workspaces auto-populated with business-context-aware content via a second LLM call
@@ -141,7 +141,7 @@
 | SPAWN-01 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | SPAWN-02 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | SPAWN-03 | Phase 2 — Agent Spawner + Team Selector | Pending |
-| SPAWN-04 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-04 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | SPAWN-05 | Phase 2 — Agent Spawner + Team Selector | Pending |
 | SPAWN-06 | Phase 2 — Agent Spawner + Team Selector | Pending |
 | SPAWN-07 | Phase 2 — Agent Spawner + Team Selector | Pending |
