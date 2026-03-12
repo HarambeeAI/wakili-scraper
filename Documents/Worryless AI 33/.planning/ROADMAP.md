@@ -62,7 +62,14 @@ Plans:
   3. Clicking "Reset to defaults" on any editable file and confirming the dialog restores the original catalog template — the user's edits are replaced and the restored content saves automatically
   4. The Agent Marketplace panel lists all 12 catalog agent types; already-active agents show an "Active" badge instead of an "Add to Team" button; clicking "Add to Team" creates the agent and its workspace rows and immediately shows it in the sidebar
   5. A user can deactivate an agent from their team; after deactivation the agent disappears from the sidebar and Team view, its workspace data is preserved, and no heartbeat fires for that agent
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Test infra (vitest) + sanitize.ts client mirror + buildWorkspacePrompt utility + tests (WS-06, WS-07)
+- [ ] 03-02-PLAN.md — WorkspaceEditor (CodeMirror 6) + WorkspaceEditorLazy + useAgentWorkspace hook (WS-02, WS-04, WS-05)
+- [ ] 03-03-PLAN.md — useAgentMarketplace hook + AgentMarketplaceCard + AgentMarketplace panel (MKT-02, MKT-03, MKT-04)
+- [ ] 03-04-PLAN.md — WorkspaceTabs (6 sub-tabs) + MemoryTab + GenericAgentPanel Workspace sheet (WS-01, WS-03, WS-05)
+- [ ] 03-05-PLAN.md — Dashboard wiring: sidebar Add Agent entry + marketplace view + human verification checkpoint (WS-01, MKT-01, MKT-03, MKT-04)
 
 ### Phase 4: Heartbeat System
 **Goal**: Each active agent proactively checks in on its configured schedule during business hours, surfaces only genuine findings, and stays silent (no DB write, no notification) when nothing needs the user's attention
@@ -97,7 +104,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 5/5 | Complete   | 2026-03-12 |
 | 2. Agent Spawner + Team Selector | 4/5 | In Progress|  |
-| 3. MD Workspace Editor + Marketplace | 0/TBD | Not started | - |
+| 3. MD Workspace Editor + Marketplace | 0/5 | Not started | - |
 | 4. Heartbeat System | 0/TBD | Not started | - |
 | 5. Org View + Notifications | 0/TBD | Not started | - |
 
