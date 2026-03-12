@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-agent-spawner-team-selector/02-03-PLAN.md
-last_updated: "2026-03-12T19:53:52.259Z"
+stopped_at: Completed 02-agent-spawner-team-selector/02-05-PLAN.md
+last_updated: "2026-03-12T19:59:38.675Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 20
 ---
 
@@ -59,6 +59,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02-agent-spawner-team-selector P02 | 6 | 2 tasks | 2 files |
 | Phase 02-agent-spawner-team-selector P04 | 3 | 2 tasks | 3 files |
 | Phase 02-agent-spawner-team-selector P03 | 4 | 3 tasks | 2 files |
+| Phase 02-agent-spawner-team-selector P05 | 12 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,7 @@ Recent decisions affecting current work:
 - [Phase 02-agent-spawner-team-selector]: LEGACY_VIEW_MAP in DashboardSidebar maps 5 default agent_type_ids to existing view IDs — prevents double-render of defaults
 - [Phase 02-agent-spawner-team-selector]: validator_sales Continue button now calls nextStep (not handleComplete) — onboarding_completed only set inside handleTeamAccept after user_agents are inserted
 - [Phase 02-agent-spawner-team-selector]: Workspace personalization (SPAWN-07) is a deterministic token replace with no LLM call — fire-and-forget after onComplete() so user is not blocked
+- [Phase 02-agent-spawner-team-selector]: buildAgentPrompt creates supabase client internally via Deno.env.get — consistent with fetchBusinessKnowledge; TOOL BOUNDARIES non-blocking; all 3 callers await-updated
 
 ### Pending Todos
 
@@ -106,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T19:53:52.257Z
-Stopped at: Completed 02-agent-spawner-team-selector/02-03-PLAN.md
+Last session: 2026-03-12T19:59:38.672Z
+Stopped at: Completed 02-agent-spawner-team-selector/02-05-PLAN.md
 Resume file: None

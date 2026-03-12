@@ -21,11 +21,11 @@
 
 - [x] **SPAWN-01**: On onboarding completion, a `spawn-agent-team` edge function analyzes the user's business context (industry, description, website artifacts, location) and returns a ranked list of recommended additional agents with per-agent reasoning and first-week value description
 - [x] **SPAWN-02**: Agent Spawner uses structured JSON output (temperature 0.3, response_format: json_object) and is constrained to catalog agent type IDs to prevent hallucinated agent types
-- [ ] **SPAWN-03**: Onboarding flow gains a new final step (Step 12: Agent Team Selector) rendered after validator setup and before `onboarding_completed` is set to true
+- [x] **SPAWN-03**: Onboarding flow gains a new final step (Step 12: Agent Team Selector) rendered after validator setup and before `onboarding_completed` is set to true
 - [x] **SPAWN-04**: Agent Team Selector displays: (a) default 5 agents pre-checked and locked, (b) AI-recommended additional agents pre-checked with reasoning card explaining why they fit this specific business, (c) remaining catalog agents unchecked
-- [ ] **SPAWN-05**: User can accept the suggested team in one click ("Accept Suggested Team" CTA) or customize by checking/unchecking agents before accepting
-- [ ] **SPAWN-06**: After team acceptance, a 2–3 second animated "Briefing your team on [Business Name]..." screen runs before the dashboard loads — establishing the AI-employee mental model
-- [ ] **SPAWN-07**: Activated agents (beyond the 4 defaults) are inserted as `user_agents` rows and their workspaces auto-populated with business-context-aware content via a second LLM call
+- [x] **SPAWN-05**: User can accept the suggested team in one click ("Accept Suggested Team" CTA) or customize by checking/unchecking agents before accepting
+- [x] **SPAWN-06**: After team acceptance, a 2–3 second animated "Briefing your team on [Business Name]..." screen runs before the dashboard loads — establishing the AI-employee mental model
+- [x] **SPAWN-07**: Activated agents (beyond the 4 defaults) are inserted as `user_agents` rows and their workspaces auto-populated with business-context-aware content via a second LLM call
 
 ### MD Workspace System
 
@@ -78,7 +78,7 @@
 - [x] **TOOLS-01**: Each agent type in `available_agent_types` has a `skill_config` JSON field listing enabled tool categories for that role
 - [x] **TOOLS-02**: `available_agent_types` catalog ships with role-appropriate tool configs (see Context in PROJECT.md for per-role skill list)
 - [x] **TOOLS-03**: Each agent's TOOLS.md workspace file documents (in plain English) what tools the agent can use and how — this is injected into the agent's system prompt so it knows its own capabilities
-- [ ] **TOOLS-04**: The orchestrator edge function respects agent tool boundaries when routing tasks — an HR agent cannot trigger invoice functions, a Sales agent cannot trigger calendar writes
+- [x] **TOOLS-04**: The orchestrator edge function respects agent tool boundaries when routing tasks — an HR agent cannot trigger invoice functions, a Sales agent cannot trigger calendar writes
 
 ### Security
 
@@ -140,15 +140,15 @@
 | SEC-03 | Phase 1 — Database Foundation | Complete |
 | SPAWN-01 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | SPAWN-02 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| SPAWN-03 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-03 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | SPAWN-04 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| SPAWN-05 | Phase 2 — Agent Spawner + Team Selector | Pending |
-| SPAWN-06 | Phase 2 — Agent Spawner + Team Selector | Pending |
-| SPAWN-07 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-05 | Phase 2 — Agent Spawner + Team Selector | Complete |
+| SPAWN-06 | Phase 2 — Agent Spawner + Team Selector | Complete |
+| SPAWN-07 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | TOOLS-01 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | TOOLS-02 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | TOOLS-03 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| TOOLS-04 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| TOOLS-04 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | WS-01 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
 | WS-02 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
 | WS-03 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
