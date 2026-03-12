@@ -75,9 +75,9 @@
 
 ### Role-Based Tooling
 
-- [ ] **TOOLS-01**: Each agent type in `available_agent_types` has a `skill_config` JSON field listing enabled tool categories for that role
-- [ ] **TOOLS-02**: `available_agent_types` catalog ships with role-appropriate tool configs (see Context in PROJECT.md for per-role skill list)
-- [ ] **TOOLS-03**: Each agent's TOOLS.md workspace file documents (in plain English) what tools the agent can use and how — this is injected into the agent's system prompt so it knows its own capabilities
+- [x] **TOOLS-01**: Each agent type in `available_agent_types` has a `skill_config` JSON field listing enabled tool categories for that role
+- [x] **TOOLS-02**: `available_agent_types` catalog ships with role-appropriate tool configs (see Context in PROJECT.md for per-role skill list)
+- [x] **TOOLS-03**: Each agent's TOOLS.md workspace file documents (in plain English) what tools the agent can use and how — this is injected into the agent's system prompt so it knows its own capabilities
 - [ ] **TOOLS-04**: The orchestrator edge function respects agent tool boundaries when routing tasks — an HR agent cannot trigger invoice functions, a Sales agent cannot trigger calendar writes
 
 ### Security
@@ -145,9 +145,9 @@
 | SPAWN-05 | Phase 2 — Agent Spawner + Team Selector | Pending |
 | SPAWN-06 | Phase 2 — Agent Spawner + Team Selector | Pending |
 | SPAWN-07 | Phase 2 — Agent Spawner + Team Selector | Pending |
-| TOOLS-01 | Phase 2 — Agent Spawner + Team Selector | Pending |
-| TOOLS-02 | Phase 2 — Agent Spawner + Team Selector | Pending |
-| TOOLS-03 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| TOOLS-01 | Phase 2 — Agent Spawner + Team Selector | Complete |
+| TOOLS-02 | Phase 2 — Agent Spawner + Team Selector | Complete |
+| TOOLS-03 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | TOOLS-04 | Phase 2 — Agent Spawner + Team Selector | Pending |
 | WS-01 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
 | WS-02 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
