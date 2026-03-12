@@ -136,7 +136,7 @@
 | DB-06 | Phase 1 — Database Foundation | Pending |
 | DB-07 | Phase 1 — Database Foundation | Pending |
 | SEC-01 | Phase 1 — Database Foundation | Pending |
-| SEC-02 | Phase 1 — Database Foundation | Pending |
+| SEC-02 | Phase 4 — Heartbeat System | Pending |
 | SEC-03 | Phase 1 — Database Foundation | Pending |
 | SPAWN-01 | Phase 2 — Agent Spawner + Team Selector | Pending |
 | SPAWN-02 | Phase 2 — Agent Spawner + Team Selector | Pending |

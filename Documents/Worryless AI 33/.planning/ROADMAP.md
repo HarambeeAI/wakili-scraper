@@ -17,7 +17,7 @@ This milestone transforms Worryless AI from a reactive 4-agent chat platform int
 ### Phase 1: Database Foundation
 **Goal**: All schema, seed data, triggers, RLS policies, and security primitives are in place — every subsequent phase can start writing application code immediately without waiting for DB changes
 **Depends on**: Nothing (first phase)
-**Requirements**: DB-01, DB-02, DB-03, DB-04, DB-05, DB-06, DB-07, SEC-01, SEC-02, SEC-03
+**Requirements**: DB-01, DB-02, DB-03, DB-04, DB-05, DB-06, DB-07, SEC-01, SEC-03
 **Success Criteria** (what must be TRUE):
   1. The `available_agent_types` table exists with 12 agent type rows plus Chief of Staff, each carrying all 6 default MD workspace templates and role-appropriate skill configs
   2. Inserting a row into `user_agents` automatically produces exactly 6 rows in `agent_workspaces` (one per file type) via Postgres trigger — no application code needed
@@ -60,7 +60,7 @@ Plans:
 ### Phase 4: Heartbeat System
 **Goal**: Each active agent proactively checks in on its configured schedule during business hours, surfaces only genuine findings, and stays silent (no DB write, no notification) when nothing needs the user's attention
 **Depends on**: Phase 3 (HEARTBEAT.md templates must be editable before the runner reads them)
-**Requirements**: HB-01, HB-02, HB-03, HB-04, HB-05, HB-06, HB-07, HB-08, HB-09
+**Requirements**: SEC-02, HB-01, HB-02, HB-03, HB-04, HB-05, HB-06, HB-07, HB-08, HB-09
 **Success Criteria** (what must be TRUE):
   1. A single `heartbeat-dispatcher` pg_cron job runs every 5 minutes, enqueues only agents whose `next_heartbeat_at` is due and whose current time falls within the user's configured active hours — agents never fire at 3am in the user's timezone
   2. When the LLM returns `severity: "ok"` for a heartbeat run, zero rows are written to `agent_heartbeat_log` and zero notifications are created — a quiet day produces no DB activity beyond the dispatcher's `next_heartbeat_at` update
