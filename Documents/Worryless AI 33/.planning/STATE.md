@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-agent-spawner-team-selector/02-01-PLAN.md
-last_updated: "2026-03-12T19:34:34.399Z"
+stopped_at: Completed 02-agent-spawner-team-selector/02-02-PLAN.md
+last_updated: "2026-03-12T19:42:57.883Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 10
-  completed_plans: 6
+  completed_plans: 7
   percent: 20
 ---
 
@@ -56,6 +56,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 01-database-foundation P03 | 6 | 1 tasks | 1 files |
 | Phase 01-database-foundation P04 | 1 | 1 tasks | 1 files |
 | Phase 02-agent-spawner-team-selector P01 | 2 | 2 tasks | 1 files |
+| Phase 02-agent-spawner-team-selector P02 | 6 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 01-database-foundation]: DB-07 (profiles.timezone) fulfilled by comment artifact referencing migration 20251216134813 — no additional ALTER TABLE needed
 - [Phase 02-agent-spawner-team-selector]: Conditional UPDATE guards (AND skill_config = '[]'::jsonb) make migration 00005 a safe no-op on correctly seeded databases
 - [Phase 02-agent-spawner-team-selector]: TOOLS-03 fulfilled by comment recipe only — Phase 1 on_agent_activated trigger already handles TOOLS.md workspace row creation
+- [Phase 02-agent-spawner-team-selector]: LOVABLE_API_KEY (not LOVABLE_AI_GATEWAY_KEY) is the correct bearer token env var — matches crawl-business-website pattern
+- [Phase 02-agent-spawner-team-selector]: filterRecommendations exported from index.ts so spawn.test.ts can import and test pure logic without HTTP
+- [Phase 02-agent-spawner-team-selector]: LLM errors return {recommendations: [], allAgents: [...]} with 200 status — no 500 thrown to client
 
 ### Pending Todos
 
@@ -95,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T19:34:34.397Z
-Stopped at: Completed 02-agent-spawner-team-selector/02-01-PLAN.md
+Last session: 2026-03-12T19:42:57.881Z
+Stopped at: Completed 02-agent-spawner-team-selector/02-02-PLAN.md
 Resume file: None
