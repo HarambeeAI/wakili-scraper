@@ -128,21 +128,71 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DB-01 through DB-07 | Phase 1 | Pending |
-| SPAWN-01 through SPAWN-07 | Phase 2 | Pending |
-| WS-01 through WS-07 | Phase 3 | Pending |
-| MKT-01 through MKT-04 | Phase 3 | Pending |
-| HB-01 through HB-09 | Phase 4 | Pending |
-| NOTIF-01 through NOTIF-06 | Phase 5 | Pending |
-| ORG-01 through ORG-05 | Phase 5 | Pending |
-| TOOLS-01 through TOOLS-04 | Phase 2 | Pending |
-| SEC-01 through SEC-03 | Phase 1 | Pending |
+| DB-01 | Phase 1 — Database Foundation | Pending |
+| DB-02 | Phase 1 — Database Foundation | Pending |
+| DB-03 | Phase 1 — Database Foundation | Pending |
+| DB-04 | Phase 1 — Database Foundation | Pending |
+| DB-05 | Phase 1 — Database Foundation | Pending |
+| DB-06 | Phase 1 — Database Foundation | Pending |
+| DB-07 | Phase 1 — Database Foundation | Pending |
+| SEC-01 | Phase 1 — Database Foundation | Pending |
+| SEC-02 | Phase 1 — Database Foundation | Pending |
+| SEC-03 | Phase 1 — Database Foundation | Pending |
+| SPAWN-01 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-02 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-03 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-04 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-05 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-06 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| SPAWN-07 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| TOOLS-01 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| TOOLS-02 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| TOOLS-03 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| TOOLS-04 | Phase 2 — Agent Spawner + Team Selector | Pending |
+| WS-01 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| WS-02 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| WS-03 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| WS-04 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| WS-05 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| WS-06 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| WS-07 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| MKT-01 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| MKT-02 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| MKT-03 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| MKT-04 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| HB-01 | Phase 4 — Heartbeat System | Pending |
+| HB-02 | Phase 4 — Heartbeat System | Pending |
+| HB-03 | Phase 4 — Heartbeat System | Pending |
+| HB-04 | Phase 4 — Heartbeat System | Pending |
+| HB-05 | Phase 4 — Heartbeat System | Pending |
+| HB-06 | Phase 4 — Heartbeat System | Pending |
+| HB-07 | Phase 4 — Heartbeat System | Pending |
+| HB-08 | Phase 4 — Heartbeat System | Pending |
+| HB-09 | Phase 4 — Heartbeat System | Pending |
+| NOTIF-01 | Phase 5 — Org View + Notifications | Pending |
+| NOTIF-02 | Phase 5 — Org View + Notifications | Pending |
+| NOTIF-03 | Phase 5 — Org View + Notifications | Pending |
+| NOTIF-04 | Phase 5 — Org View + Notifications | Pending |
+| NOTIF-05 | Phase 5 — Org View + Notifications | Pending |
+| NOTIF-06 | Phase 5 — Org View + Notifications | Pending |
+| ORG-01 | Phase 5 — Org View + Notifications | Pending |
+| ORG-02 | Phase 5 — Org View + Notifications | Pending |
+| ORG-03 | Phase 5 — Org View + Notifications | Pending |
+| ORG-04 | Phase 5 — Org View + Notifications | Pending |
+| ORG-05 | Phase 5 — Org View + Notifications | Pending |
 
 **Coverage:**
-- v1 requirements: 46 total
-- Mapped to phases: 46
-- Unmapped: 0 ✓
+- v1 requirements: 52 total
+- Mapped to phases: 52
+- Unmapped: 0
+
+**Phase distribution:**
+- Phase 1 (Database Foundation): DB-01..07 + SEC-01..03 = 10 requirements
+- Phase 2 (Agent Spawner + Team Selector): SPAWN-01..07 + TOOLS-01..04 = 11 requirements
+- Phase 3 (MD Workspace Editor + Marketplace): WS-01..07 + MKT-01..04 = 11 requirements
+- Phase 4 (Heartbeat System): HB-01..09 = 9 requirements
+- Phase 5 (Org View + Notifications): NOTIF-01..06 + ORG-01..05 = 11 requirements
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after initial definition*
+*Last updated: 2026-03-12 after roadmap creation — traceability expanded to individual rows; coverage count corrected from 46 to 52*
