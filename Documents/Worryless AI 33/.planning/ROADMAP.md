@@ -24,7 +24,14 @@ This milestone transforms Worryless AI from a reactive 4-agent chat platform int
   3. A unique constraint on `user_agents(user_id, agent_type)` rejects a duplicate activation attempt at the DB level with a constraint violation, not a silent duplicate
   4. `profiles.timezone` column exists and accepts a valid IANA timezone string; existing profiles are not broken
   5. All four new tables (`available_agent_types`, `user_agents`, `agent_workspaces`, `agent_heartbeat_log`) have RLS policies that restrict reads and writes to the owning user; a cross-user query returns zero rows
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Create 4 new tables, 2 ENUMs, and RLS policies (Migration A)
+- [ ] 01-02-PLAN.md — Workspace auto-population trigger function (Migration B)
+- [ ] 01-03-PLAN.md — Seed 13 agent types with full MD workspace templates (Migration C)
+- [ ] 01-04-PLAN.md — Backfill existing users and human verification checkpoint (Migration D)
+- [ ] 01-05-PLAN.md — Security hardening: JWT fix in 3 edge functions + sanitize.ts module
 
 ### Phase 2: Agent Spawner + Team Selector
 **Goal**: New users complete onboarding and land in the dashboard with a curated AI team already activated and briefed on their business — agents are not configured after the fact
@@ -81,7 +88,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Foundation | 0/TBD | Not started | - |
+| 1. Database Foundation | 0/5 | Planned | - |
 | 2. Agent Spawner + Team Selector | 0/TBD | Not started | - |
 | 3. MD Workspace Editor + Marketplace | 0/TBD | Not started | - |
 | 4. Heartbeat System | 0/TBD | Not started | - |
