@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: "Completed 05-04-PLAN.md — Web Push VAPID pipeline: push_subscriptions table, sw.js, usePushSubscription hook, Settings toggle, heartbeat-runner urgent push send"
-last_updated: "2026-03-13T10:50:31.802Z"
+stopped_at: Completed 06-01-PLAN.md — Fixed heartbeat-dispatcher pgmq payload snake_case keys to unblock HB-01 through HB-09 pipeline
+last_updated: "2026-03-13T11:37:26.183Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
-  total_phases: 5
+  total_phases: 9
   completed_phases: 5
-  total_plans: 26
-  completed_plans: 26
+  total_plans: 28
+  completed_plans: 27
   percent: 20
 ---
 
@@ -77,6 +77,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 05-org-view-notifications P02 | 15 | 2 tasks | 5 files |
 | Phase 05-org-view-notifications P05 | 5 | 1 tasks | 2 files |
 | Phase 05-org-view-notifications P04 | 2 | 2 tasks | 5 files |
+| Phase 06-heartbeat-bug-fixes P01 | 3 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -152,6 +153,7 @@ Recent decisions affecting current work:
 - [Phase 05-org-view-notifications]: next_digest_run_at dispatcher pattern (same as heartbeat_at) — hourly cron queries due users, advances column after delivery, no timezone-bucket crons needed
 - [Phase 05-org-view-notifications]: Dynamic import of jsr:@negrel/webpush inside urgent try/catch — allows heartbeat-runner to deploy before VAPID keys are configured
 - [Phase 05-org-view-notifications]: VAPID env vars treated as optional in heartbeat-runner — if absent, push skipped silently; email delivery unaffected
+- [Phase 06-heartbeat-bug-fixes]: snake_case keys (user_agent_id, user_id, agent_type_id) are the authoritative pgmq message contract between dispatcher and runner
 
 ### Pending Todos
 
@@ -165,6 +167,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T10:49:54.392Z
-Stopped at: Completed 05-04-PLAN.md — Web Push VAPID pipeline: push_subscriptions table, sw.js, usePushSubscription hook, Settings toggle, heartbeat-runner urgent push send
+Last session: 2026-03-13T11:37:26.180Z
+Stopped at: Completed 06-01-PLAN.md — Fixed heartbeat-dispatcher pgmq payload snake_case keys to unblock HB-01 through HB-09 pipeline
 Resume file: None

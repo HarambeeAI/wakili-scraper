@@ -46,15 +46,15 @@
 
 ### Heartbeat System
 
-- [ ] **HB-01**: A `heartbeat-dispatcher` edge function (triggered by a single pg_cron job every 5 minutes) queries `user_agents` for agents due for a heartbeat tick and enqueues them into a pgmq queue (`heartbeat_jobs`)
-- [ ] **HB-02**: A `heartbeat-runner` edge function (triggered by pg_cron every 1 minute) reads up to 5 messages from `heartbeat_jobs` and processes each: reads HEARTBEAT.md + recent task history, calls LLM, evaluates response
-- [ ] **HB-03**: LLM heartbeat response must include structured severity field: `{ severity: "urgent" | "headsup" | "digest" | "ok", finding: string }` — if severity is "ok", the run is suppressed with no DB write
-- [ ] **HB-04**: Non-OK heartbeat runs create a notification record and optionally a task: "urgent" → push notification + email + in-app; "headsup" → in-app only; "digest" → batched into morning Chief of Staff briefing
-- [ ] **HB-05**: Each user has a per-day call budget per agent (default: 6 heartbeat calls/day) enforced by the dispatcher query — prevents cost runaway
-- [ ] **HB-06**: Heartbeats only fire during the user's configured active hours (default: 08:00–20:00 in their timezone) — dispatcher uses `profiles.timezone` for this check
-- [ ] **HB-07**: `agent_heartbeat_log` records: agent_type, user_id, severity, finding, timestamp — only for non-OK outcomes
+- [x] **HB-01**: A `heartbeat-dispatcher` edge function (triggered by a single pg_cron job every 5 minutes) queries `user_agents` for agents due for a heartbeat tick and enqueues them into a pgmq queue (`heartbeat_jobs`)
+- [x] **HB-02**: A `heartbeat-runner` edge function (triggered by pg_cron every 1 minute) reads up to 5 messages from `heartbeat_jobs` and processes each: reads HEARTBEAT.md + recent task history, calls LLM, evaluates response
+- [x] **HB-03**: LLM heartbeat response must include structured severity field: `{ severity: "urgent" | "headsup" | "digest" | "ok", finding: string }` — if severity is "ok", the run is suppressed with no DB write
+- [x] **HB-04**: Non-OK heartbeat runs create a notification record and optionally a task: "urgent" → push notification + email + in-app; "headsup" → in-app only; "digest" → batched into morning Chief of Staff briefing
+- [x] **HB-05**: Each user has a per-day call budget per agent (default: 6 heartbeat calls/day) enforced by the dispatcher query — prevents cost runaway
+- [x] **HB-06**: Heartbeats only fire during the user's configured active hours (default: 08:00–20:00 in their timezone) — dispatcher uses `profiles.timezone` for this check
+- [x] **HB-07**: `agent_heartbeat_log` records: agent_type, user_id, severity, finding, timestamp — only for non-OK outcomes
 - [ ] **HB-08**: Each agent's settings panel shows heartbeat configuration: interval (1h / 2h / 4h / 8h), active hours (start/end), and enabled toggle
-- [ ] **HB-09**: Chief of Staff sends a morning daily briefing digest at 8am (user timezone) consolidating all "digest"-severity heartbeat findings from the past 24 hours across all agents
+- [x] **HB-09**: Chief of Staff sends a morning daily briefing digest at 8am (user timezone) consolidating all "digest"-severity heartbeat findings from the past 24 hours across all agents
 
 ### Notifications
 
@@ -160,15 +160,15 @@
 | MKT-02 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-03 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| HB-01 | Phase 6 — Heartbeat Bug Fixes | Pending |
-| HB-02 | Phase 6 — Heartbeat Bug Fixes | Pending |
-| HB-03 | Phase 6 — Heartbeat Bug Fixes | Pending |
-| HB-04 | Phase 6 — Heartbeat Bug Fixes | Pending |
-| HB-05 | Phase 6 — Heartbeat Bug Fixes | Pending |
-| HB-06 | Phase 6 — Heartbeat Bug Fixes | Pending |
-| HB-07 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-01 | Phase 6 — Heartbeat Bug Fixes | Complete |
+| HB-02 | Phase 6 — Heartbeat Bug Fixes | Complete |
+| HB-03 | Phase 6 — Heartbeat Bug Fixes | Complete |
+| HB-04 | Phase 6 — Heartbeat Bug Fixes | Complete |
+| HB-05 | Phase 6 — Heartbeat Bug Fixes | Complete |
+| HB-06 | Phase 6 — Heartbeat Bug Fixes | Complete |
+| HB-07 | Phase 6 — Heartbeat Bug Fixes | Complete |
 | HB-08 | Phase 6 — Heartbeat Bug Fixes | Pending |
-| HB-09 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-09 | Phase 6 — Heartbeat Bug Fixes | Complete |
 | NOTIF-01 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-02 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-03 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Pending |
