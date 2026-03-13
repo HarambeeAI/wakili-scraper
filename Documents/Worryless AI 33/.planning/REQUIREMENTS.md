@@ -53,7 +53,7 @@
 - [x] **HB-05**: Each user has a per-day call budget per agent (default: 6 heartbeat calls/day) enforced by the dispatcher query — prevents cost runaway
 - [x] **HB-06**: Heartbeats only fire during the user's configured active hours (default: 08:00–20:00 in their timezone) — dispatcher uses `profiles.timezone` for this check
 - [x] **HB-07**: `agent_heartbeat_log` records: agent_type, user_id, severity, finding, timestamp — only for non-OK outcomes
-- [ ] **HB-08**: Each agent's settings panel shows heartbeat configuration: interval (1h / 2h / 4h / 8h), active hours (start/end), and enabled toggle
+- [x] **HB-08**: Each agent's settings panel shows heartbeat configuration: interval (1h / 2h / 4h / 8h), active hours (start/end), and enabled toggle
 - [x] **HB-09**: Chief of Staff sends a morning daily briefing digest at 8am (user timezone) consolidating all "digest"-severity heartbeat findings from the past 24 hours across all agents
 
 ### Notifications
@@ -70,7 +70,7 @@
 - [x] **ORG-01**: Dashboard has a "Team" view (accessible from sidebar) showing an org chart: Chief of Staff at top, all activated agents below as direct reports
 - [x] **ORG-02**: Each agent card in the Team view shows: agent name, role, avatar/icon, heartbeat status indicator (green pulse = active, grey = sleeping, amber = needs attention), last active timestamp, and task count (last 7 days)
 - [x] **ORG-03**: Heartbeat status indicator shows a live pulse animation when an agent's heartbeat fired in the last hour
-- [ ] **ORG-04**: Clicking an agent card in the Team view navigates to that agent's dedicated panel
+- [x] **ORG-04**: Clicking an agent card in the Team view navigates to that agent's dedicated panel
 - [x] **ORG-05**: "Add Agent" button is prominently placed in the Team view, opening the Agent Marketplace
 
 ### Role-Based Tooling
@@ -167,7 +167,7 @@
 | HB-05 | Phase 6 — Heartbeat Bug Fixes | Complete |
 | HB-06 | Phase 6 — Heartbeat Bug Fixes | Complete |
 | HB-07 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-08 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-08 | Phase 6 — Heartbeat Bug Fixes | Complete |
 | HB-09 | Phase 6 — Heartbeat Bug Fixes | Complete |
 | NOTIF-01 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-02 | Phase 5 — Org View + Notifications | Complete |
@@ -178,7 +178,7 @@
 | ORG-01 | Phase 5 — Org View + Notifications | Complete |
 | ORG-02 | Phase 5 — Org View + Notifications | Complete |
 | ORG-03 | Phase 5 — Org View + Notifications | Complete |
-| ORG-04 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| ORG-04 | Phase 6 — Heartbeat Bug Fixes | Complete |
 | ORG-05 | Phase 5 — Org View + Notifications | Complete |
 
 **Coverage:**

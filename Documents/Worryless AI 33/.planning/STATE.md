@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 06-01-PLAN.md — Fixed heartbeat-dispatcher pgmq payload snake_case keys to unblock HB-01 through HB-09 pipeline
-last_updated: "2026-03-13T11:37:26.183Z"
+stopped_at: Completed 06-02-PLAN.md — Fixed heartbeat severity check (urgent/headsup/digest) and confirmed HB-08 closed
+last_updated: "2026-03-13T11:40:01.271Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 28
-  completed_plans: 27
+  completed_plans: 28
   percent: 20
 ---
 
@@ -78,6 +78,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 05-org-view-notifications P05 | 5 | 1 tasks | 2 files |
 | Phase 05-org-view-notifications P04 | 2 | 2 tasks | 5 files |
 | Phase 06-heartbeat-bug-fixes P01 | 3 | 1 tasks | 1 files |
+| Phase 06-heartbeat-bug-fixes P02 | 1 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,8 @@ Recent decisions affecting current work:
 - [Phase 05-org-view-notifications]: Dynamic import of jsr:@negrel/webpush inside urgent try/catch — allows heartbeat-runner to deploy before VAPID keys are configured
 - [Phase 05-org-view-notifications]: VAPID env vars treated as optional in heartbeat-runner — if absent, push skipped silently; email delivery unaffected
 - [Phase 06-heartbeat-bug-fixes]: snake_case keys (user_agent_id, user_id, agent_type_id) are the authoritative pgmq message contract between dispatcher and runner
+- [Phase 06-heartbeat-bug-fixes]: Fix the check not the data source (Option A): heartbeatStatus.ts checks urgent||headsup||digest severity values; useTeamData.ts and AgentCard.tsx unchanged
+- [Phase 06-heartbeat-bug-fixes]: lastOutcome parameter name preserved — semantic imprecision pre-existed; renaming out of Phase 6 scope
 
 ### Pending Todos
 
@@ -167,6 +170,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T11:37:26.180Z
-Stopped at: Completed 06-01-PLAN.md — Fixed heartbeat-dispatcher pgmq payload snake_case keys to unblock HB-01 through HB-09 pipeline
+Last session: 2026-03-13T11:40:01.268Z
+Stopped at: Completed 06-02-PLAN.md — Fixed heartbeat severity check (urgent/headsup/digest) and confirmed HB-08 closed
 Resume file: None
