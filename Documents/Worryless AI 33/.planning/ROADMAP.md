@@ -110,10 +110,55 @@ Plans:
 - [ ] 05-04-PLAN.md — Web Push: push_subscriptions migration + sw.js + usePushSubscription + Settings toggle + heartbeat-runner VAPID send (NOTIF-03)
 - [ ] 05-05-PLAN.md — Per-user timezone morning digest: next_digest_run_at column + send-morning-digest refactor + human verification checkpoint (NOTIF-04)
 
+### Phase 6: Heartbeat Bug Fixes
+**Goal**: Restore full heartbeat system operation by fixing two critical integration bugs — the dispatcher→runner field name mismatch (camelCase vs snake_case) that silently breaks every job, and the heartbeat status amber dot that never shows because getHeartbeatStatus checks the wrong field value
+**Depends on**: Phase 4, Phase 5 (fixes bugs introduced in those phases)
+**Requirements**: HB-01, HB-02, HB-03, HB-04, HB-05, HB-06, HB-07, HB-08, HB-09, ORG-04
+**Gap Closure**: Closes gaps from audit
+
+Plans:
+- [ ] 06-01-PLAN.md — Fix dispatcher→runner field name mismatch: align camelCase enqueue payload with snake_case destructuring in runner (HB-01..09)
+- [ ] 06-02-PLAN.md — Fix getHeartbeatStatus() field check: update to match severity values passed by useTeamData (ORG-04)
+
+### Phase 7: Workspace Prompt Wiring + Push Opt-In
+**Goal**: Wire buildWorkspacePrompt() into all production AI call paths in the correct injection order, and surface push notification opt-in during onboarding and first dashboard load so users can actually receive urgent alerts
+**Depends on**: Phase 3, Phase 5
+**Requirements**: WS-07, NOTIF-03
+**Gap Closure**: Closes gaps from audit
+
+Plans:
+- [ ] 07-01-PLAN.md — Wire buildWorkspacePrompt() in orchestrator edge function with IDENTITY→SOUL→SOPs→TOOLS→MEMORY injection order (WS-07)
+- [ ] 07-02-PLAN.md — Wire buildWorkspacePrompt() in agent panels for non-heartbeat AI calls (WS-07)
+- [ ] 07-03-PLAN.md — Add push subscription opt-in prompt to onboarding completion step (NOTIF-03)
+- [ ] 07-04-PLAN.md — Add push subscription opt-in prompt on first dashboard load for existing users (NOTIF-03)
+
+### Phase 8: Phase Verifications
+**Goal**: Produce VERIFICATION.md for all four unverified phases (01, 03, 04, 05) — code-review each phase's deliverables against its success criteria and requirements, creating the formal verification record needed to close the milestone
+**Depends on**: Phase 6 (Phase 4 verification requires heartbeat system to be functional)
+**Requirements**: (verification coverage for DB-01..07, SEC-01, SEC-03, WS-01..07, MKT-01..04, HB-01..09, NOTIF-01..06, ORG-01..05)
+**Gap Closure**: Closes nyquist/verification gaps from audit
+
+Plans:
+- [ ] 08-01-PLAN.md — VERIFICATION.md for Phase 1 (Database Foundation): verify schema, triggers, RLS, seed data, security hardening
+- [ ] 08-02-PLAN.md — VERIFICATION.md for Phase 3 (MD Workspace Editor + Marketplace): verify editor, auto-save, reset, marketplace add/deactivate
+- [ ] 08-03-PLAN.md — VERIFICATION.md for Phase 4 (Heartbeat System): verify dispatcher, runner, config UI, budget enforcement, digest (after Phase 6 fixes)
+- [ ] 08-04-PLAN.md — VERIFICATION.md for Phase 5 (Org View + Notifications): verify team view, notification bell, realtime, push, morning digest
+
+### Phase 9: Tech Debt Cleanup
+**Goal**: Remove dead code, consolidate duplicate modules, fix cosmetic label discrepancies, and make TeamView reactively update on marketplace adds — reducing future maintenance risk and drift
+**Depends on**: Phase 6, Phase 7 (clean state before tidying)
+**Requirements**: (no new requirements — quality/maintenance)
+**Gap Closure**: Closes tech debt items from audit
+
+Plans:
+- [ ] 09-01-PLAN.md — Remove handleComplete() dead code + unreachable Step union members in ConversationalOnboarding.tsx (Phase 2 tech debt)
+- [ ] 09-02-PLAN.md — Consolidate sanitize.ts duplicates (src/ vs supabase/functions/_shared/) into a single shared module (Phase 3 tech debt)
+- [ ] 09-03-PLAN.md — Fix "Step 11 of 11" cosmetic label in AgentTeamSelector + add TeamView Realtime subscription for reactive marketplace updates (Phase 5 tech debt)
+
 ## Progress
 
 **Execution Order:**
-Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel after Phase 1. Phase 4 depends on Phase 3. Phase 5 depends on Phase 4.
+Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel after Phase 1. Phase 4 depends on Phase 3. Phase 5 depends on Phase 4. Phase 6 fixes bugs from Phases 4 and 5. Phase 7 wires missing integrations from Phases 3 and 5. Phase 8 depends on Phase 6. Phase 9 depends on Phases 6 and 7.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -122,8 +167,13 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 | 3. MD Workspace Editor + Marketplace | 5/5 | Complete   | 2026-03-13 |
 | 4. Heartbeat System | 6/6 | Complete   | 2026-03-13 |
 | 5. Org View + Notifications | 5/5 | Complete   | 2026-03-13 |
+| 6. Heartbeat Bug Fixes | 0/2 | Pending | |
+| 7. Workspace Prompt Wiring + Push Opt-In | 0/4 | Pending | |
+| 8. Phase Verifications | 0/4 | Pending | |
+| 9. Tech Debt Cleanup | 0/3 | Pending | |
 
 ---
 *Roadmap created: 2026-03-12*
+*Updated: 2026-03-13 — added gap closure phases 6–9 from milestone audit*
 *Milestone: Proactive Multi-Agent Platform*
 *Brownfield: existing auth, 4 agents, onboarding, tasks, and chat are working and must not be broken*

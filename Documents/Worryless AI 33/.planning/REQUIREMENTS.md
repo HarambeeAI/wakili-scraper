@@ -35,7 +35,7 @@
 - [x] **WS-04**: Workspace edits auto-save with 2-second debounce — no explicit save button needed
 - [x] **WS-05**: Each editable workspace file has a "Reset to defaults" action that restores the original catalog template content (with confirmation dialog)
 - [x] **WS-06**: Server-side sanitization strips prompt injection patterns from workspace content before it is inserted into any LLM system prompt
-- [x] **WS-07**: All AI calls that use workspace content inject files in the order: IDENTITY → SOUL → SOPs → TOOLS → MEMORY (HEARTBEAT only on heartbeat runs)
+- [ ] **WS-07**: All AI calls that use workspace content inject files in the order: IDENTITY → SOUL → SOPs → TOOLS → MEMORY (HEARTBEAT only on heartbeat runs)
 
 ### Agent Marketplace
 
@@ -46,21 +46,21 @@
 
 ### Heartbeat System
 
-- [x] **HB-01**: A `heartbeat-dispatcher` edge function (triggered by a single pg_cron job every 5 minutes) queries `user_agents` for agents due for a heartbeat tick and enqueues them into a pgmq queue (`heartbeat_jobs`)
-- [x] **HB-02**: A `heartbeat-runner` edge function (triggered by pg_cron every 1 minute) reads up to 5 messages from `heartbeat_jobs` and processes each: reads HEARTBEAT.md + recent task history, calls LLM, evaluates response
-- [x] **HB-03**: LLM heartbeat response must include structured severity field: `{ severity: "urgent" | "headsup" | "digest" | "ok", finding: string }` — if severity is "ok", the run is suppressed with no DB write
-- [x] **HB-04**: Non-OK heartbeat runs create a notification record and optionally a task: "urgent" → push notification + email + in-app; "headsup" → in-app only; "digest" → batched into morning Chief of Staff briefing
-- [x] **HB-05**: Each user has a per-day call budget per agent (default: 6 heartbeat calls/day) enforced by the dispatcher query — prevents cost runaway
-- [x] **HB-06**: Heartbeats only fire during the user's configured active hours (default: 08:00–20:00 in their timezone) — dispatcher uses `profiles.timezone` for this check
-- [x] **HB-07**: `agent_heartbeat_log` records: agent_type, user_id, severity, finding, timestamp — only for non-OK outcomes
-- [x] **HB-08**: Each agent's settings panel shows heartbeat configuration: interval (1h / 2h / 4h / 8h), active hours (start/end), and enabled toggle
-- [x] **HB-09**: Chief of Staff sends a morning daily briefing digest at 8am (user timezone) consolidating all "digest"-severity heartbeat findings from the past 24 hours across all agents
+- [ ] **HB-01**: A `heartbeat-dispatcher` edge function (triggered by a single pg_cron job every 5 minutes) queries `user_agents` for agents due for a heartbeat tick and enqueues them into a pgmq queue (`heartbeat_jobs`)
+- [ ] **HB-02**: A `heartbeat-runner` edge function (triggered by pg_cron every 1 minute) reads up to 5 messages from `heartbeat_jobs` and processes each: reads HEARTBEAT.md + recent task history, calls LLM, evaluates response
+- [ ] **HB-03**: LLM heartbeat response must include structured severity field: `{ severity: "urgent" | "headsup" | "digest" | "ok", finding: string }` — if severity is "ok", the run is suppressed with no DB write
+- [ ] **HB-04**: Non-OK heartbeat runs create a notification record and optionally a task: "urgent" → push notification + email + in-app; "headsup" → in-app only; "digest" → batched into morning Chief of Staff briefing
+- [ ] **HB-05**: Each user has a per-day call budget per agent (default: 6 heartbeat calls/day) enforced by the dispatcher query — prevents cost runaway
+- [ ] **HB-06**: Heartbeats only fire during the user's configured active hours (default: 08:00–20:00 in their timezone) — dispatcher uses `profiles.timezone` for this check
+- [ ] **HB-07**: `agent_heartbeat_log` records: agent_type, user_id, severity, finding, timestamp — only for non-OK outcomes
+- [ ] **HB-08**: Each agent's settings panel shows heartbeat configuration: interval (1h / 2h / 4h / 8h), active hours (start/end), and enabled toggle
+- [ ] **HB-09**: Chief of Staff sends a morning daily briefing digest at 8am (user timezone) consolidating all "digest"-severity heartbeat findings from the past 24 hours across all agents
 
 ### Notifications
 
 - [x] **NOTIF-01**: Dashboard has a notification bell (header) showing unread count; clicking opens a notification panel with severity-tiered entries
 - [x] **NOTIF-02**: In-app notifications use Supabase Realtime Broadcast (DB trigger → Realtime channel) so alerts appear without page refresh
-- [x] **NOTIF-03**: "Urgent" heartbeat findings trigger a push notification via native Web Push API + VAPID (no third-party service)
+- [ ] **NOTIF-03**: "Urgent" heartbeat findings trigger a push notification via native Web Push API + VAPID (no third-party service)
 - [x] **NOTIF-04**: "Urgent" heartbeat findings also trigger an email via the existing Resend integration
 - [x] **NOTIF-05**: Users can mark notifications as read individually or "Mark all read"
 - [x] **NOTIF-06**: Notification entries link to the relevant agent view (clicking an accountant heartbeat alert opens the Accountant panel)
@@ -70,7 +70,7 @@
 - [x] **ORG-01**: Dashboard has a "Team" view (accessible from sidebar) showing an org chart: Chief of Staff at top, all activated agents below as direct reports
 - [x] **ORG-02**: Each agent card in the Team view shows: agent name, role, avatar/icon, heartbeat status indicator (green pulse = active, grey = sleeping, amber = needs attention), last active timestamp, and task count (last 7 days)
 - [x] **ORG-03**: Heartbeat status indicator shows a live pulse animation when an agent's heartbeat fired in the last hour
-- [x] **ORG-04**: Clicking an agent card in the Team view navigates to that agent's dedicated panel
+- [ ] **ORG-04**: Clicking an agent card in the Team view navigates to that agent's dedicated panel
 - [x] **ORG-05**: "Add Agent" button is prominently placed in the Team view, opening the Agent Marketplace
 
 ### Role-Based Tooling
@@ -155,44 +155,49 @@
 | WS-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-05 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-06 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| WS-07 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
+| WS-07 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Pending |
 | MKT-01 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-02 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-03 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| HB-01 | Phase 4 — Heartbeat System | Complete |
-| HB-02 | Phase 4 — Heartbeat System | Complete |
-| HB-03 | Phase 4 — Heartbeat System | Complete |
-| HB-04 | Phase 4 — Heartbeat System | Complete |
-| HB-05 | Phase 4 — Heartbeat System | Complete |
-| HB-06 | Phase 4 — Heartbeat System | Complete |
-| HB-07 | Phase 4 — Heartbeat System | Complete |
-| HB-08 | Phase 4 — Heartbeat System | Complete |
-| HB-09 | Phase 4 — Heartbeat System | Complete |
+| HB-01 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-02 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-03 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-04 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-05 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-06 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-07 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-08 | Phase 6 — Heartbeat Bug Fixes | Pending |
+| HB-09 | Phase 6 — Heartbeat Bug Fixes | Pending |
 | NOTIF-01 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-02 | Phase 5 — Org View + Notifications | Complete |
-| NOTIF-03 | Phase 5 — Org View + Notifications | Complete |
+| NOTIF-03 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Pending |
 | NOTIF-04 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-05 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-06 | Phase 5 — Org View + Notifications | Complete |
 | ORG-01 | Phase 5 — Org View + Notifications | Complete |
 | ORG-02 | Phase 5 — Org View + Notifications | Complete |
 | ORG-03 | Phase 5 — Org View + Notifications | Complete |
-| ORG-04 | Phase 5 — Org View + Notifications | Complete |
+| ORG-04 | Phase 6 — Heartbeat Bug Fixes | Pending |
 | ORG-05 | Phase 5 — Org View + Notifications | Complete |
 
 **Coverage:**
 - v1 requirements: 52 total
 - Mapped to phases: 52
 - Unmapped: 0
+- Pending (reset after audit gaps): HB-01..09, ORG-04, WS-07, NOTIF-03 = 12
 
 **Phase distribution:**
 - Phase 1 (Database Foundation): DB-01..07 + SEC-01..03 = 10 requirements
 - Phase 2 (Agent Spawner + Team Selector): SPAWN-01..07 + TOOLS-01..04 = 11 requirements
-- Phase 3 (MD Workspace Editor + Marketplace): WS-01..07 + MKT-01..04 = 11 requirements
-- Phase 4 (Heartbeat System): HB-01..09 = 9 requirements
-- Phase 5 (Org View + Notifications): NOTIF-01..06 + ORG-01..05 = 11 requirements
+- Phase 3 (MD Workspace Editor + Marketplace): WS-01..06 + MKT-01..04 = 10 requirements
+- Phase 4 (Heartbeat System): SEC-02 + HB-08 = 2 requirements (HB-01..09 moved to Phase 6)
+- Phase 5 (Org View + Notifications): NOTIF-01..02, NOTIF-04..06, ORG-01..03, ORG-05 = 9 requirements
+- Phase 6 (Heartbeat Bug Fixes): HB-01..09 + ORG-04 = 10 requirements
+- Phase 7 (Workspace Prompt Wiring + Push Opt-In): WS-07 + NOTIF-03 = 2 requirements
+- Phase 8 (Phase Verifications): coverage for Phases 1, 3, 4, 5
+- Phase 9 (Tech Debt Cleanup): no new requirements
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after roadmap creation — traceability expanded to individual rows; coverage count corrected from 46 to 52*
+*Last updated: 2026-03-13 after milestone audit — 12 requirements reset to Pending and reassigned to gap closure phases 6–7*
