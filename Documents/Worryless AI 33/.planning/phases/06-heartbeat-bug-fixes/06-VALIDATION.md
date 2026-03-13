@@ -2,8 +2,8 @@
 phase: 6
 slug: heartbeat-bug-fixes
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-13
 ---
 
@@ -38,9 +38,11 @@ created: 2026-03-13
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 6-01-01 | 01 | 1 | HB-01..09 | unit | `npx vitest run src/__tests__/heartbeat-dispatcher.test.ts` | ❌ W0 | ⬜ pending |
+| 6-01-01 | 01 | 1 | HB-01..09 | unit | `npx vitest run src/__tests__/heartbeatDispatcher.test.ts` | ✅ | ⬜ pending |
 | 6-01-02 | 01 | 1 | HB-01..09 | integration | `npx vitest run` | ✅ | ⬜ pending |
 | 6-02-01 | 02 | 1 | ORG-04 | unit | `npx vitest run src/__tests__/useTeamData.test.ts` | ✅ | ⬜ pending |
+| 6-02-02 | 02 | 1 | ORG-04 | unit | `npx vitest run src/__tests__/useTeamData.test.ts` | ✅ | ⬜ pending |
+| 6-02-03 | 02 | 1 | HB-08 | unit | `npx vitest run src/__tests__/useHeartbeatConfig.test.ts` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,9 +50,11 @@ created: 2026-03-13
 
 ## Wave 0 Requirements
 
-- [ ] `src/__tests__/heartbeat-dispatcher.test.ts` — unit tests for dispatcher field name fix (HB-01..09)
+All test files confirmed present on disk — no Wave 0 scaffolding needed.
 
-*Existing `useTeamData.test.ts` covers `getHeartbeatStatus` but assertions need updating.*
+- `src/__tests__/heartbeatDispatcher.test.ts` — ✅ exists (Phase 4)
+- `src/__tests__/useHeartbeatConfig.test.ts` — ✅ exists (Phase 4)
+- `src/__tests__/useTeamData.test.ts` — ✅ exists (assertions need updating in Plan 02)
 
 ---
 
@@ -65,11 +69,11 @@ created: 2026-03-13
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
