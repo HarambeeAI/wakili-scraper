@@ -101,7 +101,14 @@ Plans:
   3. A notification bell in the dashboard header shows an unread count that updates in real time (via Supabase Realtime Broadcast) when a new heartbeat finding is created — the user does not need to refresh to see the badge increment
   4. Clicking a notification entry in the notification panel navigates to the relevant agent's panel; users can mark individual notifications as read or mark all as read; the unread count updates immediately
   5. The Chief of Staff delivers a morning digest at 8am in the user's timezone that consolidates all "digest"-severity heartbeat findings from the previous 24 hours across all agents into a single briefing in the chat interface
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Wave 0 test scaffolds: useNotifications + useTeamData stubs (NOTIF-01, NOTIF-02, NOTIF-05, NOTIF-06, ORG-02, ORG-03)
+- [ ] 05-02-PLAN.md — useNotifications hook + NotificationBell component + DashboardHeader wiring (NOTIF-01, NOTIF-02, NOTIF-05, NOTIF-06)
+- [ ] 05-03-PLAN.md — useTeamData hook + TeamView org chart + DashboardSidebar + Dashboard wiring (ORG-01, ORG-02, ORG-03, ORG-04, ORG-05)
+- [ ] 05-04-PLAN.md — Web Push: push_subscriptions migration + sw.js + usePushSubscription + Settings toggle + heartbeat-runner VAPID send (NOTIF-03)
+- [ ] 05-05-PLAN.md — Per-user timezone morning digest: next_digest_run_at column + send-morning-digest refactor + human verification checkpoint (NOTIF-04)
 
 ## Progress
 
@@ -114,7 +121,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 | 2. Agent Spawner + Team Selector | 4/5 | In Progress|  |
 | 3. MD Workspace Editor + Marketplace | 5/5 | Complete   | 2026-03-13 |
 | 4. Heartbeat System | 6/6 | Complete   | 2026-03-13 |
-| 5. Org View + Notifications | 0/TBD | Not started | - |
+| 5. Org View + Notifications | 0/5 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-12*
