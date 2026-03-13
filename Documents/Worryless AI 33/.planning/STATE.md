@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-md-workspace-editor-agent-marketplace/03-02-PLAN.md
-last_updated: "2026-03-13T00:24:35.559Z"
+stopped_at: Completed 03-md-workspace-editor-agent-marketplace/03-04-PLAN.md
+last_updated: "2026-03-13T00:28:27.662Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
   percent: 20
 ---
 
@@ -63,6 +63,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 03-md-workspace-editor-agent-marketplace P03 | 2 | 2 tasks | 3 files |
 | Phase 03-md-workspace-editor-agent-marketplace P01 | 4 | 2 tasks | 8 files |
 | Phase 03-md-workspace-editor-agent-marketplace P02 | 15 | 3 tasks | 4 files |
+| Phase 03-md-workspace-editor-agent-marketplace P04 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,9 @@ Recent decisions affecting current work:
 - [Phase 03-md-workspace-editor-agent-marketplace]: basicSetup imported from @codemirror/basic-setup (not @codemirror/view) — re-exported from that package in CM6
 - [Phase 03-md-workspace-editor-agent-marketplace]: WorkspaceEditor mount useEffect has empty deps [] with eslint-disable comment — value sync handled by separate [value] effect to prevent cursor jump
 - [Phase 03-md-workspace-editor-agent-marketplace]: useAgentWorkspace Supabase queries cast as any — agent_workspaces and available_agent_types not in generated types; TODO: regenerate after Phase 1 migrations
+- [Phase 03-md-workspace-editor-agent-marketplace]: EditableWorkspaceTab inner component per editable tab — clean useAgentWorkspace isolation
+- [Phase 03-md-workspace-editor-agent-marketplace]: Dialog (not Sheet) for workspace modal at max-w-4xl h-[80vh] — more vertical space for CodeMirror editor
+- [Phase 03-md-workspace-editor-agent-marketplace]: userId fetched internally in GenericAgentPanel via supabase.auth.getUser() — callers keep existing interface
 
 ### Pending Todos
 
@@ -119,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T00:24:35.557Z
-Stopped at: Completed 03-md-workspace-editor-agent-marketplace/03-02-PLAN.md
+Last session: 2026-03-13T00:28:27.659Z
+Stopped at: Completed 03-md-workspace-editor-agent-marketplace/03-04-PLAN.md
 Resume file: None
