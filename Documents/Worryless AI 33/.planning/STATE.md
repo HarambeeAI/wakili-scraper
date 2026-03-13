@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-01-PLAN.md — Wave 0 test scaffolds for useNotifications and useTeamData
-last_updated: "2026-03-13T10:43:38.120Z"
+stopped_at: Completed 05-02-PLAN.md — notification bell with realtime unread count, popover panel, and mark-read controls
+last_updated: "2026-03-13T10:45:00.440Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 20
 ---
 
@@ -74,6 +74,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 04-heartbeat-system P06 | 2 | 1 tasks | 4 files |
 | Phase 05-org-view-notifications P03 | 3 | 2 tasks | 8 files |
 | Phase 05-org-view-notifications P01 | 3 | 2 tasks | 1 files |
+| Phase 05-org-view-notifications P02 | 15 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,9 @@ Recent decisions affecting current work:
 - [Phase 05-org-view-notifications]: useTeamData casts supabase queries as any for user_agents and agent_heartbeat_log — consistent with useAgentWorkspace pattern
 - [Phase 05-org-view-notifications]: useTeamData.test.ts already existed with real passing tests (committed in 05-03) — kept as-is since it exceeds Wave 0 requirements
 - [Phase 05-org-view-notifications]: useNotifications.test.ts uses it.todo stubs only in Wave 0 — useNotifications hook did not exist until Plan 02 committed it
+- [Phase 05-org-view-notifications]: useNotifications casts supabase queries as any for notifications table — not in generated types, consistent with useAgentWorkspace/useHeartbeatConfig pattern
+- [Phase 05-org-view-notifications]: resolveView uses inline LEGACY_VIEW_MAP inside hook — mirrors DashboardSidebar map, avoids cross-component import
+- [Phase 05-org-view-notifications]: NotificationBell uses BellDot icon (lucide-react) when unreadCount > 0 — visual distinction without additional badge library
 
 ### Pending Todos
 
@@ -156,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T10:43:38.118Z
-Stopped at: Completed 05-01-PLAN.md — Wave 0 test scaffolds for useNotifications and useTeamData
+Last session: 2026-03-13T10:45:00.437Z
+Stopped at: Completed 05-02-PLAN.md — notification bell with realtime unread count, popover panel, and mark-read controls
 Resume file: None
