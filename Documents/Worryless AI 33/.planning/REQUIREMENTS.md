@@ -54,7 +54,7 @@
 - [x] **HB-06**: Heartbeats only fire during the user's configured active hours (default: 08:00–20:00 in their timezone) — dispatcher uses `profiles.timezone` for this check
 - [x] **HB-07**: `agent_heartbeat_log` records: agent_type, user_id, severity, finding, timestamp — only for non-OK outcomes
 - [x] **HB-08**: Each agent's settings panel shows heartbeat configuration: interval (1h / 2h / 4h / 8h), active hours (start/end), and enabled toggle
-- [ ] **HB-09**: Chief of Staff sends a morning daily briefing digest at 8am (user timezone) consolidating all "digest"-severity heartbeat findings from the past 24 hours across all agents
+- [x] **HB-09**: Chief of Staff sends a morning daily briefing digest at 8am (user timezone) consolidating all "digest"-severity heartbeat findings from the past 24 hours across all agents
 
 ### Notifications
 
@@ -168,7 +168,7 @@
 | HB-06 | Phase 4 — Heartbeat System | Complete |
 | HB-07 | Phase 4 — Heartbeat System | Complete |
 | HB-08 | Phase 4 — Heartbeat System | Complete |
-| HB-09 | Phase 4 — Heartbeat System | Pending |
+| HB-09 | Phase 4 — Heartbeat System | Complete |
 | NOTIF-01 | Phase 5 — Org View + Notifications | Pending |
 | NOTIF-02 | Phase 5 — Org View + Notifications | Pending |
 | NOTIF-03 | Phase 5 — Org View + Notifications | Pending |
