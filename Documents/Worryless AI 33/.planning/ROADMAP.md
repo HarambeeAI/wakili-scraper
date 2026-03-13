@@ -81,7 +81,15 @@ Plans:
   3. When the LLM returns `severity: "urgent"`, a notification record is created and the heartbeat runner triggers both a push notification and an email within the same invocation — the user receives the alert without refreshing
   4. Each agent's settings panel shows a heartbeat configuration section with interval selector (1h / 2h / 4h / 8h), active hours (start/end time), and an enable/disable toggle — changes persist and are respected by the next dispatcher run
   5. The dispatcher enforces a per-agent daily call budget (default 6 calls/day) — an agent that has reached its daily limit is skipped by the dispatcher even if `next_heartbeat_at` is due
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Wave 0 test scaffolds: heartbeatParser, heartbeatDispatcher, useHeartbeatConfig stubs (HB-03, HB-05, HB-06, HB-08, SEC-02)
+- [ ] 04-02-PLAN.md — DB migrations: pgmq queue + notifications table + heartbeat_daily_budget column + pg_cron jobs (SEC-02, HB-01, HB-05)
+- [ ] 04-03-PLAN.md — HeartbeatConfig UI: useHeartbeatConfig hook + HeartbeatConfigSection + GenericAgentPanel wiring (HB-08)
+- [ ] 04-04-PLAN.md — heartbeat-dispatcher edge function: due-agent query, business hours, budget enforcement, pgmq enqueue (HB-01, HB-05, HB-06, SEC-02)
+- [ ] 04-05-PLAN.md — heartbeat-runner edge function: dequeue, LLM call, severity routing, HEARTBEAT_OK suppression, Resend email (HB-02, HB-03, HB-04, HB-07)
+- [ ] 04-06-PLAN.md — send-morning-digest edge function + severity column migration + human verification checkpoint (HB-09)
 
 ### Phase 5: Org View + Notifications
 **Goal**: Users can see their entire AI team at a glance — who is active, what each agent last surfaced, and whether anything needs attention — and receive alerts through the right channel at the right severity without notification fatigue
@@ -105,7 +113,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 | 1. Database Foundation | 5/5 | Complete   | 2026-03-12 |
 | 2. Agent Spawner + Team Selector | 4/5 | In Progress|  |
 | 3. MD Workspace Editor + Marketplace | 5/5 | Complete   | 2026-03-13 |
-| 4. Heartbeat System | 0/TBD | Not started | - |
+| 4. Heartbeat System | 0/6 | Planned | - |
 | 5. Org View + Notifications | 0/TBD | Not started | - |
 
 ---
