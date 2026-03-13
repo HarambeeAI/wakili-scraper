@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-01-PLAN.md — Wave 0 test scaffold complete
-last_updated: "2026-03-13T09:53:40.183Z"
+stopped_at: Completed 04-02-PLAN.md — heartbeat queue infrastructure, pg_cron jobs, config.toml entries
+last_updated: "2026-03-13T09:53:53.488Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
@@ -120,6 +120,10 @@ Recent decisions affecting current work:
 - [Phase 03-md-workspace-editor-agent-marketplace]: Add Agent entry sits inside AI Agents SidebarGroup (not a separate Marketplace group) — consistent with plan spec
 - [Phase 04-heartbeat-system]: it.todo stubs mirror Phase 3 useWorkspaceAutoSave.test.ts pattern — vitest exits 0 on todo-only files
 - [Phase 04-heartbeat-system]: worrylesssuperagent/ is a nested git repo — task commits land in that repo, plan metadata commit lands in outer repo
+- [Phase 04-heartbeat-system]: pgmq.create() (logged) not create_unlogged() — low-volume heartbeat queue, correctness over speed
+- [Phase 04-heartbeat-system]: Vault secret names 'service_role_key' and 'project_url' for pg_cron-to-edge-function auth — consistent with send-daily-briefing pattern
+- [Phase 04-heartbeat-system]: notifications table has all Phase 5 columns at creation — no ALTER TABLE needed in Phase 5
+- [Phase 04-heartbeat-system]: No INSERT RLS on notifications — service role only, matching agent_heartbeat_log precedent
 
 ### Pending Todos
 
@@ -133,6 +137,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T09:53:34.318Z
-Stopped at: Completed 04-01-PLAN.md — Wave 0 test scaffold complete
+Last session: 2026-03-13T09:53:53.486Z
+Stopped at: Completed 04-02-PLAN.md — heartbeat queue infrastructure, pg_cron jobs, config.toml entries
 Resume file: None

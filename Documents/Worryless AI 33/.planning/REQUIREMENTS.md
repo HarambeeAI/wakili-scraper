@@ -46,7 +46,7 @@
 
 ### Heartbeat System
 
-- [ ] **HB-01**: A `heartbeat-dispatcher` edge function (triggered by a single pg_cron job every 5 minutes) queries `user_agents` for agents due for a heartbeat tick and enqueues them into a pgmq queue (`heartbeat_jobs`)
+- [x] **HB-01**: A `heartbeat-dispatcher` edge function (triggered by a single pg_cron job every 5 minutes) queries `user_agents` for agents due for a heartbeat tick and enqueues them into a pgmq queue (`heartbeat_jobs`)
 - [ ] **HB-02**: A `heartbeat-runner` edge function (triggered by pg_cron every 1 minute) reads up to 5 messages from `heartbeat_jobs` and processes each: reads HEARTBEAT.md + recent task history, calls LLM, evaluates response
 - [x] **HB-03**: LLM heartbeat response must include structured severity field: `{ severity: "urgent" | "headsup" | "digest" | "ok", finding: string }` — if severity is "ok", the run is suppressed with no DB write
 - [ ] **HB-04**: Non-OK heartbeat runs create a notification record and optionally a task: "urgent" → push notification + email + in-app; "headsup" → in-app only; "digest" → batched into morning Chief of Staff briefing
@@ -160,7 +160,7 @@
 | MKT-02 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-03 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| HB-01 | Phase 4 — Heartbeat System | Pending |
+| HB-01 | Phase 4 — Heartbeat System | Complete |
 | HB-02 | Phase 4 — Heartbeat System | Pending |
 | HB-03 | Phase 4 — Heartbeat System | Complete |
 | HB-04 | Phase 4 — Heartbeat System | Pending |
