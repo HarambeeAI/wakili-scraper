@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-03-PLAN.md — Team org chart view with heartbeat status dots
-last_updated: "2026-03-13T10:42:44.070Z"
+stopped_at: Completed 05-01-PLAN.md — Wave 0 test scaffolds for useNotifications and useTeamData
+last_updated: "2026-03-13T10:43:38.120Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
@@ -73,6 +73,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 04-heartbeat-system P04 | 5 | 1 tasks | 4 files |
 | Phase 04-heartbeat-system P06 | 2 | 1 tasks | 4 files |
 | Phase 05-org-view-notifications P03 | 3 | 2 tasks | 8 files |
+| Phase 05-org-view-notifications P01 | 3 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,8 @@ Recent decisions affecting current work:
 - [Phase 05-org-view-notifications]: HeartbeatStatus 'surfaced' outcome beats recency — attention status regardless of how recent the heartbeat is
 - [Phase 05-org-view-notifications]: LEGACY_VIEW_MAP duplicated inline in AgentCard — decouples team component tree from DashboardSidebar internals
 - [Phase 05-org-view-notifications]: useTeamData casts supabase queries as any for user_agents and agent_heartbeat_log — consistent with useAgentWorkspace pattern
+- [Phase 05-org-view-notifications]: useTeamData.test.ts already existed with real passing tests (committed in 05-03) — kept as-is since it exceeds Wave 0 requirements
+- [Phase 05-org-view-notifications]: useNotifications.test.ts uses it.todo stubs only in Wave 0 — useNotifications hook did not exist until Plan 02 committed it
 
 ### Pending Todos
 
@@ -153,6 +156,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T10:42:44.067Z
-Stopped at: Completed 05-03-PLAN.md — Team org chart view with heartbeat status dots
+Last session: 2026-03-13T10:43:38.118Z
+Stopped at: Completed 05-01-PLAN.md — Wave 0 test scaffolds for useNotifications and useTeamData
 Resume file: None
