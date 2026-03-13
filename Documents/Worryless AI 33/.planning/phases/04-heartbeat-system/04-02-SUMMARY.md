@@ -115,3 +115,13 @@ None - plan executed exactly as written.
 ---
 *Phase: 04-heartbeat-system*
 *Completed: 2026-03-13*
+
+## Self-Check: PASSED
+
+- FOUND: worrylesssuperagent/supabase/migrations/20260313000006_heartbeat_queue.sql
+- FOUND: worrylesssuperagent/supabase/migrations/20260313000007_heartbeat_cron_jobs.sql
+- FOUND: .planning/phases/04-heartbeat-system/04-02-SUMMARY.md
+- FOUND: commit 165e1d2 (Task 1)
+- FOUND: commit 8f07ec5 (Task 2)
+- FOUND: heartbeat-dispatcher entry in config.toml
+- FOUND: heartbeat-runner entry in config.toml
