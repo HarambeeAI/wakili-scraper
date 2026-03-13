@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-05-PLAN.md — per-user timezone morning digest via next_digest_run_at column, Phase 5 complete
-last_updated: "2026-03-13T10:49:32.985Z"
+stopped_at: "Completed 05-04-PLAN.md — Web Push VAPID pipeline: push_subscriptions table, sw.js, usePushSubscription hook, Settings toggle, heartbeat-runner urgent push send"
+last_updated: "2026-03-13T10:49:54.394Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
@@ -76,6 +76,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 05-org-view-notifications P01 | 3 | 2 tasks | 1 files |
 | Phase 05-org-view-notifications P02 | 15 | 2 tasks | 5 files |
 | Phase 05-org-view-notifications P05 | 5 | 1 tasks | 2 files |
+| Phase 05-org-view-notifications P04 | 2 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,8 @@ Recent decisions affecting current work:
 - [Phase 05-org-view-notifications]: resolveView uses inline LEGACY_VIEW_MAP inside hook — mirrors DashboardSidebar map, avoids cross-component import
 - [Phase 05-org-view-notifications]: NotificationBell uses BellDot icon (lucide-react) when unreadCount > 0 — visual distinction without additional badge library
 - [Phase 05-org-view-notifications]: next_digest_run_at dispatcher pattern (same as heartbeat_at) — hourly cron queries due users, advances column after delivery, no timezone-bucket crons needed
+- [Phase 05-org-view-notifications]: Dynamic import of jsr:@negrel/webpush inside urgent try/catch — allows heartbeat-runner to deploy before VAPID keys are configured
+- [Phase 05-org-view-notifications]: VAPID env vars treated as optional in heartbeat-runner — if absent, push skipped silently; email delivery unaffected
 
 ### Pending Todos
 
@@ -162,6 +165,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T10:49:32.983Z
-Stopped at: Completed 05-05-PLAN.md — per-user timezone morning digest via next_digest_run_at column, Phase 5 complete
+Last session: 2026-03-13T10:49:54.392Z
+Stopped at: Completed 05-04-PLAN.md — Web Push VAPID pipeline: push_subscriptions table, sw.js, usePushSubscription hook, Settings toggle, heartbeat-runner urgent push send
 Resume file: None
