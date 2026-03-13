@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-md-workspace-editor-agent-marketplace/03-01-PLAN.md
-last_updated: "2026-03-13T00:20:09.839Z"
+stopped_at: Completed 03-md-workspace-editor-agent-marketplace/03-02-PLAN.md
+last_updated: "2026-03-13T00:24:35.559Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 13
   percent: 20
 ---
 
@@ -62,6 +62,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02-agent-spawner-team-selector P05 | 12 | 1 tasks | 1 files |
 | Phase 03-md-workspace-editor-agent-marketplace P03 | 2 | 2 tasks | 3 files |
 | Phase 03-md-workspace-editor-agent-marketplace P01 | 4 | 2 tasks | 8 files |
+| Phase 03-md-workspace-editor-agent-marketplace P02 | 15 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,9 @@ Recent decisions affecting current work:
 - [Phase 03-md-workspace-editor-agent-marketplace]: vitest.config.ts excludes supabase/ dir to avoid Deno https: import errors in Node ESM loader
 - [Phase 03-md-workspace-editor-agent-marketplace]: sanitize.ts is verbatim mirror of edge function — identical pattern list, identical [FILTERED] replacement
 - [Phase 03-md-workspace-editor-agent-marketplace]: useWorkspaceAutoSave.test.ts uses it.todo stubs so vitest exits 0 without the hook existing yet
+- [Phase 03-md-workspace-editor-agent-marketplace]: basicSetup imported from @codemirror/basic-setup (not @codemirror/view) — re-exported from that package in CM6
+- [Phase 03-md-workspace-editor-agent-marketplace]: WorkspaceEditor mount useEffect has empty deps [] with eslint-disable comment — value sync handled by separate [value] effect to prevent cursor jump
+- [Phase 03-md-workspace-editor-agent-marketplace]: useAgentWorkspace Supabase queries cast as any — agent_workspaces and available_agent_types not in generated types; TODO: regenerate after Phase 1 migrations
 
 ### Pending Todos
 
@@ -115,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T00:20:09.837Z
-Stopped at: Completed 03-md-workspace-editor-agent-marketplace/03-01-PLAN.md
+Last session: 2026-03-13T00:24:35.557Z
+Stopped at: Completed 03-md-workspace-editor-agent-marketplace/03-02-PLAN.md
 Resume file: None

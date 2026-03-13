@@ -30,10 +30,10 @@
 ### MD Workspace System
 
 - [ ] **WS-01**: Each agent's settings panel in the dashboard includes a Workspace tab with 6 sub-tabs (IDENTITY / SOUL / SOPs / MEMORY / HEARTBEAT / TOOLS)
-- [ ] **WS-02**: IDENTITY, SOUL, SOPs, HEARTBEAT, and TOOLS files are user-editable via CodeMirror 6 markdown editor (lazy-loaded to protect bundle size)
+- [x] **WS-02**: IDENTITY, SOUL, SOPs, HEARTBEAT, and TOOLS files are user-editable via CodeMirror 6 markdown editor (lazy-loaded to protect bundle size)
 - [ ] **WS-03**: MEMORY.md is read-only in the UI — agents append to it after completing tasks; users can read but not edit
-- [ ] **WS-04**: Workspace edits auto-save with 2-second debounce — no explicit save button needed
-- [ ] **WS-05**: Each editable workspace file has a "Reset to defaults" action that restores the original catalog template content (with confirmation dialog)
+- [x] **WS-04**: Workspace edits auto-save with 2-second debounce — no explicit save button needed
+- [x] **WS-05**: Each editable workspace file has a "Reset to defaults" action that restores the original catalog template content (with confirmation dialog)
 - [x] **WS-06**: Server-side sanitization strips prompt injection patterns from workspace content before it is inserted into any LLM system prompt
 - [x] **WS-07**: All AI calls that use workspace content inject files in the order: IDENTITY → SOUL → SOPs → TOOLS → MEMORY (HEARTBEAT only on heartbeat runs)
 
@@ -150,10 +150,10 @@
 | TOOLS-03 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | TOOLS-04 | Phase 2 — Agent Spawner + Team Selector | Complete |
 | WS-01 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
-| WS-02 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| WS-02 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-03 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
-| WS-04 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
-| WS-05 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| WS-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
+| WS-05 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-06 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-07 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-01 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
