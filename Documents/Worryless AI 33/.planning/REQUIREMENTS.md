@@ -67,11 +67,11 @@
 
 ### Org Structure View
 
-- [ ] **ORG-01**: Dashboard has a "Team" view (accessible from sidebar) showing an org chart: Chief of Staff at top, all activated agents below as direct reports
-- [ ] **ORG-02**: Each agent card in the Team view shows: agent name, role, avatar/icon, heartbeat status indicator (green pulse = active, grey = sleeping, amber = needs attention), last active timestamp, and task count (last 7 days)
-- [ ] **ORG-03**: Heartbeat status indicator shows a live pulse animation when an agent's heartbeat fired in the last hour
-- [ ] **ORG-04**: Clicking an agent card in the Team view navigates to that agent's dedicated panel
-- [ ] **ORG-05**: "Add Agent" button is prominently placed in the Team view, opening the Agent Marketplace
+- [x] **ORG-01**: Dashboard has a "Team" view (accessible from sidebar) showing an org chart: Chief of Staff at top, all activated agents below as direct reports
+- [x] **ORG-02**: Each agent card in the Team view shows: agent name, role, avatar/icon, heartbeat status indicator (green pulse = active, grey = sleeping, amber = needs attention), last active timestamp, and task count (last 7 days)
+- [x] **ORG-03**: Heartbeat status indicator shows a live pulse animation when an agent's heartbeat fired in the last hour
+- [x] **ORG-04**: Clicking an agent card in the Team view navigates to that agent's dedicated panel
+- [x] **ORG-05**: "Add Agent" button is prominently placed in the Team view, opening the Agent Marketplace
 
 ### Role-Based Tooling
 
@@ -175,11 +175,11 @@
 | NOTIF-04 | Phase 5 — Org View + Notifications | Pending |
 | NOTIF-05 | Phase 5 — Org View + Notifications | Pending |
 | NOTIF-06 | Phase 5 — Org View + Notifications | Pending |
-| ORG-01 | Phase 5 — Org View + Notifications | Pending |
-| ORG-02 | Phase 5 — Org View + Notifications | Pending |
-| ORG-03 | Phase 5 — Org View + Notifications | Pending |
-| ORG-04 | Phase 5 — Org View + Notifications | Pending |
-| ORG-05 | Phase 5 — Org View + Notifications | Pending |
+| ORG-01 | Phase 5 — Org View + Notifications | Complete |
+| ORG-02 | Phase 5 — Org View + Notifications | Complete |
+| ORG-03 | Phase 5 — Org View + Notifications | Complete |
+| ORG-04 | Phase 5 — Org View + Notifications | Complete |
+| ORG-05 | Phase 5 — Org View + Notifications | Complete |
 
 **Coverage:**
 - v1 requirements: 52 total

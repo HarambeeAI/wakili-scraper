@@ -121,7 +121,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 | 2. Agent Spawner + Team Selector | 4/5 | In Progress|  |
 | 3. MD Workspace Editor + Marketplace | 5/5 | Complete   | 2026-03-13 |
 | 4. Heartbeat System | 6/6 | Complete   | 2026-03-13 |
-| 5. Org View + Notifications | 0/5 | Not started | - |
+| 5. Org View + Notifications | 2/5 | In Progress|  |
 
 ---
 *Roadmap created: 2026-03-12*

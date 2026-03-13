@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-06-PLAN.md — send-morning-digest edge function + Phase 4 heartbeat system complete
-last_updated: "2026-03-13T10:07:32.033Z"
+stopped_at: Completed 05-03-PLAN.md — Team org chart view with heartbeat status dots
+last_updated: "2026-03-13T10:42:44.070Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 26
+  completed_plans: 23
   percent: 20
 ---
 
@@ -72,6 +72,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 04-heartbeat-system P05 | 8 | 1 tasks | 4 files |
 | Phase 04-heartbeat-system P04 | 5 | 1 tasks | 4 files |
 | Phase 04-heartbeat-system P06 | 2 | 1 tasks | 4 files |
+| Phase 05-org-view-notifications P03 | 3 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,9 @@ Recent decisions affecting current work:
 - [Phase 04-heartbeat-system]: parseActiveHours() placed in src/utils/ (not supabase/_shared/) — vitest excludes supabase/ dir; src/utils/ accessible via @/ alias
 - [Phase 04-heartbeat-system]: get_due_heartbeat_agents as SECURITY DEFINER SQL function — keeps AT TIME ZONE and COUNT budget logic in SQL where DST is always correct; edge function stays thin
 - [Phase 04-heartbeat-system]: Morning digest delivered via notifications table (severity=digest, agent_type_id=chief_of_staff) — no messages table exists in codebase; send-daily-briefing uses Resend email which is a separate pre-existing feature
+- [Phase 05-org-view-notifications]: HeartbeatStatus 'surfaced' outcome beats recency — attention status regardless of how recent the heartbeat is
+- [Phase 05-org-view-notifications]: LEGACY_VIEW_MAP duplicated inline in AgentCard — decouples team component tree from DashboardSidebar internals
+- [Phase 05-org-view-notifications]: useTeamData casts supabase queries as any for user_agents and agent_heartbeat_log — consistent with useAgentWorkspace pattern
 
 ### Pending Todos
 
@@ -149,6 +153,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T10:06:46.795Z
-Stopped at: Completed 04-06-PLAN.md — send-morning-digest edge function + Phase 4 heartbeat system complete
+Last session: 2026-03-13T10:42:44.067Z
+Stopped at: Completed 05-03-PLAN.md — Team org chart view with heartbeat status dots
 Resume file: None
