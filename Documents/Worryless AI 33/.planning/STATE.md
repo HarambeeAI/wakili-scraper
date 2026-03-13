@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: planning
 stopped_at: "Completed 05-04-PLAN.md — Web Push VAPID pipeline: push_subscriptions table, sw.js, usePushSubscription hook, Settings toggle, heartbeat-runner urgent push send"
-last_updated: "2026-03-13T10:49:54.394Z"
+last_updated: "2026-03-13T10:50:31.802Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
