@@ -10,7 +10,7 @@ This milestone transforms Worryless AI from a reactive 4-agent chat platform int
 - [ ] **Phase 2: Agent Spawner + Team Selector** - Onboarding Step 12, spawn-agent-team edge function, role tooling configs, and activation animation
 - [x] **Phase 3: MD Workspace Editor + Agent Marketplace** - CodeMirror workspace editor, auto-save, reset-to-defaults, and marketplace panel (completed 2026-03-13)
 - [x] **Phase 4: Heartbeat System** - Dispatcher, pgmq queue, runner, HEARTBEAT_OK suppression, business-hours enforcement, and call budgets (completed 2026-03-13)
-- [ ] **Phase 5: Org View + Notifications** - Team org chart, heartbeat status indicators, notification bell, push/email/in-app delivery, and morning digest
+- [x] **Phase 5: Org View + Notifications** - Team org chart, heartbeat status indicators, notification bell, push/email/in-app delivery, and morning digest (completed 2026-03-13)
 
 ## Phase Details
 
@@ -121,7 +121,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 | 2. Agent Spawner + Team Selector | 4/5 | In Progress|  |
 | 3. MD Workspace Editor + Marketplace | 5/5 | Complete   | 2026-03-13 |
 | 4. Heartbeat System | 6/6 | Complete   | 2026-03-13 |
-| 5. Org View + Notifications | 3/5 | In Progress|  |
+| 5. Org View + Notifications | 5/5 | Complete   | 2026-03-13 |
 
 ---
 *Roadmap created: 2026-03-12*
