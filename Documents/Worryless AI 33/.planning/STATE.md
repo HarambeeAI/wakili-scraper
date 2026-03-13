@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-md-workspace-editor-agent-marketplace/03-03-PLAN.md
-last_updated: "2026-03-13T00:17:37.552Z"
+stopped_at: Completed 03-md-workspace-editor-agent-marketplace/03-01-PLAN.md
+last_updated: "2026-03-13T00:20:09.839Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 15
-  completed_plans: 11
+  completed_plans: 12
   percent: 20
 ---
 
@@ -61,6 +61,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 02-agent-spawner-team-selector P03 | 4 | 3 tasks | 2 files |
 | Phase 02-agent-spawner-team-selector P05 | 12 | 1 tasks | 1 files |
 | Phase 03-md-workspace-editor-agent-marketplace P03 | 2 | 2 tasks | 3 files |
+| Phase 03-md-workspace-editor-agent-marketplace P01 | 4 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,9 @@ Recent decisions affecting current work:
 - [Phase 02-agent-spawner-team-selector]: buildAgentPrompt creates supabase client internally via Deno.env.get — consistent with fetchBusinessKnowledge; TOOL BOUNDARIES non-blocking; all 3 callers await-updated
 - [Phase 03-md-workspace-editor-agent-marketplace]: onAgentChange stored in useRef to avoid stale closure in async mutation callbacks
 - [Phase 03-md-workspace-editor-agent-marketplace]: 23505 duplicate insert re-adds agentTypeId to activeIds rather than rolling back — agent is effectively already active
+- [Phase 03-md-workspace-editor-agent-marketplace]: vitest.config.ts excludes supabase/ dir to avoid Deno https: import errors in Node ESM loader
+- [Phase 03-md-workspace-editor-agent-marketplace]: sanitize.ts is verbatim mirror of edge function — identical pattern list, identical [FILTERED] replacement
+- [Phase 03-md-workspace-editor-agent-marketplace]: useWorkspaceAutoSave.test.ts uses it.todo stubs so vitest exits 0 without the hook existing yet
 
 ### Pending Todos
 
@@ -111,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T00:17:37.549Z
-Stopped at: Completed 03-md-workspace-editor-agent-marketplace/03-03-PLAN.md
+Last session: 2026-03-13T00:20:09.837Z
+Stopped at: Completed 03-md-workspace-editor-agent-marketplace/03-01-PLAN.md
 Resume file: None
