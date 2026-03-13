@@ -39,7 +39,7 @@
 
 ### Agent Marketplace
 
-- [ ] **MKT-01**: Dashboard has an "Add Agent" entry point (in sidebar under AI Team section and in the Team org view) that opens the Agent Marketplace panel
+- [x] **MKT-01**: Dashboard has an "Add Agent" entry point (in sidebar under AI Team section and in the Team org view) that opens the Agent Marketplace panel
 - [x] **MKT-02**: Marketplace displays all 12 catalog agent types with: role title, description, key skills, and "Add to Team" button — already-activated agents show "Active" state
 - [x] **MKT-03**: Adding an agent from the Marketplace creates a `user_agents` row, triggers workspace auto-population, and immediately shows the agent in the dashboard sidebar and Team view
 - [x] **MKT-04**: Users can deactivate an agent from their team (with confirmation) — deactivated agents retain their workspace data but stop heartbeating and disappear from navigation
@@ -156,7 +156,7 @@
 | WS-05 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-06 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-07 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| MKT-01 | Phase 3 — MD Workspace Editor + Marketplace | Pending |
+| MKT-01 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-02 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-03 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |

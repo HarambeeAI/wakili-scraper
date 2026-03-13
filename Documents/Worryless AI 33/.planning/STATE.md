@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-md-workspace-editor-agent-marketplace/03-04-PLAN.md
-last_updated: "2026-03-13T00:28:27.662Z"
+stopped_at: "Checkpoint: 03-05 Task 2 human-verify — awaiting user verification of full Phase 3 flow"
+last_updated: "2026-03-13T00:34:04.181Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
   percent: 20
 ---
 
@@ -64,6 +64,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 03-md-workspace-editor-agent-marketplace P01 | 4 | 2 tasks | 8 files |
 | Phase 03-md-workspace-editor-agent-marketplace P02 | 15 | 3 tasks | 4 files |
 | Phase 03-md-workspace-editor-agent-marketplace P04 | 2 | 2 tasks | 3 files |
+| Phase 03-md-workspace-editor-agent-marketplace P05 | 5 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,8 @@ Recent decisions affecting current work:
 - [Phase 03-md-workspace-editor-agent-marketplace]: EditableWorkspaceTab inner component per editable tab — clean useAgentWorkspace isolation
 - [Phase 03-md-workspace-editor-agent-marketplace]: Dialog (not Sheet) for workspace modal at max-w-4xl h-[80vh] — more vertical space for CodeMirror editor
 - [Phase 03-md-workspace-editor-agent-marketplace]: userId fetched internally in GenericAgentPanel via supabase.auth.getUser() — callers keep existing interface
+- [Phase 03-md-workspace-editor-agent-marketplace]: 'marketplace' added as explicit union member of ActiveView type for type safety
+- [Phase 03-md-workspace-editor-agent-marketplace]: Add Agent entry sits inside AI Agents SidebarGroup (not a separate Marketplace group)
 
 ### Pending Todos
 
@@ -123,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T00:28:27.659Z
-Stopped at: Completed 03-md-workspace-editor-agent-marketplace/03-04-PLAN.md
+Last session: 2026-03-13T00:34:04.179Z
+Stopped at: Checkpoint: 03-05 Task 2 human-verify — awaiting user verification of full Phase 3 flow
 Resume file: None
