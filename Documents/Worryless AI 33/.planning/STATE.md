@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-03-PLAN.md — HeartbeatConfig UI shipped
-last_updated: "2026-03-13T09:55:23.448Z"
+stopped_at: Completed 04-05-PLAN.md — heartbeat-runner edge function shipped
+last_updated: "2026-03-13T10:00:40.634Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 19
   percent: 20
 ---
 
@@ -69,6 +69,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 04-heartbeat-system P01 | 2 | 2 tasks | 4 files |
 | Phase 04-heartbeat-system P02 | 2 | 2 tasks | 3 files |
 | Phase 04-heartbeat-system P03 | 15 | 2 tasks | 4 files |
+| Phase 04-heartbeat-system P05 | 8 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,8 @@ Recent decisions affecting current work:
 - [Phase 04-heartbeat-system]: useHeartbeatConfig casts supabase queries as any for user_agents — columns not in generated types (same as useAgentWorkspace pattern)
 - [Phase 04-heartbeat-system]: HeartbeatConfigSection uses HTML input[type=time] for active hours — no additional date library needed
 - [Phase 04-heartbeat-system]: GenericAgentPanel CardContent changed to p-0 with inner padding to allow HeartbeatConfigSection border-t to span full width
+- [Phase 04-heartbeat-system]: src/lib/heartbeatParser.ts is the vitest-importable mirror of _shared/heartbeatParser.ts — vitest.config.ts excludes supabase/ dir so both files are needed
+- [Phase 04-heartbeat-system]: sendUrgentEmail fetches user email from profiles table (not auth.users admin API) — simpler, email populated during onboarding
 
 ### Pending Todos
 
@@ -141,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T09:55:23.445Z
-Stopped at: Completed 04-03-PLAN.md — HeartbeatConfig UI shipped
+Last session: 2026-03-13T10:00:40.632Z
+Stopped at: Completed 04-05-PLAN.md — heartbeat-runner edge function shipped
 Resume file: None
