@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-05-PLAN.md — heartbeat-runner edge function shipped
-last_updated: "2026-03-13T10:00:40.634Z"
+stopped_at: Completed 04-04-PLAN.md — heartbeat-dispatcher edge function shipped
+last_updated: "2026-03-13T10:01:32.723Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
   percent: 20
 ---
 
@@ -70,6 +70,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 04-heartbeat-system P02 | 2 | 2 tasks | 3 files |
 | Phase 04-heartbeat-system P03 | 15 | 2 tasks | 4 files |
 | Phase 04-heartbeat-system P05 | 8 | 1 tasks | 4 files |
+| Phase 04-heartbeat-system P04 | 5 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,8 @@ Recent decisions affecting current work:
 - [Phase 04-heartbeat-system]: GenericAgentPanel CardContent changed to p-0 with inner padding to allow HeartbeatConfigSection border-t to span full width
 - [Phase 04-heartbeat-system]: src/lib/heartbeatParser.ts is the vitest-importable mirror of _shared/heartbeatParser.ts — vitest.config.ts excludes supabase/ dir so both files are needed
 - [Phase 04-heartbeat-system]: sendUrgentEmail fetches user email from profiles table (not auth.users admin API) — simpler, email populated during onboarding
+- [Phase 04-heartbeat-system]: parseActiveHours() placed in src/utils/ (not supabase/_shared/) — vitest excludes supabase/ dir; src/utils/ accessible via @/ alias
+- [Phase 04-heartbeat-system]: get_due_heartbeat_agents as SECURITY DEFINER SQL function — keeps AT TIME ZONE and COUNT budget logic in SQL where DST is always correct; edge function stays thin
 
 ### Pending Todos
 
@@ -144,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T10:00:40.632Z
-Stopped at: Completed 04-05-PLAN.md — heartbeat-runner edge function shipped
+Last session: 2026-03-13T10:01:32.721Z
+Stopped at: Completed 04-04-PLAN.md — heartbeat-dispatcher edge function shipped
 Resume file: None
