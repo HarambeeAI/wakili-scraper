@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-02-PLAN.md — heartbeat queue infrastructure, pg_cron jobs, config.toml entries
-last_updated: "2026-03-13T09:53:53.488Z"
+stopped_at: Completed 04-03-PLAN.md — HeartbeatConfig UI shipped
+last_updated: "2026-03-13T09:55:23.448Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 18
   percent: 20
 ---
 
@@ -68,6 +68,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 03-md-workspace-editor-agent-marketplace P05 | 5 | 2 tasks | 2 files |
 | Phase 04-heartbeat-system P01 | 2 | 2 tasks | 4 files |
 | Phase 04-heartbeat-system P02 | 2 | 2 tasks | 3 files |
+| Phase 04-heartbeat-system P03 | 15 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Recent decisions affecting current work:
 - [Phase 04-heartbeat-system]: Vault secret names 'service_role_key' and 'project_url' for pg_cron-to-edge-function auth — consistent with send-daily-briefing pattern
 - [Phase 04-heartbeat-system]: notifications table has all Phase 5 columns at creation — no ALTER TABLE needed in Phase 5
 - [Phase 04-heartbeat-system]: No INSERT RLS on notifications — service role only, matching agent_heartbeat_log precedent
+- [Phase 04-heartbeat-system]: useHeartbeatConfig casts supabase queries as any for user_agents — columns not in generated types (same as useAgentWorkspace pattern)
+- [Phase 04-heartbeat-system]: HeartbeatConfigSection uses HTML input[type=time] for active hours — no additional date library needed
+- [Phase 04-heartbeat-system]: GenericAgentPanel CardContent changed to p-0 with inner padding to allow HeartbeatConfigSection border-t to span full width
 
 ### Pending Todos
 
@@ -137,6 +141,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T09:53:53.486Z
-Stopped at: Completed 04-02-PLAN.md — heartbeat queue infrastructure, pg_cron jobs, config.toml entries
+Last session: 2026-03-13T09:55:23.445Z
+Stopped at: Completed 04-03-PLAN.md — HeartbeatConfig UI shipped
 Resume file: None
