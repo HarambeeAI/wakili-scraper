@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 07-03-PLAN.md — PushOptInBanner + onboarding push_opt_in step wired (NOTIF-03)
-last_updated: "2026-03-14T05:25:36.588Z"
+stopped_at: Completed 07-02-PLAN.md — workspace prompt wiring in orchestrator and chat-with-agent (WS-07)
+last_updated: "2026-03-14T12:07:35.672Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 32
-  completed_plans: 30
+  completed_plans: 31
   percent: 20
 ---
 
@@ -81,6 +81,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 06-heartbeat-bug-fixes P02 | 1 | 3 tasks | 2 files |
 | Phase 07-workspace-prompt-wiring-push-optin P01 | 2 | 2 tasks | 3 files |
 | Phase 07-workspace-prompt-wiring-push-optin P03 | 8 | 2 tasks | 2 files |
+| Phase 07-workspace-prompt-wiring-push-optin P02 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,8 @@ Recent decisions affecting current work:
 - [Phase 07-workspace-prompt-wiring-push-optin]: workspaceFiles initialised with empty strings for all 6 keys — handles missing rows gracefully without null checks downstream
 - [Phase 07-workspace-prompt-wiring-push-optin]: PushOptInBanner onDismiss sets localStorage push_opt_in_shown=1 so Dashboard Plan 04 banner knows not to re-show
 - [Phase 07-workspace-prompt-wiring-push-optin]: fire-and-forget workspace personalization block moved before setStep('push_opt_in') — fires regardless of user push accept/skip choice
+- [Phase 07-workspace-prompt-wiring-push-optin]: fetchAndBuildWorkspacePrompt places workspace block AFTER basePrompt and BEFORE businessKnowledge — preserves WS-07 injection order (IDENTITY→SOUL→SOPs→TOOLS→MEMORY)
+- [Phase 07-workspace-prompt-wiring-push-optin]: chat-with-agent uses self-contained fetchAgentWorkspaceBlock — edge functions independently deployed, cannot share runtime state with orchestrator
 
 ### Pending Todos
 
@@ -176,6 +179,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T05:25:36.585Z
-Stopped at: Completed 07-03-PLAN.md — PushOptInBanner + onboarding push_opt_in step wired (NOTIF-03)
+Last session: 2026-03-14T12:07:35.670Z
+Stopped at: Completed 07-02-PLAN.md — workspace prompt wiring in orchestrator and chat-with-agent (WS-07)
 Resume file: None
