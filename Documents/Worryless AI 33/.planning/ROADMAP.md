@@ -125,12 +125,13 @@ Plans:
 **Depends on**: Phase 3, Phase 5
 **Requirements**: WS-07, NOTIF-03
 **Gap Closure**: Closes gaps from audit
+**Plans**: 4 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Wire buildWorkspacePrompt() in orchestrator edge function with IDENTITY→SOUL→SOPs→TOOLS→MEMORY injection order (WS-07)
-- [ ] 07-02-PLAN.md — Wire buildWorkspacePrompt() in agent panels for non-heartbeat AI calls (WS-07)
-- [ ] 07-03-PLAN.md — Add push subscription opt-in prompt to onboarding completion step (NOTIF-03)
-- [ ] 07-04-PLAN.md — Add push subscription opt-in prompt on first dashboard load for existing users (NOTIF-03)
+- [ ] 07-01-PLAN.md — Wave 0 scaffolds (Deno mirror + test stub) + wire buildWorkspacePrompt() into heartbeat-runner (WS-07)
+- [ ] 07-02-PLAN.md — Wire buildWorkspacePrompt() into orchestrator (Chief of Staff + specialist agents) and chat-with-agent (WS-07)
+- [ ] 07-03-PLAN.md — PushOptInBanner component + push_opt_in step in onboarding flow (NOTIF-03)
+- [ ] 07-04-PLAN.md — First-load push opt-in banner in Dashboard for existing users + human verification (NOTIF-03)
 
 ### Phase 8: Phase Verifications
 **Goal**: Produce VERIFICATION.md for all four unverified phases (01, 03, 04, 05) — code-review each phase's deliverables against its success criteria and requirements, creating the formal verification record needed to close the milestone
@@ -174,6 +175,6 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-13 — added gap closure phases 6–9 from milestone audit*
+*Updated: 2026-03-14 — Phase 7 plans created*
 *Milestone: Proactive Multi-Agent Platform*
 *Brownfield: existing auth, 4 agents, onboarding, tasks, and chat are working and must not be broken*
