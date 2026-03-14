@@ -60,7 +60,7 @@
 
 - [x] **NOTIF-01**: Dashboard has a notification bell (header) showing unread count; clicking opens a notification panel with severity-tiered entries
 - [x] **NOTIF-02**: In-app notifications use Supabase Realtime Broadcast (DB trigger → Realtime channel) so alerts appear without page refresh
-- [ ] **NOTIF-03**: "Urgent" heartbeat findings trigger a push notification via native Web Push API + VAPID (no third-party service)
+- [x] **NOTIF-03**: "Urgent" heartbeat findings trigger a push notification via native Web Push API + VAPID (no third-party service)
 - [x] **NOTIF-04**: "Urgent" heartbeat findings also trigger an email via the existing Resend integration
 - [x] **NOTIF-05**: Users can mark notifications as read individually or "Mark all read"
 - [x] **NOTIF-06**: Notification entries link to the relevant agent view (clicking an accountant heartbeat alert opens the Accountant panel)
@@ -171,7 +171,7 @@
 | HB-09 | Phase 6 — Heartbeat Bug Fixes | Complete |
 | NOTIF-01 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-02 | Phase 5 — Org View + Notifications | Complete |
-| NOTIF-03 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Pending |
+| NOTIF-03 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Complete |
 | NOTIF-04 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-05 | Phase 5 — Org View + Notifications | Complete |
 | NOTIF-06 | Phase 5 — Org View + Notifications | Complete |
