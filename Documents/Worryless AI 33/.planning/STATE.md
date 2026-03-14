@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 07-02-PLAN.md — workspace prompt wiring in orchestrator and chat-with-agent (WS-07)
-last_updated: "2026-03-14T12:07:35.672Z"
+stopped_at: Completed 07-04-PLAN.md — Dashboard push opt-in banner wiring for existing users
+last_updated: "2026-03-14T12:10:36.162Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 9
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 32
-  completed_plans: 31
+  completed_plans: 32
   percent: 20
 ---
 
@@ -82,6 +82,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 07-workspace-prompt-wiring-push-optin P01 | 2 | 2 tasks | 3 files |
 | Phase 07-workspace-prompt-wiring-push-optin P03 | 8 | 2 tasks | 2 files |
 | Phase 07-workspace-prompt-wiring-push-optin P02 | 3 | 2 tasks | 2 files |
+| Phase 07-workspace-prompt-wiring-push-optin P04 | 8 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -166,6 +167,8 @@ Recent decisions affecting current work:
 - [Phase 07-workspace-prompt-wiring-push-optin]: fire-and-forget workspace personalization block moved before setStep('push_opt_in') — fires regardless of user push accept/skip choice
 - [Phase 07-workspace-prompt-wiring-push-optin]: fetchAndBuildWorkspacePrompt places workspace block AFTER basePrompt and BEFORE businessKnowledge — preserves WS-07 injection order (IDENTITY→SOUL→SOPs→TOOLS→MEMORY)
 - [Phase 07-workspace-prompt-wiring-push-optin]: chat-with-agent uses self-contained fetchAgentWorkspaceBlock — edge functions independently deployed, cannot share runtime state with orchestrator
+- [Phase 07-workspace-prompt-wiring-push-optin]: PushOptInBanner rendered above DashboardOverview using fragment wrapper — no changes to existing wrapper div layout needed
+- [Phase 07-workspace-prompt-wiring-push-optin]: useEffect dependency includes checkingOnboarding to prevent banner flickering during loading phase
 
 ### Pending Todos
 
@@ -179,6 +182,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T12:07:35.670Z
-Stopped at: Completed 07-02-PLAN.md — workspace prompt wiring in orchestrator and chat-with-agent (WS-07)
+Last session: 2026-03-14T12:10:36.159Z
+Stopped at: Completed 07-04-PLAN.md — Dashboard push opt-in banner wiring for existing users
 Resume file: None
