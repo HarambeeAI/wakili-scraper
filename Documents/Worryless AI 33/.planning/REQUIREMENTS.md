@@ -35,7 +35,7 @@
 - [x] **WS-04**: Workspace edits auto-save with 2-second debounce — no explicit save button needed
 - [x] **WS-05**: Each editable workspace file has a "Reset to defaults" action that restores the original catalog template content (with confirmation dialog)
 - [x] **WS-06**: Server-side sanitization strips prompt injection patterns from workspace content before it is inserted into any LLM system prompt
-- [ ] **WS-07**: All AI calls that use workspace content inject files in the order: IDENTITY → SOUL → SOPs → TOOLS → MEMORY (HEARTBEAT only on heartbeat runs)
+- [x] **WS-07**: All AI calls that use workspace content inject files in the order: IDENTITY → SOUL → SOPs → TOOLS → MEMORY (HEARTBEAT only on heartbeat runs)
 
 ### Agent Marketplace
 
@@ -155,7 +155,7 @@
 | WS-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-05 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | WS-06 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| WS-07 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Pending |
+| WS-07 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Complete |
 | MKT-01 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-02 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
 | MKT-03 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
