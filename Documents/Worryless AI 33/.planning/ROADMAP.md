@@ -170,7 +170,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 | 5. Org View + Notifications | 5/5 | Complete   | 2026-03-13 |
 | 6. Heartbeat Bug Fixes | 0/2 | Pending | |
 | 7. Workspace Prompt Wiring + Push Opt-In | 3/4 | In Progress|  |
-| 8. Phase Verifications | 0/4 | Pending | |
+| 8. Phase Verifications | 1/4 | In Progress|  |
 | 9. Tech Debt Cleanup | 0/3 | Pending | |
 
 ---

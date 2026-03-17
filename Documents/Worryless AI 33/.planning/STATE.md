@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 07-04-PLAN.md — Dashboard push opt-in banner wiring for existing users
-last_updated: "2026-03-17T08:45:28.231Z"
+stopped_at: Completed 08-01-PLAN.md — Phase 1 formal VERIFICATION.md (DB-01..07, SEC-01, SEC-03)
+last_updated: "2026-03-17T09:18:22.088Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 32
-  completed_plans: 32
+  total_plans: 36
+  completed_plans: 33
   percent: 20
 ---
 
@@ -83,6 +83,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 07-workspace-prompt-wiring-push-optin P03 | 8 | 2 tasks | 2 files |
 | Phase 07-workspace-prompt-wiring-push-optin P02 | 3 | 2 tasks | 2 files |
 | Phase 07-workspace-prompt-wiring-push-optin P04 | 8 | 1 tasks | 1 files |
+| Phase 08-phase-verifications P01 | 15 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,8 @@ Recent decisions affecting current work:
 - [Phase 07-workspace-prompt-wiring-push-optin]: chat-with-agent uses self-contained fetchAgentWorkspaceBlock — edge functions independently deployed, cannot share runtime state with orchestrator
 - [Phase 07-workspace-prompt-wiring-push-optin]: PushOptInBanner rendered above DashboardOverview using fragment wrapper — no changes to existing wrapper div layout needed
 - [Phase 07-workspace-prompt-wiring-push-optin]: useEffect dependency includes checkingOnboarding to prevent banner flickering during loading phase
+- [Phase 08-phase-verifications]: overall_status set to partial (not passed) — five Phase 1 behavioral items require live Supabase DB confirmation before milestone sign-off (DB-04 trigger runtime, DB-05 RLS isolation, SEC-01 live 401)
+- [Phase 08-phase-verifications]: SEC-01 PASS on code review — all 3 edge functions follow identical JWT extraction pattern via auth.getUser(); userId always from user.id (JWT), never from req.body
 
 ### Pending Todos
 
@@ -182,6 +185,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T12:10:36.159Z
-Stopped at: Completed 07-04-PLAN.md — Dashboard push opt-in banner wiring for existing users
+Last session: 2026-03-17T09:18:22.085Z
+Stopped at: Completed 08-01-PLAN.md — Phase 1 formal VERIFICATION.md (DB-01..07, SEC-01, SEC-03)
 Resume file: None
