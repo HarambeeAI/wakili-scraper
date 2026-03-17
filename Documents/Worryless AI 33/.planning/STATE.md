@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 08-02-PLAN.md — Phase 3 formal VERIFICATION.md (WS-01..07, MKT-01..04)
-last_updated: "2026-03-17T09:24:45.371Z"
+stopped_at: Completed 08-03-PLAN.md — Phase 4 Heartbeat System VERIFICATION.md (HB-01..09, SEC-02)
+last_updated: "2026-03-17T09:31:11.128Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 36
-  completed_plans: 34
+  completed_plans: 35
   percent: 20
 ---
 
@@ -85,6 +85,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 07-workspace-prompt-wiring-push-optin P04 | 8 | 1 tasks | 1 files |
 | Phase 08-phase-verifications P01 | 15 | 2 tasks | 1 files |
 | Phase 08-phase-verifications P02 | 12 | 2 tasks | 1 files |
+| Phase 08-phase-verifications P03 | 8 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,8 @@ Recent decisions affecting current work:
 - [Phase 08-phase-verifications]: SEC-01 PASS on code review — all 3 edge functions follow identical JWT extraction pattern via auth.getUser(); userId always from user.id (JWT), never from req.body
 - [Phase 08-phase-verifications]: WS-07 PASS with gap-closure note: utility and tests delivered Phase 3 (buildWorkspacePrompt.ts), production wiring completed Phase 7 (heartbeat-runner, orchestrator, chat-with-agent)
 - [Phase 08-phase-verifications]: MKT-04 confirmed as soft-delete: deactivateAgent uses UPDATE is_active=false at useAgentMarketplace.ts:143, comment explicitly states NEVER DELETE — workspace rows preserved
+- [Phase 08-phase-verifications]: HB-01..09 all marked PASS (fixed Phase 6) — Phase 6 snake_case fix makes the dispatcher→runner pipeline functional; VERIFICATION.md records current fixed state
+- [Phase 08-phase-verifications]: SEC-02 confirmed from source only — _req unused, SUPABASE_SERVICE_ROLE_KEY explicit in dispatcher, no JWT extraction anywhere in dispatcher code
 
 ### Pending Todos
 
@@ -188,6 +191,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T09:24:45.368Z
-Stopped at: Completed 08-02-PLAN.md — Phase 3 formal VERIFICATION.md (WS-01..07, MKT-01..04)
+Last session: 2026-03-17T09:31:11.126Z
+Stopped at: Completed 08-03-PLAN.md — Phase 4 Heartbeat System VERIFICATION.md (HB-01..09, SEC-02)
 Resume file: None
