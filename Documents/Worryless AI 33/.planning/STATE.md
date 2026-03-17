@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 08-01-PLAN.md — Phase 1 formal VERIFICATION.md (DB-01..07, SEC-01, SEC-03)
-last_updated: "2026-03-17T09:18:22.088Z"
+stopped_at: Completed 08-02-PLAN.md — Phase 3 formal VERIFICATION.md (WS-01..07, MKT-01..04)
+last_updated: "2026-03-17T09:24:45.371Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 36
-  completed_plans: 33
+  completed_plans: 34
   percent: 20
 ---
 
@@ -84,6 +84,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 07-workspace-prompt-wiring-push-optin P02 | 3 | 2 tasks | 2 files |
 | Phase 07-workspace-prompt-wiring-push-optin P04 | 8 | 1 tasks | 1 files |
 | Phase 08-phase-verifications P01 | 15 | 2 tasks | 1 files |
+| Phase 08-phase-verifications P02 | 12 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,8 @@ Recent decisions affecting current work:
 - [Phase 07-workspace-prompt-wiring-push-optin]: useEffect dependency includes checkingOnboarding to prevent banner flickering during loading phase
 - [Phase 08-phase-verifications]: overall_status set to partial (not passed) — five Phase 1 behavioral items require live Supabase DB confirmation before milestone sign-off (DB-04 trigger runtime, DB-05 RLS isolation, SEC-01 live 401)
 - [Phase 08-phase-verifications]: SEC-01 PASS on code review — all 3 edge functions follow identical JWT extraction pattern via auth.getUser(); userId always from user.id (JWT), never from req.body
+- [Phase 08-phase-verifications]: WS-07 PASS with gap-closure note: utility and tests delivered Phase 3 (buildWorkspacePrompt.ts), production wiring completed Phase 7 (heartbeat-runner, orchestrator, chat-with-agent)
+- [Phase 08-phase-verifications]: MKT-04 confirmed as soft-delete: deactivateAgent uses UPDATE is_active=false at useAgentMarketplace.ts:143, comment explicitly states NEVER DELETE — workspace rows preserved
 
 ### Pending Todos
 
@@ -185,6 +188,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T09:18:22.085Z
-Stopped at: Completed 08-01-PLAN.md — Phase 1 formal VERIFICATION.md (DB-01..07, SEC-01, SEC-03)
+Last session: 2026-03-17T09:24:45.368Z
+Stopped at: Completed 08-02-PLAN.md — Phase 3 formal VERIFICATION.md (WS-01..07, MKT-01..04)
 Resume file: None
