@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 08-03-PLAN.md — Phase 4 Heartbeat System VERIFICATION.md (HB-01..09, SEC-02)
-last_updated: "2026-03-17T09:31:11.128Z"
+stopped_at: Completed 08-04-PLAN.md — Phase 5 Org View + Notifications VERIFICATION.md (NOTIF-01..06, ORG-01..05)
+last_updated: "2026-03-17T09:37:39.970Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 36
-  completed_plans: 35
+  completed_plans: 36
   percent: 20
 ---
 
@@ -86,6 +86,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 08-phase-verifications P01 | 15 | 2 tasks | 1 files |
 | Phase 08-phase-verifications P02 | 12 | 2 tasks | 1 files |
 | Phase 08-phase-verifications P03 | 8 | 2 tasks | 1 files |
+| Phase 08-phase-verifications P04 | 4 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -178,6 +179,8 @@ Recent decisions affecting current work:
 - [Phase 08-phase-verifications]: MKT-04 confirmed as soft-delete: deactivateAgent uses UPDATE is_active=false at useAgentMarketplace.ts:143, comment explicitly states NEVER DELETE — workspace rows preserved
 - [Phase 08-phase-verifications]: HB-01..09 all marked PASS (fixed Phase 6) — Phase 6 snake_case fix makes the dispatcher→runner pipeline functional; VERIFICATION.md records current fixed state
 - [Phase 08-phase-verifications]: SEC-02 confirmed from source only — _req unused, SUPABASE_SERVICE_ROLE_KEY explicit in dispatcher, no JWT extraction anywhere in dispatcher code
+- [Phase 08-phase-verifications]: ORG-04 PASS (fixed Phase 6): heartbeatStatus.ts checks urgent||headsup||digest; original 'surfaced' check was never a real severity value
+- [Phase 08-phase-verifications]: NOTIF-03 PASS (gap closed Phase 7): VAPID wiring Phase 5; PushOptInBanner + Dashboard first-load banner added Phase 7 Plans 03-04
 
 ### Pending Todos
 
@@ -191,6 +194,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T09:31:11.126Z
-Stopped at: Completed 08-03-PLAN.md — Phase 4 Heartbeat System VERIFICATION.md (HB-01..09, SEC-02)
+Last session: 2026-03-17T09:37:39.967Z
+Stopped at: Completed 08-04-PLAN.md — Phase 5 Org View + Notifications VERIFICATION.md (NOTIF-01..06, ORG-01..05)
 Resume file: None
