@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 09-02-PLAN.md — Sanitize sync contract + full 12-pattern test coverage
-last_updated: "2026-03-17T09:56:08.457Z"
+stopped_at: "Completed 09-01-PLAN.md — Tech Debt Cleanup: remove dead handleComplete code from ConversationalOnboarding.tsx"
+last_updated: "2026-03-17T09:57:10.000Z"
 last_activity: 2026-03-12 — Roadmap created; 52 requirements mapped across 5 phases
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 39
-  completed_plans: 37
+  completed_plans: 39
   percent: 20
 ---
 
@@ -88,6 +88,8 @@ Progress: [██░░░░░░░░] 20%
 | Phase 08-phase-verifications P03 | 8 | 2 tasks | 1 files |
 | Phase 08-phase-verifications P04 | 4 | 2 tasks | 1 files |
 | Phase 09-tech-debt-cleanup P02 | 8 | 1 tasks | 2 files |
+| Phase 09-tech-debt-cleanup P03 | 525451 | 2 tasks | 2 files |
+| Phase 09-tech-debt-cleanup P01 | 8 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -183,6 +185,10 @@ Recent decisions affecting current work:
 - [Phase 08-phase-verifications]: ORG-04 PASS (fixed Phase 6): heartbeatStatus.ts checks urgent||headsup||digest; original 'surfaced' check was never a real severity value
 - [Phase 08-phase-verifications]: NOTIF-03 PASS (gap closed Phase 7): VAPID wiring Phase 5; PushOptInBanner + Dashboard first-load banner added Phase 7 Plans 03-04
 - [Phase 09-tech-debt-cleanup]: SYNC CONTRACT block replaces one-line keep-in-sync comment in src/lib/sanitize.ts — checklist + rationale + last-verified date make sync drift detectable rather than silent
+- [Phase 09-tech-debt-cleanup]: cancelled flag in useTeamData hoisted inside useEffect before fetchData — mirrors useNotifications.ts pattern; prevents stale setState on unmount
+- [Phase 09-tech-debt-cleanup]: AgentTeamSelector step label corrected to Step 12 of 12 — both loading and loaded state rendering sites updated
+- [Phase 09-tech-debt-cleanup]: briefingProgress/setBriefingProgress kept — still referenced in handleTeamAccept and briefing case JSX
+- [Phase 09-tech-debt-cleanup]: Progress bar guard changed from step \!== 'complete' to step \!== 'push_opt_in' — hides bar at terminal step
 
 ### Pending Todos
 
@@ -196,6 +202,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T09:56:08.454Z
-Stopped at: Completed 09-02-PLAN.md — Sanitize sync contract + full 12-pattern test coverage
+Last session: 2026-03-17T09:57:09.997Z
+Stopped at: Completed 09-01-PLAN.md — Tech Debt Cleanup: remove dead handleComplete code from ConversationalOnboarding.tsx
 Resume file: None

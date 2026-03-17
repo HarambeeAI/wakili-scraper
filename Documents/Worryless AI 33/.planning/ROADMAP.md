@@ -171,7 +171,7 @@ Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel
 | 6. Heartbeat Bug Fixes | 0/2 | Pending | |
 | 7. Workspace Prompt Wiring + Push Opt-In | 3/4 | In Progress|  |
 | 8. Phase Verifications | 3/4 | In Progress|  |
-| 9. Tech Debt Cleanup | 0/3 | Pending | |
+| 9. Tech Debt Cleanup | 3/3 | Complete   | 2026-03-17 |
 
 ---
 *Roadmap created: 2026-03-12*
