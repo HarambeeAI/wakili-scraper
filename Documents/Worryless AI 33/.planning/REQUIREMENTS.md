@@ -7,7 +7,7 @@
 
 ### Infrastructure (INFRA)
 
-- [ ] **INFRA-01**: LangGraph server (Node.js/TypeScript) deployed on Railway with health check endpoint
+- [x] **INFRA-01**: LangGraph server (Node.js/TypeScript) deployed on Railway with health check endpoint
 - [x] **INFRA-02**: PostgresSaver connected to Supabase PostgreSQL in dedicated `langgraph` schema for thread checkpointing
 - [x] **INFRA-03**: LangGraph Store connected to Supabase PostgreSQL for persistent cross-thread agent memory
 - [ ] **INFRA-04**: Supabase Edge Function proxy that validates JWT and forwards requests to LangGraph server via SSE
@@ -192,7 +192,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 10 | Pending |
+| INFRA-01 | Phase 10 | Complete |
 | INFRA-02 | Phase 10 | Complete |
 | INFRA-03 | Phase 10 | Complete |
 | INFRA-04 | Phase 10 | Pending |

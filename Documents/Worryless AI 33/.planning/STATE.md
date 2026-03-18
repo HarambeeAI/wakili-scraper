@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: "Completed 10-01-PLAN.md: LangGraph infrastructure database migrations"
-last_updated: "2026-03-18T20:24:10.708Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-18T20:26:03.523Z"
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 10 (langgraph-infrastructure) — EXECUTING
-Plan: 2 of 4 (plan 1 complete)
+Plan: 3 of 4 (plans 1-2 complete)
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 2 of 4 (plan 1 complete)
 
 **v2.0 in progress:**
 
-- Plans completed: 1 (10-01: LangGraph DB migrations)
-- Duration: 4 min
+- Plans completed: 2 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold)
+- Duration: 4 min + 6 min
 
 *Updated after each plan completion*
 
@@ -66,6 +66,8 @@ New v2.0 decisions:
 - [Phase 10-langgraph-infrastructure]: langgraph schema isolated from public schema; service_role only access for LangGraph server
 - [Phase 10-langgraph-infrastructure]: profiles.use_langgraph is the sole existing-table modification in Phase 10; DEFAULT FALSE ensures zero-impact rollout
 - [Phase 10-langgraph-infrastructure]: pgvector dimension 1536 for OpenAI text-embedding-3-small; IVFFlat index deferred until >10k rows
+- [Phase 10-langgraph-infrastructure]: PostgresSaver uses direct Supabase connection (port 5432) not pooled (port 6543) — prepared statements incompatible with PgBouncer
+- [Phase 10-langgraph-infrastructure]: LangGraph Store implemented as raw pg Pool queries against langgraph.store table (no native Postgres Store in JS SDK)
 
 ### Pending Todos
 
@@ -75,11 +77,11 @@ None yet.
 
 - LangGraph JS (`@langchain/langgraph`) ecosystem maturity vs. Python — verify all needed features exist in TS version before Phase 10
 - Playwright persistent browser context at scale — each user needs isolated browser data; evaluate storage and resource requirements on Railway
-- PostgresSaver connection to Supabase — verify compatibility with Supabase's connection pooling (PgBouncer) before Phase 10
+- PostgresSaver connection to Supabase — RESOLVED: use direct connection (port 5432) not pooled (port 6543)
 - Google OAuth for PA — requires Google Cloud project setup and consent screen approval before Phase 15
 
 ## Session Continuity
 
-Last session: 2026-03-18T20:24:10.705Z
-Stopped at: Completed 10-01-PLAN.md: LangGraph infrastructure database migrations
+Last session: 2026-03-18T20:26:03.519Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None

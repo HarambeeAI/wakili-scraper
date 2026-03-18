@@ -275,7 +275,7 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 7. Workspace Prompt Wiring + Push Opt-In | v1.0 | 4/4 | Complete | 2026-03-17 |
 | 8. Phase Verifications | v1.0 | 4/4 | Complete | 2026-03-17 |
 | 9. Tech Debt Cleanup | v1.0 | 3/3 | Complete | 2026-03-17 |
-| 10. LangGraph Infrastructure | 1/4 | In Progress|  | - |
+| 10. LangGraph Infrastructure | 2/4 | In Progress|  | - |
 | 11. Agent Graph Topology + Memory Foundation | v2.0 | 0/TBD | Not started | - |
 | 12. Chief of Staff Tools + Governance | v2.0 | 0/TBD | Not started | - |
 | 13. Accountant + Sales Rep Agent Tools | v2.0 | 0/TBD | Not started | - |
