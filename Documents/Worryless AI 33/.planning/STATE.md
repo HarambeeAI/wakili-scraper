@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-03-18T21:10:38.303Z"
+stopped_at: Completed 11-04-PLAN.md
+last_updated: "2026-03-18T21:16:01.304Z"
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 11 (agent-graph-topology-+-memory-foundation) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 4 of 5
 
 **v2.0 in progress:**
 
-- Plans completed: 7 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor)
-- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min
+- Plans completed: 8 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry)
+- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min
 
 *Updated after each plan completion*
 
@@ -80,6 +80,8 @@ New v2.0 decisions:
 - [Phase 11]: Invoke-delegate subgraph pattern for COO ops agents — avoids checkpointer conflicts between parent and child graphs
 - [Phase 11]: COO builder cast to any for dynamic node registration — TypeScript narrows StateGraph generics on each addNode call
 - [Phase 11]: COO_REPORTS used as routing validation list with AGENT_TYPES.OPERATIONS as fallback for unexpected LLM output
+- [Phase 11]: Invoke-delegate subgraph pattern for CoS direct reports — same as COO, avoids nested checkpointer conflicts
+- [Phase 11]: AGENT_GRAPH_REGISTRY chief_of_staff entry is undefined — CoS is root supervisor, not a routable subgraph
 
 ### Pending Todos
 
@@ -94,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T21:10:38.300Z
-Stopped at: Completed 11-03-PLAN.md
+Last session: 2026-03-18T21:16:01.302Z
+Stopped at: Completed 11-04-PLAN.md
 Resume file: None
