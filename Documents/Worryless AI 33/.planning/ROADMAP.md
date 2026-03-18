@@ -204,7 +204,13 @@ Plans:
   3. Every agent action and tool call is written to the immutable `agent_audit_log` table with input, output, and token count — users can ask "why did you do this?" and get a traceable answer
   4. Each agent has a monthly token budget enforced in three tiers: warning at 80%, auto-pause at 100%, and override requires human approval
   5. Atomic task checkout prevents two concurrent cadence runs from claiming the same work item — double-execution never occurs
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — DB migrations (audit log table, governance columns) + governance TypeScript modules + AgentState goalChain
+- [ ] 12-02-PLAN.md — Base agent governance hooks: token budget pre-check + audit log post-write in createLLMNode
+- [ ] 12-03-PLAN.md — All 7 CoS tools: morning briefing, delegation, fan-out, cross-agent memory, correlation, action items, agent health
+- [ ] 12-04-PLAN.md — CoS supervisor integration: cosTools node, goalChain routing, tool-enriched responses
 
 ### Phase 13: Accountant + Sales Rep Agent Tools
 **Goal**: Users have a working AI CFO and sales development rep — the Accountant executes real financial operations against live data and the Sales Rep runs the full prospecting-to-proposal cycle with real tool calls
@@ -283,8 +289,8 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 8. Phase Verifications | v1.0 | 4/4 | Complete | 2026-03-17 |
 | 9. Tech Debt Cleanup | v1.0 | 3/3 | Complete | 2026-03-17 |
 | 10. LangGraph Infrastructure | v2.0 | 4/4 | Complete | 2026-03-18 |
-| 11. Agent Graph Topology + Memory Foundation | 5/5 | Complete    | 2026-03-18 | - |
-| 12. Chief of Staff Tools + Governance | v2.0 | 0/TBD | Not started | - |
+| 11. Agent Graph Topology + Memory Foundation | v2.0 | 5/5 | Complete | 2026-03-18 |
+| 12. Chief of Staff Tools + Governance | v2.0 | 0/4 | Not started | - |
 | 13. Accountant + Sales Rep Agent Tools | v2.0 | 0/TBD | Not started | - |
 | 14. Marketer + Persistent Browser | v2.0 | 0/TBD | Not started | - |
 | 15. Personal Assistant + Operational Agents | v2.0 | 0/TBD | Not started | - |
@@ -293,6 +299,6 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-18 — Phase 11 planned (5 plans in 4 waves)*
+*Updated: 2026-03-19 — Phase 12 planned (4 plans in 3 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
