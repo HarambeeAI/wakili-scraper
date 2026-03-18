@@ -1,173 +1,194 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-03-12
+**Analysis Date:** 2026-03-18
 
 ## Naming Patterns
 
 **Files:**
-- React component files use PascalCase: `DashboardOverview.tsx`, `AccountantAgent.tsx`, `ConversationalOnboarding.tsx`
-- Hook files use camelCase with `use-` prefix (kebab for filename): `use-toast.ts`, `use-mobile.tsx`, `useScrollAnimation.tsx` (inconsistency — some use camelCase, some kebab-case)
-- Page files use PascalCase: `Dashboard.tsx`, `Auth.tsx`, `Index.tsx`, `NotFound.tsx`
-- Utility files use camelCase: `utils.ts`, `client.ts`, `types.ts`
-- Supabase edge functions use kebab-case directory names: `chat-with-agent/`, `generate-outreach/`, `parse-datasheet/`
+- React components: PascalCase + `.tsx` (e.g., `SettingsPage.tsx`, `AccountantAgent.tsx`)
+- Hooks: camelCase with `use` prefix + `.ts` (e.g., `useHeartbeatConfig.ts`, `useTeamData.ts`)
+- Utilities: camelCase + `.ts` (e.g., `heartbeatUtils.ts`, `sanitize.ts`)
+- Tests: same name as source + `.test.ts` (co-located in `src/__tests__/`)
+- UI components: kebab-case + `.tsx` (e.g., `alert-dialog.tsx`, `input-otp.tsx`)
+- Configuration files: camelCase + extension (e.g., `vite.config.ts`)
 
-**Functions/Handlers:**
-- Event handlers prefixed with `handle`: `handleSignUp`, `handleSignIn`, `handleSend`, `handleFileSelect`, `handleAddInvoice`, `handleDeleteDatasheet`
-- Async data-fetching functions named `fetchData` or `fetchStats`
-- Helper/utility functions use camelCase: `getAgentIcon`, `getAgentName`, `formatFileSize`, `getStatusColor`, `extractAvailableDateRanges`
+**Functions:**
+- Async operations: `fetch*` prefix (e.g., `fetchProfile()`, `fetchValidators()`)
+- Handlers: `handle*` prefix (e.g., `handleSave()`, `handleSelfToggle()`)
+- Resolvers/transformers: `resolve*`, `parse*`, `build*` (e.g., `resolveView()`, `parseSeverity()`, `buildWorkspacePrompt()`)
+- Hooks: `use*` prefix (e.g., `useHeartbeatConfig()`, `useTeamData()`)
+- Internal utilities: lowercase + verb prefix (e.g., `getLocalHour()`, `parseHour()`, `extractJson()`)
+- Boolean getters: `is*` prefix (e.g., `isEditing`, `isLoading`, `isActive`)
 
 **Variables:**
-- State variables use camelCase with descriptive names: `isLoading`, `dialogOpen`, `activeView`, `checkingOnboarding`
-- Boolean state often prefixed with `is`, `show`, `checking`: `isLoading`, `showOnboarding`, `checkingOnboarding`, `uploading`
-- Constants use SCREAMING_SNAKE_CASE for module-level values: `MAX_FILE_SIZE`, `ALLOWED_TYPES`, `MOBILE_BREAKPOINT`, `LOVABLE_AI_GATEWAY`, `DEFAULT_MODEL`
+- State: camelCase (e.g., `config`, `isLoading`, `validatorForm`, `editingAgent`)
+- Constants: UPPER_SNAKE_CASE for truly immutable values (e.g., `VALID_SEVERITIES`, `AGENT_TYPE_ID` in tests)
+- React props: camelCase (e.g., `disabled`, `checked`, `onValueChange`)
+- Type guards: prefix with `is` or suffix with `Type` (e.g., `heartbeat_enabled: boolean`)
+- Event handlers: `on*` prefix (e.g., `onValueChange`, `onCheckedChange()`)
 
-**Types and Interfaces:**
-- `type` aliases use PascalCase for local types: `Message`, `Attachment`, `Invoice`, `Transaction`, `Datasheet`, `Step`, `ActiveView`
-- Interfaces use PascalCase with descriptive names: `ConversationalOnboardingProps`, `DashboardOverviewProps`, `ImpactMetrics`
-- Discriminated union types for step machines: `type Step = "welcome" | "business_name" | ...`
-- Props interfaces always named `[ComponentName]Props`
-
-**Components:**
-- Named exports using `export function ComponentName()` pattern for feature components: `export function ChatInterface()`, `export function AccountantAgent()`
-- Default exports for page-level components: `export default Dashboard`, `export default Auth`
-- Arrow function style for simple/root-level: `const App = () => (...)` with `export default App`
+**Types:**
+- Interfaces: PascalCase (e.g., `HeartbeatConfig`, `TeamAgent`, `Profile`, `Validator`)
+- Type unions: descriptive PascalCase (e.g., `Severity`, `WorkspaceFileType`)
+- Props interfaces: `[ComponentName]Props` (e.g., `ButtonProps`)
+- Generics: single uppercase letters (T, K, V) or descriptive names (e.g., `Record<string, unknown>`)
 
 ## Code Style
 
 **Formatting:**
-- No Prettier config detected — formatting is likely handled by editor defaults or ESLint
-- 2-space indentation (consistent throughout codebase)
-- Trailing commas used in multi-line objects and arrays
-- Template literals preferred over string concatenation
+- No explicit Prettier config; ESLint handles linting
+- Indentation: 2 spaces (consistent throughout)
+- Imports organized with path aliases (`@/`)
+- Trailing commas in multi-line objects/arrays
 
 **Linting:**
-- ESLint configured at `worrylesssuperagent/eslint.config.js`
-- Extends `js.configs.recommended` and `tseslint.configs.recommended`
-- Plugins: `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`
-- `@typescript-eslint/no-unused-vars` is **disabled** (set to "off")
-- React Hooks rules enforced via `reactHooks.configs.recommended.rules`
-- TypeScript strict mode is **disabled** (`"strict": false` in `tsconfig.app.json`)
-- `noImplicitAny` is **disabled** — types are often loosely applied
+- ESLint 9.32.0 with TypeScript support (flat config format)
+- Config file: `eslint.config.js`
+- Extends: `@eslint/js.configs.recommended` + `typescript-eslint.configs.recommended`
+- Plugins: `react-hooks`, `react-refresh`
+- Key rules:
+  - `"react-refresh/only-export-components"`: warn (allowConstantExport: true)
+  - `"@typescript-eslint/no-unused-vars"`: off
+  - React hooks: `reactHooks.configs.recommended.rules` applied
+
+**TypeScript Configuration:**
+- `strict: false` (permissive mode)
+- `noImplicitAny: false`
+- `noUnusedLocals: false` (warnings disabled)
+- `noUnusedParameters: false` (warnings disabled)
+- JSX: react-jsx transform (no React import needed)
 
 ## Import Organization
 
-**Order (observed pattern):**
-1. React and React hooks: `import { useState, useEffect } from "react"`
-2. Third-party routing/query: `import { useNavigate } from "react-router-dom"`
-3. Internal Supabase client: `import { supabase } from "@/integrations/supabase/client"`
-4. UI component library imports: `import { Card, CardContent } from "@/components/ui/card"`
-5. Hook imports: `import { useToast } from "@/hooks/use-toast"`
-6. Icon imports: `import { Send, Loader2 } from "lucide-react"`
+**Order:**
+1. React and core libraries (`import { useState }`)
+2. Third-party packages (`@hookform`, `@radix-ui`, `@supabase`, `@tanstack`)
+3. Internal path aliases (`@/integrations`, `@/components`, `@/hooks`, `@/lib`)
+4. Relative imports (avoid; prefer path aliases)
 
 **Path Aliases:**
-- `@/*` maps to `./src/*` — use this for all internal imports
-- Example: `import { supabase } from "@/integrations/supabase/client"`
-- Do NOT use relative paths like `../../` for cross-directory imports
+- `@/` → `./src/` (configured in `tsconfig.app.json`)
+- Used consistently throughout codebase
+
+**Barrel Exports:**
+- UI component library: uses barrel exports (e.g., `@radix-ui` components)
+- Internal utilities: each has its own file (no barrels)
 
 ## Error Handling
 
-**Frontend components:**
-- Supabase errors destructured from response: `const { data, error } = await supabase...`
-- Error responses shown via the `toast()` helper with `variant: "destructive"` and descriptive `title` + `description`:
-  ```typescript
-  toast({ title: "Error", description: error.message, variant: "destructive" });
-  ```
-- Catch blocks narrow the unknown error type explicitly:
-  ```typescript
-  catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    toast({ title: "Error", description: message, variant: "destructive" });
-  }
-  ```
-- Some older catch blocks use `catch (error: any)` — avoid this; prefer `unknown`
-- `console.error(...)` used consistently for catch blocks alongside toast notifications
+**Patterns:**
+- Try/catch with fallback returns (e.g., `parseSeverity()` returns `{ severity: 'ok', finding: '' }` on failure)
+- Null checks before async operations: `if (!user) return;`
+- Undefined checks at function entry: `if (!userId) { setLoading(false); return; }`
+- Console error logging: `console.error('context:', error)` for async failures
+- Toast notifications via `useToast()` for user-facing errors with `variant: "destructive"`
+- Supabase errors: `if (error) { ... }` pattern with error message extraction
+- Cancellation tokens for async cleanup: `let cancelled = false` with `return () => { cancelled = true; }`
 
-**Edge functions (Deno):**
-- All handlers wrapped in try/catch returning JSON error responses:
-  ```typescript
-  catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: corsHeaders });
-  }
-  ```
-- HTTP status codes checked explicitly (429, 402, etc.) before generic error handling
-
-**Loading states:**
-- Loading boolean toggled with `setLoading(true)` before async operations, reset in `finally` block
-- Separate loading states for distinct async operations: `loading`, `uploading`, `uploadingDatasheet`
+**Silent Failures:**
+- Feature unavailability: `console.warn()` instead of throwing
+- Non-critical async failures: logged but UI continues
 
 ## Logging
 
-**Frontend:** `console.error(...)` used exclusively for error catch blocks — no general-purpose `console.log` in production code
+**Framework:** Native `console` object
 
-**Edge functions:** `console.error(...)` for unexpected errors only, e.g. `console.error("AI Gateway error:", response.status, errorText)`
+**Patterns:**
+- `console.error()`: actual errors in async operations (fetch failures, parse errors)
+- `console.warn()`: non-blocking issues (feature unavailable, fallbacks taken)
+- Context provided: `console.error('[hookName] context:', error)`
+- Never log sensitive data
+
+**When to Log:**
+- Async errors with operation context
+- Feature unavailability (e.g., PushManager not available)
+- Only error and warning levels used (no debug logs)
 
 ## Comments
 
 **When to Comment:**
-- Inline comments explain non-obvious business logic: `// 10MB`, `// Time savings calculation (in hours):`
-- Block comments for TODO notes in library code: `// ! Side effects ! - This could be extracted...`
-- Section dividers using JSX comments in large components: `{/* Summary Cards */}`
-- Edge function configs explained via inline comments in system prompts
+- Complex algorithms with explanation of intent (e.g., timezone logic)
+- Sync contracts between duplicate files (e.g., `sanitize.ts` SYNC CONTRACT)
+- TODO items link to planning phases (e.g., "// TODO: regenerate types after Phase 1")
+- Edge cases documented inline (e.g., "Intl returns "24" for midnight; normalize to 0")
 
-**JSDoc/TSDoc:** Not used — no JSDoc annotations present anywhere in the codebase
+**JSDoc/TSDoc:**
+- Comprehensive on pure utility functions (e.g., `heartbeatUtils.ts`)
+- Parameters: `@param` tags with descriptions
+- Returns: `@returns` tags with type info
+- Sync instructions in JSDoc comments where needed
+- React components: types are self-documenting via TypeScript
+
+**Inline Comments:**
+- Explain "why" not "what"
+- State management patterns documented
+- Edge cases and workarounds clearly noted
 
 ## Function Design
 
-**Size:** Components tend to be large (100–800 lines). `AccountantAgent.tsx` is 813 lines. No enforced size limit.
+**Size:**
+- Utility functions: 10-40 lines
+- Hooks: 30-100 lines depending on complexity
+- Components with JSX: can exceed 100 lines but kept under 400
 
 **Parameters:**
-- Component props destructured inline: `export function Component({ userId, userEmail, onComplete }: Props)`
-- Callback props named `on[Event]`: `onComplete`, `onNavigate`, `onViewChange`, `onTaskCreated`
+- Most functions: 2-4 parameters; if more, use object parameter
+- Hooks return objects: `{ config, isLoading, isSaving, updateConfig }`
+- Callbacks have clear naming (e.g., `updateConfig: (patch: Partial<HeartbeatConfig>) => Promise<void>`)
 
 **Return Values:**
-- Components always return JSX or `null`
-- Helper functions return primitive values or objects — no Promises from pure helpers
-- Async functions return `void` implicitly; errors surface via toast notifications
+- Async operations: `Promise<T>` or `Promise<void>`
+- Hooks: object with state + methods: `{ data, loading, error, refetch }`
+- Parsers: typed objects `{ severity: Severity; finding: string }`
+- Boolean checks: exact `boolean` type (not truthy)
+
+**Early Returns:**
+- Used extensively for guard clauses: `if (!user) return;`
+- Prevents deep nesting
+- Main path is happy path
 
 ## Module Design
 
 **Exports:**
-- Feature components use named exports: `export function DashboardOverview(...)`
-- Page components use default exports: `export default Dashboard`
-- Hooks always use named exports: `export { useToast, toast }`, `export function useIsMobile()`
-- Types exported inline: `export type ActiveView = ...`
+- Named exports for most functions/types
+- Default export for single-export React components
+- UI components: both component and variants exported as named exports
 
-**Barrel Files:** Not used — no `index.ts` barrel exports present; all imports reference full file paths
+**Barrel Files:**
+- UI components: barrel exports in `components/ui/`
+- Custom hooks: one hook per file (no barrel)
+- Lib utilities: one utility per file (no barrel)
 
-## Tailwind Usage
+**File Organization:**
+- One primary export per file
+- Related pure functions grouped: `extractJson()` and `parseSeverity()` in `heartbeatParser.ts`
+- Each hook: own file with clear responsibility
 
-- All styling done via Tailwind utility classes directly in JSX — no CSS modules or styled-components
-- `cn()` utility from `src/lib/utils.ts` used for conditional class merging:
-  ```typescript
-  import { cn } from "@/lib/utils";
-  className={cn("base-classes", conditionalClass && "extra-class")}
-  ```
-- Design tokens via CSS variables: `text-foreground`, `bg-background`, `text-muted-foreground`, `text-primary`, `border-border`
-- Semantic color classes preferred over raw colors: `text-destructive`, `bg-muted`, `text-accent`
-- Raw color shades used for agent-specific branding: `text-emerald-500`, `text-violet-500`, `text-amber-500`, `text-sky-500`
+## Type Safety
+
+**Patterns:**
+- `Record<string, unknown>` for untyped Supabase data
+- Type assertions with `as` when necessary (e.g., `row.agent_type_id as string`)
+- Discriminated unions: `Severity = 'ok' | 'urgent' | 'headsup' | 'digest'`
+- Optional chaining: `?.` widely used
+- Nullish coalescing: `??` for fallback defaults
 
 ## Supabase Pattern
 
-**All Supabase calls follow this pattern:**
 ```typescript
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) return;
 
-const { data, error } = await supabase
-  .from("table_name")
-  .select("*")
-  .eq("user_id", user.id);
+const { data } = await (supabase as any)
+  .from('table_name')
+  .select('...')
+  .eq('user_id', user.id);
 
 if (error) {
   toast({ title: "Error", description: error.message, variant: "destructive" });
-} else {
-  // use data
 }
 ```
 
-**Edge functions** use Deno imports from CDN: `import { serve } from "https://deno.land/std@0.168.0/http/server.ts"`
-
 ---
 
-*Convention analysis: 2026-03-12*
+*Convention analysis: 2026-03-18*

@@ -1,6 +1,52 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-03-12
+**Analysis Date:** 2026-03-18
+
+---
+
+## Tech Debt
+
+**Ungenerated Supabase types in hooks — manually defined interfaces:**
+- Issue: Three hooks define manual TypeScript interfaces for tables not in the auto-generated `types.ts`. These interfaces are duplicated and must be kept in sync with schema changes.
+- Files: `worrylesssuperagent/src/hooks/useNotifications.ts` (line 4), `worrylesssuperagent/src/hooks/useAgentWorkspace.ts` (line 6), `worrylesssuperagent/src/hooks/useHeartbeatConfig.ts` (line 4)
+- Impact: Breaking schema changes go undetected until runtime; two developers editing the same interface can create inconsistency
+- Fix approach: Regenerate Supabase types after Phase 1 database migrations. Add a pre-commit hook to prevent committing code without running `supabase gen types` against current schema.
+
+**Excessive use of `as any` to suppress TypeScript errors:**
+- Issue: 34 instances of `as any`, `(type as any)`, or `any as` across 10 files suppress type safety rather than addressing root causes
+- Files: `worrylesssuperagent/src/hooks/useNotifications.ts` (5 instances), `worrylesssuperagent/src/hooks/useAgentWorkspace.ts` (3 instances), `worrylesssuperagent/src/hooks/useTeamData.ts` (4 instances), `worrylesssuperagent/src/pages/Dashboard.tsx` (1 instance), `worrylesssuperagent/src/hooks/useAgentMarketplace.ts` (9 instances), `worrylesssuperagent/src/components/onboarding/ConversationalOnboarding.tsx` (5 instances), and 4 more files
+- Impact: IDE refactoring is unsafe; missing properties/methods appear at runtime; future developers cannot trust types
+- Fix approach: Properly type Supabase queries using the generated types once available. Create strict TypeScript config with `noImplicitAny: true` and `strict: true`.
+
+**Duplicated system prompts across chat functions:**
+- Issue: `chat-with-agent/index.ts` and `orchestrator/index.ts` both define full system prompts for accountant, marketer, sales_rep, and personal_assistant. `chat-with-agent` appears to be a legacy version that does not support tool calling, business knowledge, or streaming.
+- Files: `worrylesssuperagent/supabase/functions/chat-with-agent/index.ts`, `worrylesssuperagent/supabase/functions/orchestrator/index.ts`
+- Impact: Agent behavior will diverge silently if one is updated and the other is not; maintenance burden is doubled
+- Fix approach: Deprecate `chat-with-agent` and route all chat through the orchestrator, or extract shared prompt definitions to a shared module.
+
+**Duplicated `fetchBusinessKnowledge` function across three edge functions:**
+- Issue: Nearly identical implementations exist in `orchestrator/index.ts`, `generate-outreach/index.ts`, and `run-scheduled-tasks/index.ts`
+- Files: Listed above, roughly lines 122-190 in orchestrator, lines 13-59 in generate-outreach, lines 191-237 in run-scheduled-tasks
+- Impact: Bug fixes or schema changes must be applied in three places
+- Fix approach: Extract to a shared Deno module imported by all functions.
+
+**Duplicated `calculateNextRun` cron parser:**
+- Issue: Custom, minimal cron expression parser duplicated verbatim in both `planning-agent/index.ts` (line 356) and `run-scheduled-tasks/index.ts` (line 555)
+- Files: `worrylesssuperagent/supabase/functions/planning-agent/index.ts`, `worrylesssuperagent/supabase/functions/run-scheduled-tasks/index.ts`
+- Impact: Cron parsing bugs must be fixed twice; function only handles daily/weekly/monthly — no support for more complex expressions
+- Fix approach: Shared utility module or use a Deno cron library.
+
+**Agent task record saving defaults `orchestrator`/`general` agent type to `accountant`:**
+- Issue: When the orchestrator responds without a specific agent type, the code explicitly maps `"orchestrator"` and `"general"` to `"accountant"` as a fallback — a silent, incorrect attribution
+- Files: `worrylesssuperagent/src/components/chat/ChatInterface.tsx` (lines 307-309, 336-338)
+- Impact: Task history in the database incorrectly labels orchestrator responses as accountant tasks, making analytics and audit trails unreliable
+- Fix approach: Store a proper `"orchestrator"` agent type or extend the DB enum.
+
+**`deno.land/std@0.168.0` is an old pinned version:**
+- Issue: All edge functions import from `https://deno.land/std@0.168.0/http/server.ts`, which is over 2 years behind the current standard library
+- Files: All 15 edge functions
+- Impact: Missing bug fixes, performance improvements, and compatibility updates
+- Fix approach: Migrate to Deno's `Deno.serve()` API (available since std@0.190.0+) to eliminate the std import entirely.
 
 ---
 
@@ -38,52 +84,6 @@
 
 ---
 
-## Tech Debt
-
-**Duplicated system prompts across two chat functions:**
-- Issue: `chat-with-agent/index.ts` and `orchestrator/index.ts` both define full system prompts for accountant, marketer, sales_rep, and personal_assistant. `chat-with-agent` appears to be a legacy version that does not support tool calling, business knowledge, or streaming.
-- Files: `worrylesssuperagent/supabase/functions/chat-with-agent/index.ts`, `worrylesssuperagent/supabase/functions/orchestrator/index.ts`
-- Impact: Agent behavior will diverge silently if one is updated and the other is not; maintenance burden is doubled
-- Fix approach: Deprecate `chat-with-agent` and route all chat through the orchestrator, or extract shared prompt definitions to a shared module.
-
-**Duplicated `fetchBusinessKnowledge` function across three edge functions:**
-- Issue: Nearly identical implementations exist in `orchestrator/index.ts`, `generate-outreach/index.ts`, and `run-scheduled-tasks/index.ts`
-- Files: Listed above, roughly lines 122-190 in orchestrator, lines 13-59 in generate-outreach, lines 191-237 in run-scheduled-tasks
-- Impact: Bug fixes or schema changes must be applied in three places
-- Fix approach: Extract to a shared Deno module imported by all functions.
-
-**Duplicated `calculateNextRun` cron parser:**
-- Issue: Custom, minimal cron expression parser duplicated verbatim in both `planning-agent/index.ts` (line 356) and `run-scheduled-tasks/index.ts` (line 555)
-- Files: `worrylesssuperagent/supabase/functions/planning-agent/index.ts`, `worrylesssuperagent/supabase/functions/run-scheduled-tasks/index.ts`
-- Impact: Cron parsing bugs must be fixed twice; function only handles daily/weekly/monthly — no support for more complex expressions
-- Fix approach: Shared utility module or use a Deno cron library.
-
-**`planning-agent` uses `any` type for Supabase client and task parameters:**
-- Issue: `fetchBusinessContext(supabase: any, userId: string)` and `personalizeTask(task: any, businessContext: any, ...)` suppress TypeScript type safety
-- Files: `worrylesssuperagent/supabase/functions/planning-agent/index.ts` (lines 127, 140)
-- Impact: Refactoring is error-prone; type mismatches go undetected at compile time
-- Fix approach: Import `SupabaseClient` type from `@supabase/supabase-js` and define proper interfaces.
-
-**Hardcoded Supabase client version mismatch across functions:**
-- Issue: Some edge functions import `@supabase/supabase-js@2.39.3` while others import `@2.86.0`
-- Files: `worrylesssuperagent/supabase/functions/generate-leads/index.ts` (line 2 — v2.39.3), `worrylesssuperagent/supabase/functions/generate-content/index.ts` (line 2 — v2.39.3), `worrylesssuperagent/supabase/functions/generate-outreach/index.ts` (line 2 — v2.39.3) vs `worrylesssuperagent/supabase/functions/run-scheduled-tasks/index.ts` (line 2 — v2.86.0)
-- Impact: Potential behavioral differences between function versions; older version may lack security patches
-- Fix approach: Pin all functions to the same version (v2.86.0) and update via a shared `deno.json` import map.
-
-**Agent task record saving defaults `orchestrator`/`general` agent type to `accountant`:**
-- Issue: When the orchestrator responds without a specific agent type, the code explicitly maps `"orchestrator"` and `"general"` to `"accountant"` as a fallback — a silent, incorrect attribution
-- Files: `worrylesssuperagent/src/components/chat/ChatInterface.tsx` (lines 307-309, 336-338)
-- Impact: Task history in the database incorrectly labels orchestrator responses as accountant tasks, making analytics and audit trails unreliable
-- Fix approach: Store a proper `"orchestrator"` agent type or extend the DB enum.
-
-**`deno.land/std@0.168.0` is an old pinned version:**
-- Issue: All edge functions import from `https://deno.land/std@0.168.0/http/server.ts`, which is over 2 years behind the current standard library
-- Files: All 15 edge functions
-- Impact: Missing bug fixes, performance improvements, and compatibility updates
-- Fix approach: Migrate to Deno's `Deno.serve()` API (available since std@0.190.0+) to eliminate the std import entirely.
-
----
-
 ## Performance Bottlenecks
 
 **Business knowledge base fetched on every chat request:**
@@ -110,6 +110,12 @@
 - Cause: No streaming or size check
 - Improvement path: Add a size guard (e.g., skip files >5MB) and return a descriptive placeholder instead.
 
+**Conversation history passed unbounded to the AI:**
+- Problem: Full conversation history is sent to the orchestrator on every message. Long conversations will eventually exceed the model's context window, causing truncation or errors with no user feedback.
+- Files: `worrylesssuperagent/src/components/chat/ChatInterface.tsx` (lines 219-223)
+- Cause: No token counting or history windowing
+- Improvement path: Limit to the last N messages (e.g., 20) or implement summarization for older turns.
+
 ---
 
 ## Fragile Areas
@@ -130,22 +136,28 @@
 - Why fragile: If no `leadId` is provided, the function silently attaches the outreach email to the user's chronologically first lead, which is almost certainly wrong
 - Safe modification: Return an error rather than silently misattributing data.
 
-**Conversation history passed unbounded to the AI:**
-- Files: `worrylesssuperagent/src/components/chat/ChatInterface.tsx` (lines 219-223)
-- Why fragile: Full conversation history is sent to the orchestrator on every message. Long conversations will eventually exceed the model's context window, causing truncation or errors with no user feedback.
-- Safe modification: Limit to the last N messages (e.g., 20) or implement summarization for older turns.
-
 **`planning-agent` re-initializes all task templates on every `initialize` call:**
 - Files: `worrylesssuperagent/supabase/functions/planning-agent/index.ts` (lines 177-264)
 - Why fragile: There is no check for existing templates before inserting. Calling `initialize` twice (e.g., if the user toggles automation off and on) creates duplicate scheduled tasks.
 - Safe modification: Use `upsert` with a unique constraint on `(user_id, agent_type, title)` for task templates, or check for existing records before inserting.
+
+**`ConversationalOnboarding` component is 1,219 lines — monolithic and hard to test:**
+- Files: `worrylesssuperagent/src/components/onboarding/ConversationalOnboarding.tsx`
+- Why fragile: Single file contains all state management, business logic, and UI rendering for a 14-step flow. Modifying any step risks breaking others. No prop drilling, unclear data flow.
+- Safe modification: Split into step-specific sub-components. Extract state management to a context or state machine.
+- Test coverage: Zero.
+
+**`notificationBell` silent channel unsubscription:**
+- Files: `worrylesssuperagent/src/components/dashboard/NotificationBell.tsx`
+- Why fragile: The realtime subscription in `useNotifications` calls `supabase.removeChannel(channel)` on unmount, but Supabase's `removeChannel` may silently fail if the subscription was never established (no visible error).
+- Safe modification: Explicitly call `channel.unsubscribe()` before `removeChannel()` to ensure the subscription is torn down cleanly.
 
 ---
 
 ## Missing Critical Features
 
 **No test suite:**
-- Problem: Zero test files exist (verified via glob search)
+- Problem: Zero test files exist (verified via glob search). A single test file exists but contains zero actual tests.
 - Blocks: Confident refactoring, CI/CD quality gates, catching regressions in cron parsing, JSON parsing, and tool dispatch logic
 - Priority: High
 
@@ -173,6 +185,24 @@
 
 ---
 
+## Known Bugs
+
+**Empty catch blocks silently swallow errors:**
+- Issue: `Dashboard.tsx` line 130 has `.catch(() => {})` which explicitly ignores the error on push notification subscription check
+- Files: `worrylesssuperagent/src/pages/Dashboard.tsx` (line 130)
+- Symptoms: Silent failures in push subscription setup; user may think notifications are enabled when they aren't
+- Workaround: None; errors are unlogged
+- Fix approach: Log the error or handle it gracefully (e.g., disable push opt-in banner if subscription check fails).
+
+**Realtime subscription may fire duplicate INSERT events:**
+- Issue: Supabase realtime channels do not deduplicate rapid successive inserts. If `useNotifications` receives two INSERT events within milliseconds, state updates may race
+- Files: `worrylesssuperagent/src/hooks/useNotifications.ts` (lines 70-82)
+- Symptoms: Duplicate notifications shown in UI despite single database insert
+- Workaround: User refreshes page
+- Fix approach: Deduplicate by notification ID on receipt, or use a message deduplication key.
+
+---
+
 ## Test Coverage Gaps
 
 **Edge functions — zero coverage:**
@@ -187,6 +217,45 @@
 - Risk: SSE buffer handling bugs in `ChatInterface.tsx` (lines 268-303) are particularly risky and invisible without tests
 - Priority: High
 
+**Hooks — zero coverage:**
+- What's not tested: `useAgentWorkspace` save debouncing and flush on unmount, `useNotifications` realtime subscription and deduplication, `useHeartbeatConfig` update validation
+- Files: All files under `worrylesssuperagent/src/hooks/`
+- Risk: Race conditions in async state updates, silent failures in workspace persistence
+- Priority: High
+
 ---
 
-*Concerns audit: 2026-03-12*
+## Scaling Limits
+
+**Agent workspace content unbounded growth:**
+- Current capacity: MEMORY.md can grow indefinitely with every task completion
+- Limit: At ~1KB per task memory entry × 100 tasks/month × 12 agents = 1.2MB per user monthly. Over a year with 1,000 users: 1.2TB of workspace content.
+- Scaling path: Implement memory summarization and cap total workspace size per agent at 50KB.
+
+**Notifications realtime channel broadcasts to all clients:**
+- Current capacity: Supabase realtime can handle ~10,000 concurrent connections per project
+- Limit: If 500+ users are logged in simultaneously on the dashboard with open notification subscriptions, channel fan-out becomes expensive
+- Scaling path: Implement client-side connection pooling or migrate to a dedicated notification service (Firebase Cloud Messaging, SendGrid).
+
+**Single-threaded Deno edge functions processing all heartbeats:**
+- Current capacity: Supabase edge functions have a 150s wall-clock timeout on free tier
+- Limit: With 1,000 users and 8 agents each, a single dispatcher invocation must evaluate 8,000 agents in 150s
+- Scaling path: Implement queue-based architecture (Pitfall 2 in PITFALLS.md) to fan-out across multiple worker functions.
+
+---
+
+## Dependencies at Risk
+
+**Outdated Supabase JavaScript client version in some functions:**
+- Risk: Some functions import `@supabase/supabase-js@2.39.3` (June 2023) while others use `@2.86.0` (Sept 2024). Older version may have security patches missing.
+- Impact: Inconsistent behavior between functions, potential for auth-related vulnerabilities
+- Migration plan: Pin all functions to the latest stable version (currently @2.86.0+) via a shared `deno.json` import map.
+
+**`deno.land/std@0.168.0` — critical dependency version lag:**
+- Risk: 2+ years behind latest; may lack security fixes and compatibility updates for newer Deno runtime features
+- Impact: Incompatibility with future Deno versions, security vulnerabilities in HTTP handling
+- Migration plan: Upgrade to `std@0.208.0+` or eliminate `std` import entirely by migrating to native `Deno.serve()` API.
+
+---
+
+*Concerns audit: 2026-03-18*

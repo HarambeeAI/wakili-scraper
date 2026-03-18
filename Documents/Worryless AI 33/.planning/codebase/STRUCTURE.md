@@ -1,232 +1,340 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-03-12
+**Analysis Date:** 2026-03-18
 
 ## Directory Layout
 
 ```
-Worryless AI 33/
-├── .planning/
-│   └── codebase/               # GSD analysis documents
-└── worrylesssuperagent/        # Main application (git root)
-    ├── index.html              # SPA entry HTML
-    ├── package.json            # Node dependencies and scripts
-    ├── vite.config.ts          # Vite build configuration
-    ├── tsconfig.json           # TypeScript project config
-    ├── tailwind.config.ts      # Tailwind CSS theme/config
-    ├── components.json         # shadcn/ui component config
-    ├── eslint.config.js        # ESLint configuration
-    ├── postcss.config.js       # PostCSS configuration
-    ├── bun.lockb               # Bun lockfile
-    ├── public/                 # Static assets served at root
-    │   ├── favicon.ico
-    │   ├── favicon.png
-    │   ├── placeholder.svg
-    │   └── robots.txt
-    ├── src/                    # Frontend React application
-    │   ├── assets/             # Static image/icon assets imported by components
-    │   │   ├── agents/         # Agent avatar images
-    │   │   └── landing/        # Landing page images
-    │   ├── components/         # React components
-    │   │   ├── ui/             # shadcn/ui primitives (51 files)
-    │   │   ├── landing/        # Marketing/landing page sections
-    │   │   ├── dashboard/      # Dashboard shell and overview
-    │   │   ├── agents/         # Per-agent feature panels
-    │   │   ├── chat/           # AI Chief of Staff chat interface
-    │   │   ├── onboarding/     # Multi-step onboarding wizard
-    │   │   └── settings/       # User and agent settings
-    │   ├── hooks/              # Custom React hooks
-    │   ├── integrations/
-    │   │   └── supabase/       # Supabase client + auto-generated types
-    │   ├── lib/                # Shared utilities
-    │   └── pages/              # Route-level page components
-    └── supabase/               # Supabase backend
-        ├── functions/          # Edge Functions (Deno TypeScript)
-        │   ├── chat-with-agent/
-        │   ├── crawl-business-website/
-        │   ├── generate-content/
-        │   ├── generate-image/
-        │   ├── generate-invoice-image/
-        │   ├── generate-leads/
-        │   ├── generate-outreach/
-        │   ├── orchestrator/
-        │   ├── parse-datasheet/
-        │   ├── planning-agent/
-        │   ├── run-scheduled-tasks/
-        │   ├── send-daily-briefing/
-        │   ├── send-test-email/
-        │   ├── send-validation-email/
-        │   └── sync-gmail-calendar/
-        └── migrations/         # Ordered SQL migration files
+worrylesssuperagent/
+├── src/                                    # Frontend React source
+│   ├── main.tsx                            # React app entry point
+│   ├── App.tsx                             # Root component, routes, providers
+│   ├── index.css                           # Global styles + Tailwind imports
+│   ├── App.css                             # App-level CSS
+│   ├── vite-env.d.ts                       # Vite env type definitions
+│   ├── __tests__/                          # Test files (vitest, co-located by domain)
+│   │   ├── sanitize.test.ts                # Prompt injection filter tests
+│   │   ├── heartbeatParser.test.ts         # Heartbeat log parsing tests
+│   │   ├── useTeamData.test.ts             # Team data hook tests
+│   │   ├── useAgentMarketplace.test.ts     # Not found - TODO
+│   │   └── [other hook/lib tests]
+│   ├── pages/                              # Route pages (not Next.js, React Router pages)
+│   │   ├── Index.tsx                       # Landing page (/)
+│   │   ├── Auth.tsx                        # Auth flow (/auth)
+│   │   ├── Dashboard.tsx                   # Main app dashboard (/dashboard)
+│   │   └── NotFound.tsx                    # 404 page (*)
+│   ├── components/                         # Reusable UI components
+│   │   ├── ui/                             # Shadcn/Radix-UI base components (51 files)
+│   │   │   ├── button.tsx                  # Base button
+│   │   │   ├── card.tsx                    # Card container
+│   │   │   ├── dialog.tsx                  # Modal/dialog
+│   │   │   ├── sidebar.tsx                 # Sidebar layout + context
+│   │   │   ├── form.tsx                    # React-hook-form wrapper
+│   │   │   ├── [others...]                 # accordion, tabs, input, label, etc.
+│   │   ├── agents/                         # Agent-specific components (9 files)
+│   │   │   ├── AccountantAgent.tsx         # Accounting agent UI (31 KB)
+│   │   │   ├── MarketerAgent.tsx           # Marketing agent UI (12 KB)
+│   │   │   ├── SalesRepAgent.tsx           # Sales rep agent UI (14 KB)
+│   │   │   ├── PersonalAssistantAgent.tsx  # Personal assistant agent UI (22 KB)
+│   │   │   ├── GenericAgentPanel.tsx       # Fallback for custom agents
+│   │   │   ├── HeartbeatConfigSection.tsx  # Heartbeat scheduler UI
+│   │   │   └── workspace/                  # Agent instruction editor
+│   │   │       ├── WorkspaceTabs.tsx       # Tab switcher (Instructions, Memory, Context)
+│   │   │       ├── WorkspaceEditor.tsx     # CodeMirror-based editor
+│   │   │       ├── WorkspaceEditorLazy.tsx # Lazy-load wrapper
+│   │   │       └── MemoryTab.tsx           # Memory/context tab
+│   │   ├── dashboard/                      # Dashboard feature components (8 files)
+│   │   │   ├── DashboardSidebar.tsx        # Left navigation
+│   │   │   ├── DashboardHeader.tsx         # Top bar with user/settings
+│   │   │   ├── DashboardOverview.tsx       # Overview/home view
+│   │   │   ├── TaskList.tsx                # Task display
+│   │   │   ├── CreateTaskDialog.tsx        # Task creation modal
+│   │   │   ├── AutomationPanel.tsx         # Automation rules UI
+│   │   │   ├── BusinessArtifacts.tsx       # Generated documents viewer
+│   │   │   └── NotificationBell.tsx        # Notification popover
+│   │   ├── chat/                           # Chat interface
+│   │   │   └── ChatInterface.tsx           # Multi-agent chat UI (20 KB)
+│   │   ├── team/                           # Team management
+│   │   │   └── TeamView.tsx                # Team overview + agent health
+│   │   ├── marketplace/                    # Agent marketplace
+│   │   │   ├── AgentMarketplace.tsx        # Catalog + activation
+│   │   │   └── AgentMarketplaceCard.tsx    # Card per agent type
+│   │   ├── onboarding/                     # First-time user flow
+│   │   │   ├── ConversationalOnboarding.tsx
+│   │   │   └── [onboarding steps]
+│   │   ├── settings/                       # User settings
+│   │   │   └── SettingsPage.tsx            # Profile, integrations, preferences
+│   │   ├── landing/                        # Landing page sections (11 files)
+│   │   │   ├── LandingNav.tsx              # Header nav
+│   │   │   ├── HeroSection.tsx             # Hero banner
+│   │   │   ├── SpecialistsSection.tsx      # Agents showcase
+│   │   │   ├── HowItWorksSection.tsx       # Product tour
+│   │   │   ├── PricingSection.tsx          # Pricing table
+│   │   │   ├── FAQSection.tsx              # FAQ accordion
+│   │   │   ├── CTASection.tsx              # Call-to-action
+│   │   │   ├── WhySection.tsx              # Value prop
+│   │   │   ├── UseCasesSection.tsx         # Use cases
+│   │   │   ├── HeroBackground.tsx          # Gradient animation background
+│   │   │   └── Footer.tsx                  # Footer
+│   │   ├── push/                           # Push notification UI
+│   │   │   └── PushOptInBanner.tsx         # Opt-in prompt
+│   │   └── NavLink.tsx                     # Custom nav link component
+│   ├── hooks/                              # Custom React hooks (9 files)
+│   │   ├── useTeamData.ts                  # Fetch + realtime team agents (Realtime subscription)
+│   │   ├── useAgentMarketplace.ts          # Fetch catalog + active agents, activate/deactivate
+│   │   ├── useAgentWorkspace.ts            # Fetch workspace file, auto-save, sanitize
+│   │   ├── useHeartbeatConfig.ts           # Fetch heartbeat schedule, update
+│   │   ├── useNotifications.ts             # Fetch notifications, mark read
+│   │   ├── usePushSubscription.ts          # Register service worker, manage push subscription
+│   │   ├── use-toast.ts                    # Sonner toast control
+│   │   ├── use-mobile.tsx                  # Responsive breakpoint detection
+│   │   └── useScrollAnimation.tsx          # Intersection observer for scroll animations
+│   ├── lib/                                # Utility functions (5 files)
+│   │   ├── sanitize.ts                     # Prompt injection filter regex patterns (SYNC with _shared/)
+│   │   ├── heartbeatParser.ts              # Parse raw heartbeat_log rows → aggregate stats
+│   │   ├── heartbeatStatus.ts              # Map heartbeat severity to display label
+│   │   ├── buildWorkspacePrompt.ts         # Construct system prompt from workspace files
+│   │   └── utils.ts                        # cn() class merge helper
+│   ├── integrations/                       # External service clients
+│   │   └── supabase/                       # Supabase integration
+│   │       ├── client.ts                   # Supabase client initialization (JWT auth)
+│   │       └── types.ts                    # Auto-generated TypeScript types from Supabase schema
+│   ├── utils/                              # Misc utilities
+│   │   └── heartbeatUtils.ts               # Helper: format heartbeat timestamps
+│   └── assets/                             # Static images, icons
+│       ├── agents/                         # Agent avatar images
+│       └── landing/                        # Landing page images
+├── supabase/                               # Supabase backend
+│   ├── migrations/                         # Database schema migrations
+│   │   ├── 001_initial_schema.sql          # Users, profiles, agents, workspace files
+│   │   └── [future migrations...]
+│   └── functions/                          # Serverless edge functions (Deno)
+│       ├── _shared/                        # Shared utilities (duplicate from src/lib)
+│       │   └── sanitize.ts                 # Deno version of sanitizer (SYNC with src/lib/sanitize.ts)
+│       ├── orchestrator/                   # Main agent team orchestrator
+│       │   └── index.ts
+│       ├── chat-with-agent/                # Chat entry point, routes to agents
+│       │   └── index.ts
+│       ├── heartbeat-dispatcher/           # Triggers heartbeat-runner per agent
+│       │   └── index.ts
+│       ├── heartbeat-runner/               # Executes single agent heartbeat
+│       │   └── index.ts
+│       ├── spawn-agent-team/               # Creates agent instances
+│       │   └── index.ts
+│       ├── generate-content/               # Content generation (email, social, etc.)
+│       │   └── index.ts
+│       ├── generate-image/                 # Image generation via external API
+│       │   └── index.ts
+│       ├── generate-leads/                 # Lead generation agent
+│       │   └── index.ts
+│       ├── generate-outreach/              # Outreach email generation
+│       │   └── index.ts
+│       ├── generate-invoice-image/         # Invoice rendering
+│       │   └── index.ts
+│       ├── parse-datasheet/                # CSV/datasheet parsing
+│       │   └── index.ts
+│       ├── crawl-business-website/         # Web scraping/crawling
+│       │   └── index.ts
+│       ├── planning-agent/                 # Strategic planning
+│       │   └── index.ts
+│       ├── run-scheduled-tasks/            # CRON trigger for daily jobs
+│       │   └── index.ts
+│       ├── sync-gmail-calendar/            # Google Calendar sync
+│       │   └── index.ts
+│       ├── send-validation-email/          # Auth email
+│       │   └── index.ts
+│       ├── send-test-email/                # Test email delivery
+│       │   └── index.ts
+│       ├── send-daily-briefing/            # Daily digest email
+│       │   └── index.ts
+│       ├── send-morning-digest/            # Morning summary
+│       │   └── index.ts
+│       └── [other functions...]
+├── public/                                 # Static assets served as-is
+│   ├── index.html                          # SPA HTML shell
+│   ├── manifest.json                       # PWA manifest
+│   └── [icons, logos, etc.]
+├── dist/                                   # Built output (generated by vite build)
+├── .git/                                   # Git repository
+├── package.json                            # Dependencies, scripts
+├── package-lock.json                       # Dependency lock file
+├── tsconfig.json                           # TypeScript root config
+├── tsconfig.app.json                       # App-specific TypeScript config
+├── tsconfig.node.json                      # Build tool TypeScript config
+├── vite.config.ts                          # Vite bundler config
+├── vitest.config.ts                        # Vitest test runner config
+├── tailwind.config.ts                      # Tailwind CSS config
+├── postcss.config.js                       # PostCSS config
+├── eslint.config.js                        # ESLint rules
+├── components.json                         # Shadcn component metadata
+└── README.md                               # Project documentation
 ```
 
 ## Directory Purposes
 
-**`src/pages/`:**
-- Purpose: Route-level page components, one file per route
-- Contains: `Index.tsx` (landing), `Auth.tsx` (sign in/up), `Dashboard.tsx` (authenticated app shell), `NotFound.tsx`
-- Key files: `Dashboard.tsx` owns the `ActiveView` type and all view-switching logic
+**src/pages/:**
+- Purpose: React Router page components (not Next.js pages)
+- Contains: Route-level components that map to URL paths
+- Key files: `Index.tsx` (landing), `Auth.tsx` (auth UI), `Dashboard.tsx` (main app shell)
 
-**`src/components/ui/`:**
-- Purpose: Low-level shadcn/ui primitives — buttons, inputs, dialogs, cards, sidebar, etc.
-- Contains: ~51 component files generated/managed via `components.json`
-- Do NOT add feature logic here; these are purely presentational building blocks
+**src/components/ui/:**
+- Purpose: Reusable unstyled base components from shadcn/radix-ui
+- Contains: 51 base components (button, card, dialog, sidebar, form, etc.)
+- Generated from: shadcn CLI scaffolding
+- Modified: Tailwind class overrides for custom branding
 
-**`src/components/landing/`:**
-- Purpose: Marketing page section components
-- Key files: `LandingNav.tsx`, `HeroSection.tsx`, `PricingSection.tsx`, `FAQSection.tsx`, `Footer.tsx`, `HeroBackground.tsx`, `WhySection.tsx`, `SpecialistsSection.tsx`, `UseCasesSection.tsx`, `HowItWorksSection.tsx`, `CTASection.tsx`
+**src/components/agents/:**
+- Purpose: Agent-specific views with workspace editor + execution interface
+- Contains: 4 specialized agents (Accountant, Marketer, SalesRep, PersonalAssistant) + GenericAgentPanel
+- Key pattern: Each renders WorkspaceTabs (Instructions/Memory/Context editor) + agent-specific results UI
 
-**`src/components/dashboard/`:**
-- Purpose: Dashboard shell, navigation sidebar, overview metrics, task management, automation controls
-- Key files: `DashboardSidebar.tsx`, `DashboardHeader.tsx`, `DashboardOverview.tsx`, `TaskList.tsx`, `CreateTaskDialog.tsx`, `AutomationPanel.tsx`, `BusinessArtifacts.tsx`
+**src/components/dashboard/:**
+- Purpose: Dashboard layout and feature views
+- Contains: Sidebar, header, overview grid, task list, automation rules, business artifacts viewer, notification bell
+- Key pattern: Sidebar navigation state drives which component renders in main area
 
-**`src/components/agents/`:**
-- Purpose: Per-agent feature panels with CRUD UI and data display
-- Key files: `AccountantAgent.tsx`, `MarketerAgent.tsx`, `SalesRepAgent.tsx`, `PersonalAssistantAgent.tsx`
-- Each agent component fetches its own domain data from Supabase and invokes edge functions for AI tasks
+**src/hooks/:**
+- Purpose: Encapsulate data fetching, subscriptions, form state, local mutations
+- Contains: Custom hooks that return {data, loading, error, handlers...}
+- Key pattern: Hooks initialize Supabase subscriptions and return cleanup functions
 
-**`src/components/chat/`:**
-- Purpose: AI Chief of Staff chat interface (multi-agent orchestrated chat)
-- Key files: `ChatInterface.tsx` — handles message history, file uploads to `chat-attachments` storage, and calls the `orchestrator` edge function
+**src/lib/:**
+- Purpose: Pure utility functions with no React dependencies
+- Contains: Sanitization, parsing, status computation, CSS class helpers
+- Key pattern: Single-export files; no side effects; testable
 
-**`src/components/onboarding/`:**
-- Purpose: Multi-step conversational onboarding wizard shown to new users
-- Key files: `ConversationalOnboarding.tsx` (primary wizard), `BusinessOnboarding.tsx`
+**src/integrations/supabase/:**
+- Purpose: Supabase client and types
+- Contains: Client initialization (JWT auto-refresh), auto-generated TypeScript types
+- Key pattern: types.ts regenerated after schema changes via `supabase gen types`
 
-**`src/components/settings/`:**
-- Purpose: User profile settings, timezone, agent validator management
-- Key files: `SettingsPage.tsx`
-
-**`src/hooks/`:**
-- Purpose: Custom React hooks shared across components
-- Key files: `use-toast.ts` (toast notification system), `use-mobile.tsx` (mobile breakpoint detection), `useScrollAnimation.tsx` (scroll-triggered animations)
-
-**`src/integrations/supabase/`:**
-- Purpose: Single access point for all Supabase interaction
-- Key files: `client.ts` (typed Supabase client singleton), `types.ts` (auto-generated DB schema types — do not edit manually)
-- Import pattern: `import { supabase } from "@/integrations/supabase/client"`
-
-**`src/lib/`:**
-- Purpose: Shared pure utility functions
-- Key files: `utils.ts` — exports `cn()` (clsx + tailwind-merge helper for className composition)
-
-**`src/assets/`:**
-- Purpose: Static images and icons imported directly by React components
-- Subdirectories: `agents/` (agent avatars), `landing/` (landing page imagery)
-
-**`supabase/functions/`:**
-- Purpose: Deno TypeScript edge functions deployed to Supabase
-- Pattern: Each function is a directory containing a single `index.ts` that calls `serve(async (req) => { ... })`
-- Functions communicate with Supabase using the service-role key (`SUPABASE_SERVICE_ROLE_KEY`) for privileged operations
-
-**`supabase/migrations/`:**
-- Purpose: Ordered SQL migration files that define and evolve the database schema
-- Naming: `{timestamp}_{uuid}.sql`
-- Contains: Table definitions, enum types, RLS policies, triggers, and functions
+**supabase/functions/:**
+- Purpose: Serverless backend logic (Deno runtime)
+- Contains: 22+ function handlers for chat, agent orchestration, content generation, scheduled tasks, webhooks
+- Key pattern: Each function has own /index.ts; _shared/ contains duplicated utilities (due to Deno/Node runtime separation)
 
 ## Key File Locations
 
 **Entry Points:**
-- `worrylesssuperagent/index.html`: SPA HTML shell loaded by browser
-- `worrylesssuperagent/src/pages/Index.tsx`: Landing page (`/`)
-- `worrylesssuperagent/src/pages/Auth.tsx`: Authentication page (`/auth`)
-- `worrylesssuperagent/src/pages/Dashboard.tsx`: Full authenticated application shell (`/dashboard`)
+- `src/main.tsx`: React app bootstrap (React.createRoot + render)
+- `src/App.tsx`: Route definitions, global providers (QueryClient, Tooltip, Toaster, Router)
+- `public/index.html`: SPA HTML shell with #root div
 
 **Configuration:**
-- `worrylesssuperagent/vite.config.ts`: Vite build config (path aliases, plugins)
-- `worrylesssuperagent/tailwind.config.ts`: Design tokens and theme
-- `worrylesssuperagent/components.json`: shadcn/ui install config
-- `worrylesssuperagent/tsconfig.app.json`: TypeScript paths including `@/` alias → `src/`
-- `worrylesssuperagent/.env`: Supabase URL and publishable key (not committed)
+- `vite.config.ts`: Build config, path aliases (@/), dev server port
+- `tsconfig.json`: TypeScript strict mode, module resolution
+- `tailwind.config.ts`: Design tokens (colors, spacing, fonts)
+- `vitest.config.ts`: Test runner config, excluding supabase/** from test discovery
+- `.prettierrc`, `.eslintrc.js`: Code formatting and linting rules
 
 **Core Logic:**
-- `worrylesssuperagent/src/integrations/supabase/client.ts`: Supabase client (all DB/auth/storage/function calls go through this)
-- `worrylesssuperagent/src/integrations/supabase/types.ts`: Complete auto-generated DB type definitions
-- `worrylesssuperagent/supabase/functions/orchestrator/index.ts`: Primary AI routing and multi-agent orchestration
-- `worrylesssuperagent/supabase/functions/run-scheduled-tasks/index.ts`: Automation task scheduler
-- `worrylesssuperagent/supabase/functions/planning-agent/index.ts`: Onboarding initializer and automation setup
-- `worrylesssuperagent/src/lib/utils.ts`: `cn()` utility
+- `src/pages/Dashboard.tsx`: Main app state, active view management, onboarding check
+- `src/hooks/useTeamData.ts`: Team agent state + Realtime subscriptions
+- `src/hooks/useAgentWorkspace.ts`: Workspace file CRUD + auto-save with debounce
+- `src/lib/sanitize.ts`: Prompt injection filtering (kept in sync with edge function version)
 
-**Database Schema:**
-- `worrylesssuperagent/supabase/migrations/20251204060048_4cba7ad2-...sql`: Initial schema (profiles, agent_tasks, invoices, transactions, social_posts, leads, outreach_emails, integrations, RLS policies)
+**Testing:**
+- `src/__tests__/`: Vitest test files (same directory structure as src/)
+  - `sanitize.test.ts`: Regex pattern tests (12 injection patterns)
+  - `useTeamData.test.ts`: Hook logic tests with mocked Supabase
+  - `heartbeatParser.test.ts`: Parsing logic tests
 
 ## Naming Conventions
 
 **Files:**
-- React components: PascalCase — `AccountantAgent.tsx`, `DashboardSidebar.tsx`
-- Hooks: camelCase prefixed with `use` — `use-toast.ts`, `useScrollAnimation.tsx`
-- Utilities: camelCase — `utils.ts`
-- Edge functions: kebab-case directory names — `chat-with-agent/`, `run-scheduled-tasks/`
-- Migration files: `{timestamp}_{uuid}.sql`
+- Components: PascalCase (`UserCard.tsx`, `DashboardSidebar.tsx`)
+- Hooks: camelCase prefixed with `use` (`useTeamData.ts`, `useAgentWorkspace.ts`)
+- Utilities: camelCase (`sanitize.ts`, `heartbeatParser.ts`)
+- Pages: PascalCase (`Dashboard.tsx`, `Index.tsx`)
+- Tests: filename.test.ts or filename.spec.ts (`sanitize.test.ts`)
 
 **Directories:**
-- Feature grouping in `src/components/` uses lowercase kebab-case — `agents/`, `chat/`, `dashboard/`, `landing/`, `onboarding/`, `settings/`
-- UI primitives isolated in `src/components/ui/`
+- Feature folders: camelCase or lowercase (`agents/`, `dashboard/`, `components/`)
+- Subdirectories: hierarchy indicates containment (`components/agents/workspace/`)
 
-**Components:**
-- Named exports for feature components: `export function AccountantAgent() {}`
-- Default exports for page components: `export default Dashboard`
+**TypeScript Types:**
+- Interfaces: PascalCase, `I` prefix optional (`UseAgentWorkspaceParams`, `TeamAgent`)
+- Types: PascalCase (`Message`, `Attachment`, `SocialPost`)
+- Enums: PascalCase (`ActiveView`)
 
-**Types:**
-- Local types defined inline at top of each file (e.g., `type Invoice = { ... }`)
-- DB types imported from `@/integrations/supabase/types`
-- Union string types for view routing: `export type ActiveView = "overview" | "accountant" | ...` in `src/pages/Dashboard.tsx`
+**Functions:**
+- React components: PascalCase (`AccountantAgent`, `ChatInterface`)
+- Hooks: camelCase `use` prefix (`useTeamData`, `usePushSubscription`)
+- Utilities: camelCase (`sanitizeWorkspaceContent`, `parseHeartbeatLog`)
 
 ## Where to Add New Code
 
-**New Agent Feature Panel:**
-- Implementation: `src/components/agents/{AgentName}Agent.tsx`
-- Register view: Add case to `ActiveView` union in `src/pages/Dashboard.tsx` and `renderContent()` switch
-- Add sidebar item: Add entry to `agentItems` array in `src/components/dashboard/DashboardSidebar.tsx`
+**New Feature (e.g., new agent type):**
+- Implementation: `src/components/agents/MyAgentName.tsx`
+- Workspace editor: Reuse `src/components/agents/workspace/` components
+- Hook if needed: `src/hooks/useMyAgentData.ts` (if specialized data fetching required)
+- Tests: `src/__tests__/useMyAgentData.test.ts`
+- Integration: Add to Dashboard.tsx renderContent() switch statement; add to DashboardSidebar menu
 
-**New Edge Function:**
-- Create directory: `supabase/functions/{function-name}/`
-- Create: `supabase/functions/{function-name}/index.ts`
-- Pattern: Copy CORS headers object and `serve` wrapper from an existing function like `chat-with-agent/index.ts`
-- Invoke from frontend: `supabase.functions.invoke('{function-name}', { body: { ... } })`
+**New Page/Route:**
+- Page component: `src/pages/MyPage.tsx`
+- Sub-components: `src/components/my-page/` subdirectory
+- Route definition: Add to `src/App.tsx` Routes section
+- Tests: `src/__tests__/pages/MyPage.test.ts`
 
-**New Database Table:**
-- Create a new migration file in `supabase/migrations/` with timestamp prefix
-- Always include: `user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE`, RLS `ENABLE ROW LEVEL SECURITY`, and per-operation RLS policies
-- Regenerate types: update `src/integrations/supabase/types.ts` after migration
+**New Hook:**
+- Primary: `src/hooks/useMyFeature.ts`
+- Tests: `src/__tests__/useMyFeature.test.ts`
+- Import pattern: `import { useMyFeature } from "@/hooks/useMyFeature"`
 
-**New Landing Section:**
-- Implementation: `src/components/landing/{SectionName}Section.tsx`
-- Register: Import and add to `src/pages/Index.tsx`
+**Shared Utility:**
+- Primary: `src/lib/myUtility.ts` (frontend/vitest)
+- Sync version: `supabase/functions/_shared/myUtility.ts` (if used by edge functions)
+- Tests: `src/__tests__/myUtility.test.ts`
+- Note: Edit BOTH files together; update sync checklist in comments
 
-**New Settings Section:**
-- Extend `src/components/settings/SettingsPage.tsx`
+**Edge Function:**
+- Primary: `supabase/functions/my-function/index.ts`
+- Shared deps: Import from `../_shared/` (Deno relative imports)
+- Tests: Not co-located; test via direct Deno run or integration tests in frontend tests
+- Entry: HTTP POST/GET handler; signature: `(req: Request) => Promise<Response>`
 
-**Shared Utilities:**
-- Small pure helpers: `src/lib/utils.ts`
-- React hooks: `src/hooks/{hook-name}.ts` or `src/hooks/{hook-name}.tsx`
+**UI Component (shadcn base):**
+- Primary: `src/components/ui/my-component.tsx`
+- Source: Generated via `shadcn-ui add [component]`
+- Modifications: Apply only Tailwind class overrides; preserve Radix API
 
-**Static Assets:**
-- Images imported by React components: `src/assets/`
-- Files served at URL root: `public/`
+**Test:**
+- Co-located: `src/__tests__/` mirrors `src/` structure
+- Example: Test for `src/lib/sanitize.ts` goes in `src/__tests__/sanitize.test.ts`
+- Pattern: Import test subject, mock Supabase if needed, use vitest describe/it/expect
 
 ## Special Directories
 
-**`.planning/codebase/`:**
-- Purpose: GSD analysis documents for AI-assisted development
-- Generated: By GSD mapping commands
-- Committed: Yes (planning artifacts)
+**src/__tests__/:**
+- Purpose: Vitest test suite (mirrors src/ structure)
+- Generated: No
+- Committed: Yes
+- Note: vitest.config.ts excludes supabase/** so only frontend code is tested
 
-**`supabase/migrations/`:**
-- Purpose: Canonical database schema history
-- Generated: Partially (Supabase CLI can generate, or written by hand)
-- Committed: Yes — required for schema reproducibility
+**dist/:**
+- Purpose: Built JavaScript, CSS, static assets (output of `npm run build`)
+- Generated: Yes (via Vite)
+- Committed: No (.gitignored)
+- Note: Use `vite preview` to test production build locally
 
-**`src/components/ui/`:**
-- Purpose: shadcn/ui component library, managed via `components.json`
-- Generated: Via `npx shadcn-ui add <component>` CLI
-- Committed: Yes — these files are owned by the project and may be customized
+**node_modules/:**
+- Purpose: Dependencies installed by npm
+- Generated: Yes (via `npm install`)
+- Committed: No (.gitignored)
 
-**`src/integrations/supabase/types.ts`:**
-- Purpose: Auto-generated TypeScript types reflecting live Supabase schema
-- Generated: Yes — by Supabase CLI (`supabase gen types typescript`)
-- Committed: Yes — do not edit manually
+**supabase/migrations/:**
+- Purpose: Database schema change history (SQL migrations)
+- Generated: Semi (created manually, applied by Supabase)
+- Committed: Yes
+- Note: Never alter existing migrations; create new ones for schema changes
+
+**public/:**
+- Purpose: Static assets served at root (not bundled)
+- Generated: No
+- Committed: Yes
+- Note: Use for large/infrequently-referenced assets (favicons, manifests)
 
 ---
 
-*Structure analysis: 2026-03-12*
+*Structure analysis: 2026-03-18*

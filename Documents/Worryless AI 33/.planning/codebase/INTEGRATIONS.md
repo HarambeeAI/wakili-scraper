@@ -1,138 +1,135 @@
 # External Integrations
 
-**Analysis Date:** 2026-03-12
+**Analysis Date:** 2026-03-18
 
 ## APIs & External Services
 
-**AI / LLM Gateway:**
-- Lovable AI Gateway - Central AI inference endpoint for all agent intelligence
-  - Endpoint: `https://ai.gateway.lovable.dev/v1/chat/completions` (OpenAI-compatible format)
-  - Auth: `LOVABLE_API_KEY` (Deno env var in all edge functions)
-  - Default model: `google/gemini-3-flash-preview` (used in `chat-with-agent`, `orchestrator`, `generate-outreach`, `generate-content`, `crawl-business-website`, `send-daily-briefing`)
-  - Image model: `google/gemini-3-pro-image-preview` (used in `generate-image`, `generate-invoice-image`)
-  - Called by every edge function that generates AI content; no direct OpenAI or Google SDK - all proxied through Lovable
-
-**Lead Generation:**
-- Apify (`code_crafter~leads-finder` actor) - B2B lead scraping
-  - Endpoint: `https://api.apify.com/v2/acts/code_crafter~leads-finder/run-sync-get-dataset-items`
-  - Auth: `APIFY_API_TOKEN` query param (Deno env)
-  - Used in: `supabase/functions/generate-leads/index.ts`
-  - Fetches contact leads (name, email, phone, LinkedIn, company) filtered by keyword, location, industry, job title
-
-**Web Scraping:**
-- Firecrawl - Website crawling and content extraction
-  - Endpoints: `https://api.firecrawl.dev/v1/map` (URL discovery) and `https://api.firecrawl.dev/v1/scrape` (content + screenshot)
-  - Auth: `FIRECRAWL_API_KEY` (Deno env)
-  - Used in: `supabase/functions/crawl-business-website/index.ts`
-  - Crawls user-provided business website during onboarding to populate business knowledge base
-
-**Email Sending:**
-- Resend - Transactional email service
-  - SDK: `https://esm.sh/resend@2.0.0` (loaded in edge function at runtime)
-  - Auth: `RESEND_API_KEY` (Deno env)
-  - From address: `myteam@worryless.ai`
-  - Used in:
-    - `supabase/functions/send-daily-briefing/index.ts` - AI-generated morning briefings
-    - `supabase/functions/send-test-email/index.ts` - Test/development emails
-    - `supabase/functions/send-validation-email/index.ts` - Task approval notification emails (calls Resend REST API directly, not SDK)
-
-**Social Media (Planned/Stub):**
-- Google OAuth / Gmail API / Google Calendar API - Email and calendar sync
-  - Integration table stores `access_token`, `refresh_token`, `token_expires_at` for provider `"google"`
-  - Used in: `supabase/functions/sync-gmail-calendar/index.ts`
-  - Status: Stub implementation - OAuth tokens are stored but actual Gmail/Calendar API calls are not yet implemented (placeholder response returned)
+**Supabase Functions:**
+- Endpoint: `{VITE_SUPABASE_URL}/functions/v1/orchestrator`
+  - Used in: `src/components/chat/ChatInterface.tsx`
+  - Auth: Bearer token using `VITE_SUPABASE_PUBLISHABLE_KEY`
+  - Handles: Chat orchestration and multi-agent responses
+  - Protocol: HTTP POST with SSE streaming response
 
 ## Data Storage
 
 **Database:**
 - Supabase (PostgreSQL) - Primary data store
-  - Connection: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (edge functions) / `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY` (frontend)
-  - Client (frontend): `@supabase/supabase-js` via `src/integrations/supabase/client.ts`
-  - Client (edge functions): `https://esm.sh/@supabase/supabase-js@2.39.3` or `@2.86.0`
-  - Row Level Security enabled on all tables
+  - Connection: `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY` (frontend)
+  - Client (frontend): `@supabase/supabase-js` 2.86.0 via `src/integrations/supabase/client.ts`
 
-**Core Database Tables** (from migrations in `supabase/migrations/`):
-  - `profiles` - User business profile (business_name, industry, website, company_description, timezone, email, onboarding_completed)
-  - `agent_tasks` - Task records per agent type with status, message, response, validation token
-  - `agent_validators` - Human validators assigned per agent type for approval workflows
-  - `automation_settings` - Per-user, per-agent automation on/off switches
-  - `invoices` - Financial invoices (vendor, amount, currency, due_date, status)
-  - `transactions` - Income/expense transactions linked to invoices
-  - `social_posts` - Marketer social media posts (platform, content, image_url, schedule, status, engagement metrics)
-  - `leads` - Sales leads (company, contact, email, phone, website, industry, location, score, source, status)
-  - `outreach_emails` - Cold outreach emails tied to leads (subject, body, sent/opened/replied timestamps)
-  - `business_artifacts` - Scraped/extracted business knowledge (type, title, content, source_url, image_url, metadata)
-  - `integrations` - OAuth token storage for third-party providers (currently Google)
-  - `email_summaries` - Processed email records with urgency_level, sender, subject, summary
-  - `calendar_events` - Calendar events (title, start_time) for daily briefing
-  - `daily_briefings` - Generated AI briefings with priorities, urgent_emails, schedule, summary_text, email_sent_at
-  - `user_datasheets` - Uploaded CSV/datasheet metadata (name, description, column_names, row_count, file_url)
-  - `datasheet_rows` - Row-level data from datasheets stored as JSONB (row_data)
+**Core Database Tables** (inferred from types):
+  - `profiles` - User profile data
+  - `agent_tasks` - Tasks with status and responses
+  - `agent_assets` - Assets linked to agents (documents, images)
+  - `agent_validators` - Validators for approval workflows
+  - `automation_settings` - Per-user automation toggles
+  - `social_posts` - Marketer social content
+  - `leads` - Sales lead data
+  - `outreach_emails` - Email campaigns
+  - `business_artifacts` - Scraped business knowledge
+  - `push_subscriptions` - Push notification subscriptions (user_id, endpoint, p256dh, auth)
+  - `invoices` - Financial invoices
+  - `transactions` - Income/expense transactions
 
 **File Storage:**
-- Supabase Storage - Used for uploaded datasheets (`file_url` in `user_datasheets`) and website screenshots (`image_url` in `business_artifacts`)
+- Supabase Storage - Used for file uploads and assets
 
 **Caching:**
-- TanStack Query (React Query) - In-memory client-side cache with configurable stale times; no server-side cache layer
+- TanStack Query (React Query) 5.83.0 - In-memory client-side cache
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Supabase Auth - Built-in authentication
-  - Implementation: Email/password (standard Supabase auth)
-  - Session persistence: `localStorage` with `autoRefreshToken: true` (`src/integrations/supabase/client.ts`)
-  - New user trigger: `on_auth_user_created` DB trigger auto-creates a row in `public.profiles` on signup
-  - Edge functions validate user via `supabase.auth.getUser(authHeader)` using Bearer token from `Authorization` header
-  - RLS enforces `auth.uid() = user_id` on all tables
+- Supabase Auth - Built-in email/password authentication
+  - Implementation: Email/password auth
+  - Session persistence: `localStorage` with `autoRefreshToken: true` (configured in `src/integrations/supabase/client.ts`)
+  - Client initialization: `createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { storage: localStorage, persistSession: true, autoRefreshToken: true } })`
+  - User fetching: `supabase.auth.getUser()` pattern used throughout
+
+## Push Notifications
+
+**Web Push API:**
+- Implementation: Browser Web Push API
+  - Service Worker: `/sw.js` registered from `src/hooks/usePushSubscription.ts`
+  - VAPID Public Key: `VITE_VAPID_PUBLIC_KEY` environment variable
+  - Subscription storage: `push_subscriptions` table in Supabase
+  - Graceful degradation for HTTP/old browsers
+
+**Push Subscription Flow:**
+  - `usePushSubscription()` hook in `src/hooks/usePushSubscription.ts`
+  - Handles: subscribe(), unsubscribe(), subscription status tracking
+  - Stores: p256dh and auth keys in database via upsert
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- Not detected - No Sentry, Datadog, or similar error tracking SDK present
+- Not detected - No Sentry, Datadog, or similar present
 
 **Logs:**
-- `console.log` / `console.error` throughout edge functions - viewable in Supabase Edge Function logs dashboard
-- No structured logging format
+- `console` methods throughout (viewable in browser DevTools)
+- No structured logging system
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Frontend: Lovable platform (inferred from `lovable-tagger` dev plugin, OG image URLs pointing to `lovable.dev`, and `appUrl` construction in `send-validation-email` that derives app URL from Supabase URL)
-- Backend: Supabase managed hosting (Edge Functions, PostgreSQL, Auth)
+- Frontend: Deployed via Lovable platform (inferred from lovable-tagger, README documentation)
+- Backend: Supabase hosted project
 
 **CI Pipeline:**
-- Not detected - No GitHub Actions, CircleCI, or similar CI config files present
+- Not detected - No GitHub Actions or similar CI configuration files
 
 ## Environment Configuration
 
 **Required frontend env vars (`.env` file, prefixed `VITE_`):**
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-
-**Required edge function secrets (set in Supabase project dashboard):**
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `LOVABLE_API_KEY`
-- `RESEND_API_KEY`
-- `APIFY_API_TOKEN`
-- `FIRECRAWL_API_KEY`
+- `VITE_SUPABASE_URL` - Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY` - Supabase anon/public key
+- `VITE_VAPID_PUBLIC_KEY` - Web Push API VAPID public key
 
 **Secrets location:**
-- Frontend: `.env` file (not committed; Vite `import.meta.env`)
-- Edge functions: Supabase project secrets (set via Supabase dashboard or CLI; accessed via `Deno.env.get()`)
+- Frontend: `.env` file (not committed; accessed via `import.meta.env.*`)
+
+**Configuration pattern:**
+```typescript
+// From src/integrations/supabase/client.ts
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
+```
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- All edge functions accept HTTP POST requests from the frontend SPA
-- `send-validation-email` generates a `validationToken` (UUID) and embeds a deep-link review URL in email; no dedicated inbound webhook endpoint for the approval callback - user clicks link which loads the dashboard with query params (`?task=...&token=...`)
+- Supabase orchestrator function accepts POST requests from `ChatInterface.tsx`
 
 **Outgoing:**
-- Resend email delivery to end users (daily briefings, task validation notifications, test emails)
-- Apify synchronous API call (blocks until dataset is returned)
-- Firecrawl scrape/map calls (synchronous)
-- Lovable AI Gateway calls (synchronous, per-request)
+- No detected outgoing webhooks from frontend
+
+## Data Flow
+
+**Chat with AI:**
+1. User submits message in `src/components/chat/ChatInterface.tsx`
+2. Frontend makes POST to `{SUPABASE_URL}/functions/v1/orchestrator` with SSE streaming
+3. Response streamed back and rendered with React Markdown
+4. Attachments uploaded to Supabase Storage if present
+
+**Real-time Features:**
+- Supabase Realtime subscriptions configured (see `useTeamData` hook pattern)
+- RLS enabled on all tables for row-level security
+
+**Push Notifications:**
+1. User initiates subscription via push notification toggle
+2. Browser registers service worker (`/sw.js`)
+3. Subscription keys serialized and stored in `push_subscriptions` table
+4. Server-side push delivery via Web Push protocol
 
 ---
 
-*Integration audit: 2026-03-12*
+*Integration audit: 2026-03-18*

@@ -1,169 +1,214 @@
 # Architecture
 
-**Analysis Date:** 2026-03-12
+**Analysis Date:** 2026-03-18
 
 ## Pattern Overview
 
-**Overall:** Multi-tenant SaaS with client-side React frontend and serverless backend via Supabase Edge Functions
+**Overall:** Component-driven React SPA with Supabase backend integration, multi-agent orchestration layer, and edge function pipeline.
 
 **Key Characteristics:**
-- Frontend-heavy React SPA (Vite + TypeScript) communicates directly with Supabase for data and with Edge Functions for AI processing
-- All AI workloads run in Deno-based Supabase Edge Functions, not in the browser
-- Row-Level Security (RLS) enforced at the database level; every table scopes data by `user_id`
-- No custom API server — Supabase serves as the sole backend (auth, database, storage, edge functions)
-- Orchestrator edge function routes multi-agent tasks; specialist edge functions handle domain-specific work
+- Single-page application (SPA) built with React + TypeScript + Vite
+- Decentralized UI state management via React hooks and TanStack Query
+- Real-time data sync via Supabase Realtime subscriptions
+- Agent-centric UI: specialized agent panels (Accountant, Marketer, Sales Rep, Personal Assistant) plus generic agent scaffolding
+- Serverless backend logic via Deno-based Supabase Edge Functions
+- Workspace editor pattern: user-configurable agent instructions with prompt injection sanitization
 
 ## Layers
 
-**Presentation Layer:**
-- Purpose: Renders UI, manages local component state, initiates data fetches
-- Location: `worrylesssuperagent/src/`
-- Contains: Pages (`src/pages/`), feature components (`src/components/`), shared UI primitives (`src/components/ui/`)
-- Depends on: Supabase client, Edge Functions (via `supabase.functions.invoke`)
-- Used by: End users via browser
+**Presentation (React Components):**
+- Purpose: Render UI, capture user input, display agent outputs
+- Location: `src/components/`
+- Contains: Page components, feature-specific component trees, UI library (shadcn/radix-ui), landing page sections
+- Depends on: Hooks, Supabase client, utilities
+- Used by: React Router pages
 
-**Supabase Integration Layer:**
-- Purpose: Single typed client that wraps all database, auth, storage, and function calls
-- Location: `worrylesssuperagent/src/integrations/supabase/`
-- Key files: `client.ts` (singleton client), `types.ts` (auto-generated DB types)
-- Depends on: Supabase project credentials via env vars
-- Used by: All React components and pages that need data or auth
+**Pages (Route Handlers):**
+- Purpose: Top-level route entry points, orchestrate page-level state
+- Location: `src/pages/` (Index.tsx, Auth.tsx, Dashboard.tsx, NotFound.tsx)
+- Contains: Auth flow, dashboard layout, landing page
+- Depends on: Components, Supabase auth, React Router
+- Used by: App.tsx router
 
-**Edge Function Layer (Backend):**
-- Purpose: AI inference, scheduled task execution, external integrations, data processing
-- Location: `worrylesssuperagent/supabase/functions/`
-- Contains: 15 Deno TypeScript functions, each in its own directory with a single `index.ts`
-- Depends on: Supabase service-role key, `LOVABLE_API_KEY`, external APIs (Google Gmail/Calendar, image generation)
-- Used by: Frontend (via `supabase.functions.invoke`) and Supabase cron scheduler
+**Hooks (State & Side Effects):**
+- Purpose: Encapsulate data fetching, subscriptions, workspace state, marketplace logic
+- Location: `src/hooks/`
+- Contains: useTeamData, useAgentMarketplace, useAgentWorkspace, useNotifications, usePushSubscription, useHeartbeatConfig, custom form/toast hooks
+- Depends on: Supabase client, React, lib utilities
+- Used by: Components and pages
 
-**Database Layer:**
-- Purpose: Persistent multi-tenant data storage with access control
-- Location: `worrylesssuperagent/supabase/migrations/`
-- Contains: Postgres tables with RLS policies, triggers, and enum types
-- All tables include `user_id UUID REFERENCES auth.users(id)` for tenant isolation
+**Utilities & Lib:**
+- Purpose: Pure functions for data transformation, validation, parsing, sanitization
+- Location: `src/lib/` (sanitize.ts, heartbeatParser.ts, heartbeatStatus.ts, buildWorkspacePrompt.ts, utils.ts)
+- Contains: Workspace prompt injection sanitization, heartbeat log parsing, agent availability status computation
+- Depends on: None
+- Used by: Hooks, components, tests
+
+**Integration Layer:**
+- Purpose: Supabase client instantiation and type definitions
+- Location: `src/integrations/supabase/`
+- Contains: Supabase client (client.ts), TypeScript type definitions (types.ts - auto-generated)
+- Depends on: @supabase/supabase-js
+- Used by: All layers
+
+**Edge Functions (Serverless Backend):**
+- Purpose: Long-running tasks, agent orchestration, external API calls, scheduled jobs
+- Location: `supabase/functions/`
+- Contains: 22+ functions including orchestrator, heartbeat-dispatcher, chat-with-agent, generate-content, webhook handlers
+- Depends on: Deno stdlib, Supabase client (server-side), shared utilities (_shared/)
+- Used by: Frontend via HTTP requests, scheduled triggers, webhooks
+
+**Shared Edge Function Utilities:**
+- Purpose: Code shared between Deno edge functions and frontend (duplicated per runtime constraints)
+- Location: `supabase/functions/_shared/` and `src/lib/`
+- Contains: sanitize.ts (prompt injection filtering - kept in sync across both)
+- Depends on: Varies by function
+- Used by: Edge functions, workspace editor
 
 ## Data Flow
 
-**User Chat with Orchestrator (AI Chief of Staff):**
+**User Authentication Flow:**
 
-1. User types message in `src/components/chat/ChatInterface.tsx`
-2. Optional file attachments uploaded to Supabase Storage bucket `chat-attachments`
-3. Frontend calls `supabase.functions.invoke('orchestrator', { body: { message, conversationHistory, attachments } })`
-4. `supabase/functions/orchestrator/index.ts` classifies intent and routes to specialist sub-prompt or calls `chat-with-agent`
-5. Orchestrator calls Lovable AI Gateway (`https://ai.gateway.lovable.dev/v1/chat/completions`) with model `google/gemini-3-flash-preview`
-6. AI response (and any tool call results) returned to frontend and rendered via `ReactMarkdown`
+1. User visits "/" (landing) → LandingNav → links to /auth
+2. Auth.tsx component → Supabase auth UI
+3. On successful auth: auth state change event fires → setUser → redirect to /dashboard
+4. Dashboard checks onboarding_completed flag in profiles table → if false, show ConversationalOnboarding overlay
 
-**Specialist Agent Interaction (e.g., Accountant):**
+**Dashboard Navigation Flow:**
 
-1. User interacts with `src/components/agents/AccountantAgent.tsx`
-2. Component fetches data directly from Supabase tables (`invoices`, `transactions`, `user_datasheets`, `datasheet_rows`) via typed client
-3. For AI-assisted actions, component calls `supabase.functions.invoke('orchestrator')` with agent context
-4. Edge function enriches prompt with business profile data from `profiles` and `business_artifacts` tables
-5. AI response used to generate content or take tool actions (save invoice, generate social post, etc.)
+1. Dashboard.tsx renders SidebarProvider layout
+2. DashboardSidebar shows activeView state + userAgents list
+3. User clicks agent/view → setActiveView(viewName)
+4. Dashboard.renderContent() switch statement → conditional render (agents, chat, settings, marketplace, etc.)
 
-**Scheduled Automation Flow:**
+**Workspace Editor Data Flow:**
 
-1. `planning-agent` edge function initialises task templates and `agent_tasks` rows on user onboarding completion
-2. Supabase cron invokes `run-scheduled-tasks` periodically
-3. `run-scheduled-tasks` queries `agent_tasks` where `status = 'scheduled'` and `next_run_at <= now()`
-4. Each due task is executed by calling the appropriate agent prompt with business context
-5. Results saved back to domain tables (invoices, social_posts, leads, outreach_emails)
-6. High-risk tasks (`risk_level = 'high'`) are held in `pending_approval` status until user approves
+1. User opens agent (e.g., AccountantAgent) → agent component renders WorkspaceTabs
+2. WorkspaceTabs renders WorkspaceEditorLazy (lazy-loaded CodeMirror)
+3. useAgentWorkspace hook fetches stored workspace_config from Supabase agent_workspace_files table
+4. User edits → WorkspaceEditor.onChange fires → useAgentWorkspace.handleChange queues sanitization + auto-save
+5. Sanitizer strips prompt injection patterns → auto-save persists to DB (debounced via ref)
 
-**User Onboarding Flow:**
+**Chat & Agent Execution:**
 
-1. New user signs up via `src/pages/Auth.tsx` → Supabase trigger `on_auth_user_created` creates profile row
-2. `src/pages/Dashboard.tsx` checks `profiles.onboarding_completed` on load
-3. If `false`, renders `src/components/onboarding/ConversationalOnboarding.tsx` (multi-step wizard)
-4. On completion, `crawl-business-website` edge function optionally fetches website context
-5. `planning-agent` edge function called with `action: "initialize"` to seed task templates and automation settings
-6. `profiles.onboarding_completed` set to `true`; dashboard renders normally
+1. ChatInterface.tsx sends user message → fetch to /chat-with-agent edge function
+2. Edge function routes to orchestrator → determines which agents needed
+3. Orchestrator spawns agent team (from spawn-agent-team function) → each agent processes concurrently
+4. Results stream back → ChatInterface displays with agent attribution
+5. File uploads: attached via chat → stored in Supabase storage → passed as context to agents
+
+**Agent Heartbeat & Monitoring:**
+
+1. run-scheduled-tasks function (CRON) triggers heartbeat-dispatcher
+2. heartbeat-dispatcher iterates user agents → spawns heartbeat-runner for each
+3. heartbeat-runner executes agent logic (fetch tasks, run decisions) → logs outcomes to agent_heartbeat_log
+4. Frontend: useTeamData hook subscribed to agent_heartbeat_log INSERT events → real-time team view updates
+5. TeamView renders chiefOfStaff + other agents with lastHeartbeatOutcome (color-coded by severity)
+
+**Push Notifications:**
+
+1. First-time users: ConversationalOnboarding asks for push consent
+2. Existing users who missed opt-in: PushOptInBanner shown once per session
+3. On consent: usePushSubscription registers service worker → subscribes to push
+4. User subscription stored in push_subscriptions table
+5. Scheduled jobs send notifications via Supabase push API
+
+**Agent Marketplace:**
+
+1. AgentMarketplace component renders catalog from available_agent_types
+2. useAgentMarketplace hook fetches: catalog (all types) + user's active agents (from user_agents)
+3. User clicks "Activate" → activateAgent → POST to database (inserts into user_agents)
+4. Change event fires → parent's onAgentChange callback → refetch userAgents
+5. Dashboard re-renders with new agent in sidebar
 
 **State Management:**
-- No global state library (no Redux/Zustand/Context beyond Supabase's auth listener)
-- Each page/component manages its own local state via `useState`/`useEffect`
-- Auth state detected via `supabase.auth.onAuthStateChange` in `Dashboard.tsx` and `Auth.tsx`
-- Active dashboard view tracked as `ActiveView` string union in `Dashboard.tsx` and passed down via props
+
+- Local component state: useState for UI state (active view, loading, modals)
+- Custom hooks: encapsulate domain state (team data, workspace files, marketplace)
+- TanStack Query: would handle server state (not heavily used in current impl, but QueryClientProvider present)
+- Supabase Realtime: subscriptions to table changes (agent_heartbeat_log, user_agents)
+- localStorage: push notification opt-in flag, user preferences
 
 ## Key Abstractions
 
-**Agent (Domain Specialist):**
-- Purpose: An AI persona scoped to a business function (accountant, marketer, sales_rep, personal_assistant)
-- Frontend examples: `src/components/agents/AccountantAgent.tsx`, `src/components/agents/MarketerAgent.tsx`, `src/components/agents/SalesRepAgent.tsx`, `src/components/agents/PersonalAssistantAgent.tsx`
-- Backend examples: agent configs in `supabase/functions/chat-with-agent/index.ts`, `supabase/functions/orchestrator/index.ts`
-- Pattern: Each agent has a system prompt, temperature setting, and maps to `agent_type` enum in the database
+**Agent Panel Pattern:**
+- Purpose: Reusable container for agent-specific views with workspace editor + execution interface
+- Examples: `src/components/agents/AccountantAgent.tsx`, `src/components/agents/MarketerAgent.tsx`, `src/components/agents/GenericAgentPanel.tsx`
+- Pattern: Each agent exports a component that manages its own state, workspace tab, and execution UI; GenericAgentPanel scaffolds agents not hardcoded
 
-**Edge Function:**
-- Purpose: Serverless Deno function handling a discrete AI or integration task
-- Pattern: Each function exports `serve(async (req) => { ... })`, handles CORS preflight, parses JSON body, calls Lovable AI Gateway or external service, returns JSON
-- All functions include `corsHeaders` with `Access-Control-Allow-Origin: *`
+**Workspace File Type Abstraction:**
+- Purpose: Normalize agent instructions across multiple config files (Instructions, Memory, Context)
+- Examples: `src/lib/buildWorkspacePrompt.ts` defines WorkspaceFileType union
+- Pattern: useAgentWorkspace accepts fileType parameter → different SELECT queries per type → single save logic
 
-**Business Artifact:**
-- Purpose: Contextual knowledge unit stored about a user's business (website content, uploaded docs, team info)
-- Table: `business_artifacts` with `artifact_type`, `title`, `content`, `metadata` columns
-- Used by: Orchestrator and scheduled task functions to enrich AI prompts with business context
+**Heartbeat Aggregation Abstraction:**
+- Purpose: Transform raw heartbeat_log rows into high-level agent availability metrics
+- Examples: `src/hooks/useTeamData.ts` (aggregates last 7 days), `src/lib/heartbeatStatus.ts` (severity to display label)
+- Pattern: Fetch logs → group by agent → compute lastRunAt, lastSeverity, count → memoize in state
 
-**Task Template:**
-- Purpose: A reusable scheduled-work definition with cron expression and risk level
-- Table: `task_templates` (created per user during onboarding via `planning-agent`)
-- Risk levels: `low` (auto-execute) vs `high` (require user approval before action)
+**Sanitization Sync Contract:**
+- Purpose: Ensure prompt injection patterns filtered consistently on frontend and backend
+- Examples: `src/lib/sanitize.ts` (frontend/vitest), `supabase/functions/_shared/sanitize.ts` (Deno)
+- Pattern: Two files with identical regex/replacement logic; checklist comment enforces sync; tests in vitest verify correctness
 
-**Validator:**
-- Purpose: A person designated to approve AI outputs before they take effect (e.g., before an email is sent)
-- Table: `agent_validators` — one per agent type per user
-- Used in: `src/components/settings/SettingsPage.tsx`, onboarding wizard
+**Message Attachment Type:**
+- Purpose: Represent uploaded files in chat context (image, PDF, CSV, etc.)
+- Examples: `src/components/chat/ChatInterface.tsx` defines Attachment type
+- Pattern: File upload → validate mime/size → POST to storage → append {id, name, url, type, size} to attachments array → include in chat payload
 
 ## Entry Points
 
-**Frontend Application:**
-- Location: `worrylesssuperagent/index.html` → `worrylesssuperagent/src/main.tsx` (not shown but implied by Vite SPA structure)
-- Triggers: Browser loads the SPA
-- Responsibilities: Bootstraps React, sets up router with routes `/` (Index), `/auth` (Auth), `/dashboard` (Dashboard), `*` (NotFound)
+**Frontend Entry Point:**
+- Location: `src/main.tsx`
+- Triggers: Browser loads /
+- Responsibilities: Mounts React app into #root DOM element
 
-**Landing Page:**
-- Location: `worrylesssuperagent/src/pages/Index.tsx`
-- Triggers: Unauthenticated visit to `/`
-- Responsibilities: Renders marketing sections (Hero, Why, Specialists, HowItWorks, Pricing, FAQ, CTA, Footer)
+**App Root:**
+- Location: `src/App.tsx`
+- Triggers: main.tsx render
+- Responsibilities: Wraps entire app with QueryClientProvider, TooltipProvider, Toaster, BrowserRouter; defines top-level routes (/, /auth, /dashboard, /*)
 
-**Auth Page:**
-- Location: `worrylesssuperagent/src/pages/Auth.tsx`
-- Triggers: Unauthenticated user navigated to `/auth` or redirected from dashboard
-- Responsibilities: Email/password sign-in and sign-up via `supabase.auth`; redirects to `/dashboard` on success
-
-**Dashboard Page:**
-- Location: `worrylesssuperagent/src/pages/Dashboard.tsx`
-- Triggers: Authenticated user navigates to `/dashboard`
-- Responsibilities: Auth guard, onboarding gate, view routing via `ActiveView` string switch, renders sidebar + header + content
-
-**Orchestrator Edge Function:**
-- Location: `worrylesssuperagent/supabase/functions/orchestrator/index.ts`
-- Triggers: `supabase.functions.invoke('orchestrator', ...)` from `ChatInterface` component
-- Responsibilities: Multi-agent routing, tool-use execution, business-context injection, AI response generation
-
-**Run Scheduled Tasks Edge Function:**
-- Location: `worrylesssuperagent/supabase/functions/run-scheduled-tasks/index.ts`
-- Triggers: Supabase cron schedule
-- Responsibilities: Polls `agent_tasks` for due tasks, executes them via AI agents, saves results, reschedules recurring tasks
+**Edge Function Entry Points:**
+- **Orchestrator**: `supabase/functions/orchestrator/index.ts` - Main entry for agent team spawning; called by chat-with-agent
+- **Chat Handler**: `supabase/functions/chat-with-agent/index.ts` - Receives user message, routes to agents, streams response
+- **Heartbeat Dispatcher**: `supabase/functions/heartbeat-dispatcher/index.ts` - CRON trigger, spawns per-agent heartbeat runners
+- **Scheduled Tasks Runner**: `supabase/functions/run-scheduled-tasks/index.ts` - CRON trigger, initiates daily/weekly automation
 
 ## Error Handling
 
-**Strategy:** Try/catch at edge function boundary; toast notifications in the frontend; no centralized error boundary observed
+**Strategy:** Layered error handling with user feedback via toasts; console logging for debugging; try-catch blocks in critical paths.
 
 **Patterns:**
-- Edge functions return `{ error: message }` JSON with appropriate HTTP status codes (500, 429, 402)
-- Frontend checks `response.error` or `data?.error` after `supabase.functions.invoke` and calls `toast({ variant: "destructive" })`
-- 429 rate-limit and 402 payment-required errors from Lovable AI Gateway have dedicated handling in `chat-with-agent/index.ts`
-- Database errors from Supabase client are checked as `{ error }` destructured returns
-- `console.error` used for server-side logging in all edge functions
+
+- **API Errors (fetch/supabase):** Catch block → check error.status / error.message → toast with user-friendly message
+  - Example: `src/components/agents/AccountantAgent.tsx` file upload catches network errors, storage quota errors
+
+- **Auth Errors:** Special case in Dashboard useEffect; if !session after auth check → navigate("/auth")
+  - Example: `src/pages/Dashboard.tsx` onAuthStateChange subscription redirects on logout
+
+- **Workspace Save Errors:** useAgentWorkspace catches DB write exceptions → toast error → keeps local state
+  - Example: Concurrent edits or network failure → user can retry or reset to server version
+
+- **Edge Function Errors:** Return {error: message} in response body; frontend checks response.ok || response.error
+  - Example: `src/components/chat/ChatInterface.tsx` handles orchestrator 500 errors gracefully
+
+- **Validation Errors:** Zod schemas in chat uploads (file size, type); sanitization runs before DB write
+  - Example: `src/components/chat/ChatInterface.tsx` validates file size < 10MB before upload attempt
 
 ## Cross-Cutting Concerns
 
-**Logging:** `console.error` and `console.log` in edge functions; no structured logging or external log sink
-**Validation:** Basic client-side validation in forms (required fields, file type checks, minLength); no shared validation library
-**Authentication:** Supabase Auth with email/password; sessions persisted in `localStorage`; `supabase.auth.onAuthStateChange` used as the auth state listener in both `Auth.tsx` and `Dashboard.tsx`
-**CORS:** All edge functions include a shared `corsHeaders` object with wildcard origin; OPTIONS preflight handled at the top of every `serve` handler
-**Business Context Injection:** Every AI-facing edge function fetches `profiles` and `business_artifacts` for the requesting user and prepends them to the system prompt before calling the LLM
+**Logging:** Console.error/warn for debugging; no centralized logging service. Future: Consider Sentry or similar.
+  - Example: `src/pages/Dashboard.tsx` logs onboarding check errors; `src/hooks/useTeamData.ts` logs subscription state
+
+**Validation:** Client-side validation (file type/size) before upload; server-side validation in edge functions (request signature, user_id ownership)
+  - Example: `src/components/chat/ChatInterface.tsx` validates ALLOWED_TYPES + MAX_FILE_SIZE; edge functions verify JWT token
+
+**Authentication:** Supabase Auth (JWT-based) with session persistence in localStorage; auth state changes trigger layout updates
+  - Example: All edge functions check Authorization header; frontend redirects if auth fails
+
+**Authorization:** Row-level security (RLS) policies in Supabase; frontend enforces by filtering queries to current user_id
+  - Example: Dashboard queries by user_id; Supabase RLS prevents cross-user data leakage
 
 ---
 
-*Architecture analysis: 2026-03-12*
+*Architecture analysis: 2026-03-18*
