@@ -3,14 +3,14 @@ import type { AgentTypeId } from "./agent-types.js";
 
 // UI component directive shape (for generative UI in Phase 17)
 export interface UIComponent {
-  type: string;          // e.g. "chart", "table", "approval_card", "kanban"
+  type: string; // e.g. "chart", "table", "approval_card", "kanban"
   props: Record<string, unknown>;
 }
 
 // Pending approval shape for HITL interrupt flow
 export interface PendingApproval {
   id: string;
-  action: string;        // e.g. "send_email", "publish_post", "create_po"
+  action: string; // e.g. "send_email", "publish_post", "create_po"
   agentType: AgentTypeId;
   description: string;
   payload: Record<string, unknown>;
@@ -30,6 +30,15 @@ export interface ResponseMetadata {
 export interface MemoryContext {
   agentMemory: Record<string, unknown>;
   businessContext: Record<string, unknown>;
+}
+
+// Goal ancestry entry for context propagation through agent delegation (GOV-03, COS-02)
+// Each entry represents one level of the mission → objective → project → task hierarchy.
+// Stored as JSONB in agent_tasks.goal_chain and propagated via AgentState.goalChain.
+export interface GoalChainEntry {
+  level: "mission" | "objective" | "project" | "task";
+  id?: string; // Optional: UUID of the owning record (e.g., task or project id)
+  description: string; // Human-readable description of this goal level
 }
 
 // The shared state Annotation for all agent graphs
@@ -77,5 +86,14 @@ export const AgentState = Annotation.Root({
   memoryContext: Annotation<MemoryContext>({
     reducer: (_prev, next) => next,
     default: () => ({ agentMemory: {}, businessContext: {} }),
+  }),
+
+  // Goal ancestry chain — last-write-wins (not accumulator).
+  // Each delegation from CoS replaces the full chain; subgraphs receive the complete context.
+  // null = no goal ancestry set (direct user invocation, not a delegated task).
+  // See GoalChainEntry interface above for the shape of each entry.
+  goalChain: Annotation<GoalChainEntry[] | null>({
+    reducer: (_prev, next) => next,
+    default: () => null,
   }),
 });
