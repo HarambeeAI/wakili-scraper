@@ -32,43 +32,64 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 
 ### Active
 
-<!-- New capabilities being built in this milestone -->
+<!-- v2.0 — Agent Intelligence Layer -->
 
-**Agent Spawner & Team Selection**
-- [ ] Agent Spawner service: on onboarding completion, analyzes business context and generates a recommended agent team tailored to the specific business
-- [ ] Agent Team Selector UI: tail-end of onboarding shows recommended team with checkboxes, reasons per agent, and "Accept Suggested Team" CTA
-- [ ] Fixed catalog of 12 spawnable agent types with default MD workspaces (see Constraints)
-- [ ] User can add agents post-onboarding from an Agent Marketplace panel in the dashboard
-- [ ] `user_agents` table tracks which agents each user has activated beyond the 4 defaults
+## Current Milestone: v2.0 Agent Intelligence Layer
 
-**Agent MD Workspace System**
-- [ ] Each agent has a 6-file MD workspace: IDENTITY.md, SOUL.md, SOPs.md, MEMORY.md, HEARTBEAT.md, TOOLS.md
-- [ ] `agent_workspaces` table stores all workspace files per agent per user
-- [ ] Default workspace files auto-generated at agent spawn time using business context
-- [ ] Agent Settings panel in dashboard: user can view and edit IDENTITY, SOUL, SOPs, HEARTBEAT files
-- [ ] MEMORY.md is agent-written only (read-only in UI) — agents append learnings after tasks
+**Goal:** Migrate from hand-rolled agentic layer to LangChain/LangGraph with real tool execution, persistent memory, chat-first generative UI, proactive cadence (daily/weekly/monthly/quarterly), and business-stage-aware onboarding.
 
-**Heartbeat System**
-- [ ] `heartbeat-runner` edge function: per-agent proactive check-in on configurable interval (default 4h, business hours only)
-- [ ] Each agent reads its HEARTBEAT.md checklist + recent task history on each tick
-- [ ] If nothing needs attention: agent replies HEARTBEAT_OK → suppressed (no noise)
-- [ ] If something surfaces: creates a proactive notification + optionally a task
-- [ ] `agent_heartbeat_log` table tracks all heartbeat runs, outcomes, suppressed vs surfaced
-- [ ] Push/email notification delivery when heartbeat surfaces something meaningful
-- [ ] Per-agent heartbeat configuration (interval, active hours, enable/disable)
+**Architecture:** See `.planning/V2_ARCHITECTURE.md` for full design.
 
-**Role-Based Tooling & Skills**
-- [ ] Each agent type ships with a defined skill set matched to their role (see Tooling section in Context)
-- [ ] `available_agent_types` registry table: agent type definitions, default MD templates, skill configs
-- [ ] Skills system: each agent's TOOLS.md documents available integrations and how to use them
-- [ ] Web browsing skill available to research-capable agents (Legal, Customer Support, PR)
-- [ ] Code execution skill for data analysis agents (Accountant, Data Analyst)
-- [ ] Connected tools respect role boundaries (e.g. HR agent writes to team calendar, not invoices)
+**Target features:**
 
-**Org Structure & Agent Hierarchy**
-- [ ] Chief of Staff as depth-0 orchestrator: can delegate to any depth-1 agent and synthesize outputs
-- [ ] Depth-1 agents cannot spawn further — they execute using their own tools
-- [ ] Dashboard "Team" view: org chart showing active agents, heartbeat status, last activity timestamp
+**LangGraph Multi-Agent Backend**
+- [ ] Dedicated LangGraph server (Node.js/TypeScript) on Railway with PostgresSaver checkpointing
+- [ ] Hierarchical supervisor topology: Chief of Staff (root) → 5 direct reports + COO (level-2 → 7 operational agents)
+- [ ] Real tool execution per agent via LangChain `tool()` definitions mapped to role-specific APIs
+- [ ] Human-in-the-loop via LangGraph `interrupt()` for high-risk actions (sending emails, publishing posts, financial transactions)
+- [ ] Supabase Edge Functions retained as JWT-validating proxy to LangGraph server
+
+**Per-Agent Tool Execution**
+- [ ] Accountant: invoice CRUD, transaction recording, cashflow projection, P&L generation, tax estimation, anomaly detection
+- [ ] Marketer: Nano Banana 2 image generation, Playwright persistent browser for social media (publish, analytics, competitor scraping), content calendar, A/B testing
+- [ ] Sales Rep: Apify lead generation (developer-provided key), Resend outreach, email engagement tracking, pipeline analysis, revenue forecasting
+- [ ] Personal Assistant: Google Workspace (Gmail API, Calendar API, Drive API), inbox triage, meeting prep, time allocation analysis
+- [ ] All 13 agents with role-specific tools defined in V2_ARCHITECTURE.md
+
+**Persistent Memory & RAG**
+- [ ] Per-agent memory via LangGraph Store (accumulates learnings, user preferences, patterns)
+- [ ] Business context shared across all agents via Store namespace
+- [ ] pgvector document embeddings for RAG over business artifacts
+- [ ] Chat persistence across sessions via PostgresSaver (all conversations preserved)
+
+**Proactive Cadence Engine**
+- [ ] pg_cron → pgmq → full LangGraph graph execution (replaces single-shot LLM severity check)
+- [ ] Role-specific heartbeat checklists (e.g., Marketer: fetch analytics, check queue, scan trends)
+- [ ] Daily/weekly/monthly/quarterly cadence per agent (not just heartbeat monitoring)
+- [ ] Goal ancestry on all tasks (Paperclip pattern: mission → objective → project → task)
+- [ ] Token budget enforcement per agent (80% warning, 100% pause, human override)
+
+**Chat-First Generative UI**
+- [ ] Each agent tab is a chat interface with dynamic inline UI components (replaces static dashboards)
+- [ ] GenerativeUIRenderer: charts (Recharts), tables (@tanstack/react-table), forms, approval cards, kanban boards, calendars, timelines
+- [ ] SSE streaming with text deltas + structured UI component directives
+- [ ] Agent-specific UI components (Pipeline Kanban for Sales, Content Calendar for Marketer, P&L Statement for Accountant, etc.)
+
+**Onboarding Redesign**
+- [ ] Business stage detection: Starting / Running / Scaling (determines agent recommendations and initial interactions)
+- [ ] Integration setup: Google OAuth for PA, Playwright browser login for Marketer social accounts
+- [ ] First real briefing: Chief of Staff LangGraph graph produces actionable briefing from onboarding context
+
+**Persistent Agent Browser (Marketer)**
+- [ ] Playwright persistent browser context per user for social media operations
+- [ ] User logs in once to social accounts on agent's browser (sessions persist)
+- [ ] Session expiry detection and re-login prompts via heartbeat
+- [ ] Publish, fetch analytics, monitor competitors via real browser (not limited APIs)
+
+**Audit & Governance (Paperclip patterns)**
+- [ ] Immutable audit log for all agent actions and tool calls
+- [ ] Atomic task checkout preventing double-work
+- [ ] Monthly token budgets per agent with enforcement
 
 ### Out of Scope
 
@@ -112,11 +133,14 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 
 ## Constraints
 
-- **Tech Stack**: React + Supabase + Deno Edge Functions — all additions must fit this stack; no new backend services
-- **AI Model**: Lovable AI Gateway (Gemini 3 Flash) — heartbeat and workspace generation use the same gateway
-- **Storage**: Agent workspaces stored as text rows in `agent_workspaces` Supabase table (not OS files — this is a web app)
-- **Scheduling**: Heartbeats use Supabase `pg_cron` — one cron job per agent per user is not scalable; use a single `heartbeat-dispatcher` cron that fans out
-- **No TypeScript strictness**: existing codebase has `noImplicitAny: false`, `strictNullChecks: false` — maintain this to avoid breaking changes
+- **Frontend Stack**: React + TypeScript + Vite + Tailwind + shadcn/ui — unchanged
+- **Database**: Supabase PostgreSQL with RLS — unchanged. LangGraph checkpointing in separate `langgraph` schema
+- **Edge Functions**: Retained as JWT proxy to LangGraph server — not for agent execution
+- **NEW: LangGraph Server**: Node.js/TypeScript on Railway. Uses `@langchain/langgraph`, PostgresSaver, Store
+- **AI Models**: Lovable AI Gateway (Gemini 3 Flash for text, Nano Banana 2 for images). Claude API for complex reasoning
+- **Scheduling**: pg_cron + pgmq retained — triggers LangGraph graph execution instead of single LLM calls
+- **API Keys**: All external service keys (Apify, Resend, Firecrawl) developer-provided via Supabase Vault. Users never configure API keys
+- **No TypeScript strictness**: existing codebase has `noImplicitAny: false`, `strictNullChecks: false` — maintain this
 
 ## Key Decisions
 
@@ -129,4 +153,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | Agent Team Selector at onboarding tail-end (not post-onboarding) | Users are most engaged and context-primed right after completing onboarding; conversion is higher than a post-login prompt | — Pending |
 
 ---
-*Last updated: 2026-03-12 after initialization*
+*Last updated: 2026-03-18 after v2.0 milestone start*
