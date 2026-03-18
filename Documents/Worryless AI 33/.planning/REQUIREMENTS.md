@@ -1,203 +1,197 @@
-# Requirements: Worryless AI — Proactive Multi-Agent Milestone
+# Requirements: Worryless AI v2.0 — Agent Intelligence Layer
 
-**Defined:** 2026-03-12
+**Defined:** 2026-03-18
 **Core Value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
 
----
+## v2.0 Requirements
 
-## v1 Requirements
+### Infrastructure (INFRA)
 
-### Database Foundation
+- [ ] **INFRA-01**: LangGraph server (Node.js/TypeScript) deployed on Railway with health check endpoint
+- [ ] **INFRA-02**: PostgresSaver connected to Supabase PostgreSQL in dedicated `langgraph` schema for thread checkpointing
+- [ ] **INFRA-03**: LangGraph Store connected to Supabase PostgreSQL for persistent cross-thread agent memory
+- [ ] **INFRA-04**: Supabase Edge Function proxy that validates JWT and forwards requests to LangGraph server via SSE
+- [ ] **INFRA-05**: pgvector extension enabled with `document_embeddings` table for RAG over business artifacts
+- [ ] **INFRA-06**: Feature flag (`use_langgraph`) in profiles table for gradual rollout
+- [ ] **INFRA-07**: All existing domain tables (invoices, leads, social_posts, transactions, etc.) remain unchanged — agents access via tools
 
-- [x] **DB-01**: System stores a catalog of 12 agent types (`available_agent_types`) with default MD workspace templates, skill configs, and heartbeat defaults
-- [x] **DB-02**: System tracks which agents each user has activated (`user_agents`) including heartbeat config (interval, active hours, enabled flag) and activation timestamp
-- [x] **DB-03**: Each activated agent has a 6-file MD workspace (`agent_workspaces`): IDENTITY.md, SOUL.md, SOPs.md, MEMORY.md, HEARTBEAT.md, TOOLS.md — stored as text rows, one row per file per agent per user
-- [x] **DB-04**: Workspace files are auto-populated from catalog defaults via Postgres trigger when a `user_agents` row is inserted
-- [x] **DB-05**: System logs heartbeat outcomes (`agent_heartbeat_log`) for surfaced and error runs only — suppressed (HEARTBEAT_OK) runs are not written to reduce DB load
-- [x] **DB-06**: Unique constraint on `user_agents(user_id, agent_type)` prevents double-activation at DB level
-- [x] **DB-07**: `profiles` table gains `timezone` column (used for business-hours heartbeat enforcement and morning digest scheduling)
+### Agent Graph Topology (GRAPH)
 
-### Agent Spawner & Team Selector
+- [ ] **GRAPH-01**: Root StateGraph with Chief of Staff as supervisor node routing to specialist subgraphs
+- [ ] **GRAPH-02**: Conditional routing via LangGraph `Command` objects — CoS LLM decides which agent(s) to invoke
+- [ ] **GRAPH-03**: Parallel fan-out via `Send()` when multiple agents needed for a single user request
+- [ ] **GRAPH-04**: COO level-2 supervisor subgraph routing to 7 operational agents
+- [ ] **GRAPH-05**: Human-in-the-loop via `interrupt()` for all high-risk actions (sending emails, publishing posts, financial transactions, POs)
+- [ ] **GRAPH-06**: Each of the 13 agent types implemented as a LangGraph subgraph with role-specific tools
+- [ ] **GRAPH-07**: Agent state schema with messages, userId, businessContext, uiComponents, pendingApprovals, responseMetadata
 
-- [x] **SPAWN-01**: On onboarding completion, a `spawn-agent-team` edge function analyzes the user's business context (industry, description, website artifacts, location) and returns a ranked list of recommended additional agents with per-agent reasoning and first-week value description
-- [x] **SPAWN-02**: Agent Spawner uses structured JSON output (temperature 0.3, response_format: json_object) and is constrained to catalog agent type IDs to prevent hallucinated agent types
-- [x] **SPAWN-03**: Onboarding flow gains a new final step (Step 12: Agent Team Selector) rendered after validator setup and before `onboarding_completed` is set to true
-- [x] **SPAWN-04**: Agent Team Selector displays: (a) default 5 agents pre-checked and locked, (b) AI-recommended additional agents pre-checked with reasoning card explaining why they fit this specific business, (c) remaining catalog agents unchecked
-- [x] **SPAWN-05**: User can accept the suggested team in one click ("Accept Suggested Team" CTA) or customize by checking/unchecking agents before accepting
-- [x] **SPAWN-06**: After team acceptance, a 2–3 second animated "Briefing your team on [Business Name]..." screen runs before the dashboard loads — establishing the AI-employee mental model
-- [x] **SPAWN-07**: Activated agents (beyond the 4 defaults) are inserted as `user_agents` rows and their workspaces auto-populated with business-context-aware content via a second LLM call
+### Agent Tools — Chief of Staff (COS)
 
-### MD Workspace System
+- [ ] **COS-01**: `compile_morning_briefing` tool aggregating all agent heartbeat findings, overdue tasks, and calendar events
+- [ ] **COS-02**: `delegate_to_agent` tool routing work to specialists via LangGraph `Command` with goal ancestry context
+- [ ] **COS-03**: `fan_out_to_agents` tool dispatching parallel work via `Send()` for multi-agent tasks
+- [ ] **COS-04**: `query_cross_agent_memory` tool reading any agent's Store namespace for synthesis
+- [ ] **COS-05**: `correlate_findings` tool detecting connections between concurrent agent heartbeat flags
+- [ ] **COS-06**: `track_action_items` tool following up on items from previous briefings
+- [ ] **COS-07**: `assess_agent_health` tool checking heartbeat status and error rates across all agents
 
-- [x] **WS-01**: Each agent's settings panel in the dashboard includes a Workspace tab with 6 sub-tabs (IDENTITY / SOUL / SOPs / MEMORY / HEARTBEAT / TOOLS)
-- [x] **WS-02**: IDENTITY, SOUL, SOPs, HEARTBEAT, and TOOLS files are user-editable via CodeMirror 6 markdown editor (lazy-loaded to protect bundle size)
-- [x] **WS-03**: MEMORY.md is read-only in the UI — agents append to it after completing tasks; users can read but not edit
-- [x] **WS-04**: Workspace edits auto-save with 2-second debounce — no explicit save button needed
-- [x] **WS-05**: Each editable workspace file has a "Reset to defaults" action that restores the original catalog template content (with confirmation dialog)
-- [x] **WS-06**: Server-side sanitization strips prompt injection patterns from workspace content before it is inserted into any LLM system prompt
-- [x] **WS-07**: All AI calls that use workspace content inject files in the order: IDENTITY → SOUL → SOPs → TOOLS → MEMORY (HEARTBEAT only on heartbeat runs)
+### Agent Tools — Accountant (ACCT)
 
-### Agent Marketplace
+- [ ] **ACCT-01**: `create_invoice` and `list_invoices` tools for invoice CRUD
+- [ ] **ACCT-02**: `record_transaction` tool with LLM auto-categorization
+- [ ] **ACCT-03**: `parse_bank_statement` tool extracting transactions from CSV/PDF
+- [ ] **ACCT-04**: `parse_receipt` tool using Gemini multimodal (photo to structured data)
+- [ ] **ACCT-05**: `calculate_cashflow_projection` tool projecting 30/60/90 days
+- [ ] **ACCT-06**: `generate_pl_report` tool producing P&L with MoM comparison
+- [ ] **ACCT-07**: `track_budget_vs_actual` tool comparing spending against targets
+- [ ] **ACCT-08**: `estimate_tax` tool calculating liability by jurisdiction
+- [ ] **ACCT-09**: `detect_anomalous_transaction` tool flagging outlier transactions
+- [ ] **ACCT-10**: `chase_overdue_invoice` tool drafting reminder (requires HITL)
+- [ ] **ACCT-11**: `forecast_runway` tool calculating months of cash remaining
+- [ ] **ACCT-12**: `generate_invoice_pdf` tool using Nano Banana 2
 
-- [x] **MKT-01**: Dashboard has an "Add Agent" entry point (in sidebar under AI Team section and in the Team org view) that opens the Agent Marketplace panel
-- [x] **MKT-02**: Marketplace displays all 12 catalog agent types with: role title, description, key skills, and "Add to Team" button — already-activated agents show "Active" state
-- [x] **MKT-03**: Adding an agent from the Marketplace creates a `user_agents` row, triggers workspace auto-population, and immediately shows the agent in the dashboard sidebar and Team view
-- [x] **MKT-04**: Users can deactivate an agent from their team (with confirmation) — deactivated agents retain their workspace data but stop heartbeating and disappear from navigation
+### Agent Tools — Marketer (MKT)
 
-### Heartbeat System
+- [ ] **MKT-01**: `generate_social_post` tool for platform-specific content (IG, X, LinkedIn, TikTok)
+- [ ] **MKT-02**: `generate_brand_image` tool using Nano Banana 2 with brand colors, product photos, logo
+- [ ] **MKT-03**: `edit_image` tool for overlays, color adjustments, compositing
+- [ ] **MKT-04**: `schedule_post` tool writing to social_posts table
+- [ ] **MKT-05**: `publish_post` tool via Playwright persistent browser (requires HITL)
+- [ ] **MKT-06**: `fetch_post_analytics` tool scraping platform dashboards via Playwright
+- [ ] **MKT-07**: `analyze_post_performance` tool comparing metrics against averages with WHY analysis
+- [ ] **MKT-08**: `create_content_calendar` tool generating weekly/monthly plan
+- [ ] **MKT-09**: `monitor_brand_mentions` tool scanning web for business name
+- [ ] **MKT-10**: `analyze_competitor` tool browsing competitor profiles via Playwright
+- [ ] **MKT-11**: `search_trending_topics` tool for industry trend discovery
+- [ ] **MKT-12**: `manage_content_library` tool for searching and reusing past assets
 
-- [x] **HB-01**: A `heartbeat-dispatcher` edge function (triggered by a single pg_cron job every 5 minutes) queries `user_agents` for agents due for a heartbeat tick and enqueues them into a pgmq queue (`heartbeat_jobs`)
-- [x] **HB-02**: A `heartbeat-runner` edge function (triggered by pg_cron every 1 minute) reads up to 5 messages from `heartbeat_jobs` and processes each: reads HEARTBEAT.md + recent task history, calls LLM, evaluates response
-- [x] **HB-03**: LLM heartbeat response must include structured severity field: `{ severity: "urgent" | "headsup" | "digest" | "ok", finding: string }` — if severity is "ok", the run is suppressed with no DB write
-- [x] **HB-04**: Non-OK heartbeat runs create a notification record and optionally a task: "urgent" → push notification + email + in-app; "headsup" → in-app only; "digest" → batched into morning Chief of Staff briefing
-- [x] **HB-05**: Each user has a per-day call budget per agent (default: 6 heartbeat calls/day) enforced by the dispatcher query — prevents cost runaway
-- [x] **HB-06**: Heartbeats only fire during the user's configured active hours (default: 08:00–20:00 in their timezone) — dispatcher uses `profiles.timezone` for this check
-- [x] **HB-07**: `agent_heartbeat_log` records: agent_type, user_id, severity, finding, timestamp — only for non-OK outcomes
-- [x] **HB-08**: Each agent's settings panel shows heartbeat configuration: interval (1h / 2h / 4h / 8h), active hours (start/end), and enabled toggle
-- [x] **HB-09**: Chief of Staff sends a morning daily briefing digest at 8am (user timezone) consolidating all "digest"-severity heartbeat findings from the past 24 hours across all agents
+### Agent Tools — Sales Rep (SALES)
 
-### Notifications
+- [ ] **SALES-01**: `generate_leads` tool via Apify (developer-provided key)
+- [ ] **SALES-02**: `enrich_lead_data` tool via web search
+- [ ] **SALES-03**: `research_prospect` tool via Firecrawl + web search
+- [ ] **SALES-04**: `compose_outreach` tool with personalization from prospect research + business context
+- [ ] **SALES-05**: `send_outreach` tool via Resend (requires HITL)
+- [ ] **SALES-06**: `track_email_engagement` tool via Resend webhooks
+- [ ] **SALES-07**: `update_deal_status` tool moving leads through pipeline
+- [ ] **SALES-08**: `schedule_follow_up` tool with optimal timing from memory
+- [ ] **SALES-09**: `create_proposal` tool generating sales proposals
+- [ ] **SALES-10**: `analyze_pipeline` tool for velocity and conversion rates
+- [ ] **SALES-11**: `forecast_revenue` tool projecting from pipeline + historical rates
+- [ ] **SALES-12**: `detect_stale_deals` tool flagging stuck deals
 
-- [x] **NOTIF-01**: Dashboard has a notification bell (header) showing unread count; clicking opens a notification panel with severity-tiered entries
-- [x] **NOTIF-02**: In-app notifications use Supabase Realtime Broadcast (DB trigger → Realtime channel) so alerts appear without page refresh
-- [x] **NOTIF-03**: "Urgent" heartbeat findings trigger a push notification via native Web Push API + VAPID (no third-party service)
-- [x] **NOTIF-04**: "Urgent" heartbeat findings also trigger an email via the existing Resend integration
-- [x] **NOTIF-05**: Users can mark notifications as read individually or "Mark all read"
-- [x] **NOTIF-06**: Notification entries link to the relevant agent view (clicking an accountant heartbeat alert opens the Accountant panel)
+### Agent Tools — Personal Assistant (PA)
 
-### Org Structure View
+- [ ] **PA-01**: `read_emails` tool via Google Gmail API
+- [ ] **PA-02**: `triage_inbox` tool categorizing by urgency/topic via LLM
+- [ ] **PA-03**: `draft_email_response` tool matching user communication style
+- [ ] **PA-04**: `send_email` tool via Gmail API (requires HITL)
+- [ ] **PA-05**: `list_calendar_events` tool via Google Calendar API
+- [ ] **PA-06**: `create_calendar_event` tool with availability check (requires HITL)
+- [ ] **PA-07**: `prepare_meeting_brief` tool synthesizing attendee info, history, agenda, docs
+- [ ] **PA-08**: `search_drive` tool via Google Drive API
+- [ ] **PA-09**: `detect_calendar_conflicts` tool with resolution suggestions
+- [ ] **PA-10**: `analyze_time_allocation` tool for meeting vs focus time breakdown
 
-- [x] **ORG-01**: Dashboard has a "Team" view (accessible from sidebar) showing an org chart: Chief of Staff at top, all activated agents below as direct reports
-- [x] **ORG-02**: Each agent card in the Team view shows: agent name, role, avatar/icon, heartbeat status indicator (green pulse = active, grey = sleeping, amber = needs attention), last active timestamp, and task count (last 7 days)
-- [x] **ORG-03**: Heartbeat status indicator shows a live pulse animation when an agent's heartbeat fired in the last hour
-- [x] **ORG-04**: Clicking an agent card in the Team view navigates to that agent's dedicated panel
-- [x] **ORG-05**: "Add Agent" button is prominently placed in the Team view, opening the Agent Marketplace
+### Agent Tools — Operational Agents (OPS)
 
-### Role-Based Tooling
+- [ ] **OPS-01**: Customer Support: ticket CRUD (new `support_tickets` table), KB RAG search, health scoring, churn detection
+- [ ] **OPS-02**: Legal: contract review, contract calendar (new `contracts` table), regulatory monitoring, template drafting
+- [ ] **OPS-03**: HR: job posting, resume screening, candidate tracking (new `candidates` table), onboarding plans, performance reviews
+- [ ] **OPS-04**: PR: press release drafting, media monitoring, coverage tracking (new `press_coverage` table), sentiment analysis
+- [ ] **OPS-05**: Procurement: supplier search, quote comparison, PO creation (requires HITL), vendor scoring
+- [ ] **OPS-06**: Data Analyst: cross-functional query, statistical analysis, anomaly detection, chart generation, KPI aggregation
+- [ ] **OPS-07**: Operations: project management (new `projects` table), milestone tracking, bottleneck analysis, SOP drafting
 
-- [x] **TOOLS-01**: Each agent type in `available_agent_types` has a `skill_config` JSON field listing enabled tool categories for that role
-- [x] **TOOLS-02**: `available_agent_types` catalog ships with role-appropriate tool configs (see Context in PROJECT.md for per-role skill list)
-- [x] **TOOLS-03**: Each agent's TOOLS.md workspace file documents (in plain English) what tools the agent can use and how — this is injected into the agent's system prompt so it knows its own capabilities
-- [x] **TOOLS-04**: The orchestrator edge function respects agent tool boundaries when routing tasks — an HR agent cannot trigger invoice functions, a Sales agent cannot trigger calendar writes
+### Memory & Persistence (MEM)
 
-### Security
+- [ ] **MEM-01**: Per-agent memory namespace in LangGraph Store
+- [ ] **MEM-02**: Shared business context namespace readable by all agents
+- [ ] **MEM-03**: Memory writes after tool execution, user feedback, and heartbeat analysis
+- [ ] **MEM-04**: Memory reads before every agent action
+- [ ] **MEM-05**: All conversations persist via PostgresSaver across sessions and devices
+- [ ] **MEM-06**: Thread management: continue old conversations or start new ones per agent
+- [ ] **MEM-07**: RAG retrieval tool using pgvector embeddings
 
-- [x] **SEC-01**: All new edge functions that execute agent actions verify the calling user's identity via JWT (from Authorization header), not from a `userId` field in the request body
-- [x] **SEC-02**: Heartbeat dispatcher (cron-originated, no user JWT) uses a service-role key and fetches user identity from `user_agents` table directly — never from caller input
-- [x] **SEC-03**: Workspace content is sanitized on write (strip `IGNORE PREVIOUS INSTRUCTIONS`, `<system>`, and known injection patterns) before storage and before LLM injection
+### Proactive Cadence (CAD)
 
----
+- [ ] **CAD-01**: Cadence dispatcher using pg_cron + pgmq triggering full LangGraph execution
+- [ ] **CAD-02**: Role-specific heartbeat checklists per agent
+- [ ] **CAD-03**: Daily cadence: morning briefing, inbox triage, cashflow, pipeline, content queue
+- [ ] **CAD-04**: Weekly cadence: cross-team summary, content performance, pipeline progression, expenses
+- [ ] **CAD-05**: Monthly cadence: P&L, conversion analysis, marketing review, KPI dashboard
+- [ ] **CAD-06**: Quarterly cadence: business review, strategic assessment, financial review, compliance
+- [ ] **CAD-07**: Event-triggered proactive actions (viral post, stale deal, overdue invoice, etc.)
+- [ ] **CAD-08**: Per-agent cadence config in `user_agents.cadence_config` JSONB
 
-## v2 Requirements
+### Generative UI (GUI)
 
-### Extended Agent Capabilities
+- [ ] **GUI-01**: `AgentChatView` replacing all static agent dashboards
+- [ ] **GUI-02**: `GenerativeUIRenderer` mapping component types to React components
+- [ ] **GUI-03**: Chart components via Recharts (bar, line, pie, area, gauge, sparkline)
+- [ ] **GUI-04**: Data table components via @tanstack/react-table
+- [ ] **GUI-05**: Dynamic form components from agent tool schemas
+- [ ] **GUI-06**: Approval request cards with Approve/Reject/Discuss for HITL
+- [ ] **GUI-07**: Domain-specific: Pipeline Kanban, Content Calendar, Invoice Tracker, Calendar Timeline, Meeting Brief
+- [ ] **GUI-08**: SSE streaming with text deltas + UI components + tool indicators
+- [ ] **GUI-09**: `useAgentChat` hook managing threads, streaming, UI, approvals
+- [ ] **GUI-10**: Thread list sidebar for past conversations per agent
 
-- **EXT-01**: Custom freeform agent creation — describe a role, system generates MD workspace
-- **EXT-02**: Agent-to-agent direct messaging visible in Team view chat log
-- **EXT-03**: Community marketplace with shared agent workspace templates
-- **EXT-04**: Multi-workspace mode (agency: manage multiple client businesses)
+### Persistent Browser (BROWSER)
 
-### Advanced Heartbeat
+- [ ] **BROWSER-01**: Playwright persistent browser context per user for Marketer
+- [ ] **BROWSER-02**: User login flow via embedded browser iframe/popup
+- [ ] **BROWSER-03**: Session persistence via cookies/localStorage saved to disk
+- [ ] **BROWSER-04**: Session expiry detection with re-login notification
+- [ ] **BROWSER-05**: Browser-based operations: publish, analytics, competitor scraping
 
-- **HB-V2-01**: Agent learning loop — MEMORY.md auto-updated by agent after each heartbeat finding that led to a completed task
-- **HB-V2-02**: Heartbeat trend analysis — Chief of Staff weekly summary of which agents fired most, what categories of issues surfaced
-- **HB-V2-03**: Cross-agent heartbeat coordination — Chief of Staff heartbeat synthesizes findings from all agents and produces one unified brief
+### Onboarding Redesign (ONB)
 
-### Integrations
+- [ ] **ONB-01**: Business stage question: Starting / Running / Scaling
+- [ ] **ONB-02**: Stage-specific follow-up questions
+- [ ] **ONB-03**: Agent team recommendation via CoS LangGraph graph
+- [ ] **ONB-04**: Integration setup: Google OAuth for PA, browser login for Marketer
+- [ ] **ONB-05**: First real briefing from CoS as first chat message
+- [ ] **ONB-06**: Business stage stored in profiles, shapes agent interactions
 
-- **INT-V2-01**: WhatsApp notification channel for heartbeat alerts
-- **INT-V2-02**: Slack workspace integration for team notification delivery
-- **INT-V2-03**: Mobile PWA with home screen install for push notification support on iOS
+### Governance (GOV)
 
----
+- [ ] **GOV-01**: Immutable audit log table for all agent actions and tool calls
+- [ ] **GOV-02**: Monthly token budget per agent with 3-tier enforcement
+- [ ] **GOV-03**: Goal ancestry on tasks: mission to objective to project to task
+- [ ] **GOV-04**: Atomic task checkout preventing double-work
+
+## v2.1 Requirements (Deferred)
+
+- A/B testing framework for content variants (Marketer)
+- Newsletter/blog generation tools (Marketer)
+- Compensation benchmarking via web search (HR)
+- Crisis response workflow (PR)
+- Vendor contract negotiation drafting (Procurement)
+- Custom agent creation (describe-a-role to generate agent)
+- Multi-workspace / agency mode
+- Mobile app with push-to-agent chat
+- Voice input for agent chat
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Real-time agent-to-agent messaging UI | Agents communicate through Chief of Staff delegation; lateral messaging adds UX complexity for marginal value in v1 |
-| Agent-controlled browser automation (clicking UI) | Tool integrations via APIs only in v1; Playwright-style automation requires sandboxed infrastructure |
-| Per-agent isolated compute environment | Web app hosted on Supabase Edge; no container isolation available without new infrastructure |
-| Freeform agent creation (describe-a-role) | Fixed catalog ships faster with better quality defaults; freeform requires complex prompt engineering and UX validation |
-| Mobile native app | Web-first; PWA covers push notifications |
-| Multi-tenant agency mode | Not target market for v1 |
-
----
+| Agent-to-agent direct messaging in UI | Agents coordinate via CoS delegation and shared Store |
+| Real-time video/voice calls with agents | Text chat + generative UI sufficient for v2 |
+| Custom freeform agent creation | Fixed catalog with comprehensive tools is priority |
+| Marketplace for community agent templates | Focus on first-party quality |
+| Self-hosted LangGraph | Managed Railway deployment for all users |
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| DB-01 | Phase 1 — Database Foundation | Complete |
-| DB-02 | Phase 1 — Database Foundation | Complete |
-| DB-03 | Phase 1 — Database Foundation | Complete |
-| DB-04 | Phase 1 — Database Foundation | Complete |
-| DB-05 | Phase 1 — Database Foundation | Complete |
-| DB-06 | Phase 1 — Database Foundation | Complete |
-| DB-07 | Phase 1 — Database Foundation | Complete |
-| SEC-01 | Phase 1 — Database Foundation | Complete |
-| SEC-02 | Phase 4 — Heartbeat System | Complete |
-| SEC-03 | Phase 1 — Database Foundation | Complete |
-| SPAWN-01 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| SPAWN-02 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| SPAWN-03 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| SPAWN-04 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| SPAWN-05 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| SPAWN-06 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| SPAWN-07 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| TOOLS-01 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| TOOLS-02 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| TOOLS-03 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| TOOLS-04 | Phase 2 — Agent Spawner + Team Selector | Complete |
-| WS-01 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| WS-02 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| WS-03 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| WS-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| WS-05 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| WS-06 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| WS-07 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Complete |
-| MKT-01 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| MKT-02 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| MKT-03 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| MKT-04 | Phase 3 — MD Workspace Editor + Marketplace | Complete |
-| HB-01 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-02 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-03 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-04 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-05 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-06 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-07 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-08 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| HB-09 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| NOTIF-01 | Phase 5 — Org View + Notifications | Complete |
-| NOTIF-02 | Phase 5 — Org View + Notifications | Complete |
-| NOTIF-03 | Phase 7 — Workspace Prompt Wiring + Push Opt-In | Complete |
-| NOTIF-04 | Phase 5 — Org View + Notifications | Complete |
-| NOTIF-05 | Phase 5 — Org View + Notifications | Complete |
-| NOTIF-06 | Phase 5 — Org View + Notifications | Complete |
-| ORG-01 | Phase 5 — Org View + Notifications | Complete |
-| ORG-02 | Phase 5 — Org View + Notifications | Complete |
-| ORG-03 | Phase 5 — Org View + Notifications | Complete |
-| ORG-04 | Phase 6 — Heartbeat Bug Fixes | Complete |
-| ORG-05 | Phase 5 — Org View + Notifications | Complete |
+(To be filled by roadmapper)
 
 **Coverage:**
-- v1 requirements: 52 total
-- Mapped to phases: 52
-- Unmapped: 0
-- Pending (reset after audit gaps): HB-01..09, ORG-04, WS-07, NOTIF-03 = 12
-
-**Phase distribution:**
-- Phase 1 (Database Foundation): DB-01..07 + SEC-01..03 = 10 requirements
-- Phase 2 (Agent Spawner + Team Selector): SPAWN-01..07 + TOOLS-01..04 = 11 requirements
-- Phase 3 (MD Workspace Editor + Marketplace): WS-01..06 + MKT-01..04 = 10 requirements
-- Phase 4 (Heartbeat System): SEC-02 + HB-08 = 2 requirements (HB-01..09 moved to Phase 6)
-- Phase 5 (Org View + Notifications): NOTIF-01..02, NOTIF-04..06, ORG-01..03, ORG-05 = 9 requirements
-- Phase 6 (Heartbeat Bug Fixes): HB-01..09 + ORG-04 = 10 requirements
-- Phase 7 (Workspace Prompt Wiring + Push Opt-In): WS-07 + NOTIF-03 = 2 requirements
-- Phase 8 (Phase Verifications): coverage for Phases 1, 3, 4, 5
-- Phase 9 (Tech Debt Cleanup): no new requirements
+- v2.0 requirements: 95 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 95
 
 ---
-*Requirements defined: 2026-03-12*
-*Last updated: 2026-03-13 after milestone audit — 12 requirements reset to Pending and reassigned to gap closure phases 6–7*
+*Requirements defined: 2026-03-18*
+*Last updated: 2026-03-18 after initial definition*
