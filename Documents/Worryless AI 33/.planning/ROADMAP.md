@@ -185,7 +185,14 @@ Plans:
   3. Any high-risk action (sending email, publishing post, financial transaction) causes the graph to pause at `interrupt()` and surface an approval card to the user before proceeding
   4. All agent conversations persist across sessions — a user who closes the browser and returns sees their full conversation history and can continue where they left off
   5. Each agent reads its namespaced memory from the LangGraph Store before acting and writes updated learnings after tool execution
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Agent state schema, type constants, LLM client, memory read/write helpers
+- [ ] 11-02-PLAN.md — Base agent factory + 4 specialist subgraphs (Accountant, Marketer, Sales Rep, PA)
+- [ ] 11-03-PLAN.md — COO supervisor + 7 operational agent subgraphs
+- [ ] 11-04-PLAN.md — Chief of Staff root supervisor with Command routing + Send fan-out
+- [ ] 11-05-PLAN.md — HITL interrupt, thread management, RAG retrieval, server route update
 
 ### Phase 12: Chief of Staff Tools + Governance
 **Goal**: Chief of Staff is a working strategic orchestrator — it compiles real morning briefings, delegates to specialist agents with goal ancestry, cross-correlates findings, and every action is audited with enforced token budgets
@@ -275,8 +282,8 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 7. Workspace Prompt Wiring + Push Opt-In | v1.0 | 4/4 | Complete | 2026-03-17 |
 | 8. Phase Verifications | v1.0 | 4/4 | Complete | 2026-03-17 |
 | 9. Tech Debt Cleanup | v1.0 | 3/3 | Complete | 2026-03-17 |
-| 10. LangGraph Infrastructure | 4/4 | Complete    | 2026-03-18 | - |
-| 11. Agent Graph Topology + Memory Foundation | v2.0 | 0/TBD | Not started | - |
+| 10. LangGraph Infrastructure | v2.0 | 4/4 | Complete | 2026-03-18 |
+| 11. Agent Graph Topology + Memory Foundation | v2.0 | 0/5 | Planned | - |
 | 12. Chief of Staff Tools + Governance | v2.0 | 0/TBD | Not started | - |
 | 13. Accountant + Sales Rep Agent Tools | v2.0 | 0/TBD | Not started | - |
 | 14. Marketer + Persistent Browser | v2.0 | 0/TBD | Not started | - |
@@ -286,6 +293,6 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-18 — Phase 10 planned (4 plans in 2 waves)*
+*Updated: 2026-03-18 — Phase 11 planned (5 plans in 4 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
