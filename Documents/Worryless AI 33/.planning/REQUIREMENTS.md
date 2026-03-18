@@ -8,12 +8,12 @@
 ### Infrastructure (INFRA)
 
 - [ ] **INFRA-01**: LangGraph server (Node.js/TypeScript) deployed on Railway with health check endpoint
-- [ ] **INFRA-02**: PostgresSaver connected to Supabase PostgreSQL in dedicated `langgraph` schema for thread checkpointing
-- [ ] **INFRA-03**: LangGraph Store connected to Supabase PostgreSQL for persistent cross-thread agent memory
+- [x] **INFRA-02**: PostgresSaver connected to Supabase PostgreSQL in dedicated `langgraph` schema for thread checkpointing
+- [x] **INFRA-03**: LangGraph Store connected to Supabase PostgreSQL for persistent cross-thread agent memory
 - [ ] **INFRA-04**: Supabase Edge Function proxy that validates JWT and forwards requests to LangGraph server via SSE
-- [ ] **INFRA-05**: pgvector extension enabled with `document_embeddings` table for RAG over business artifacts
-- [ ] **INFRA-06**: Feature flag (`use_langgraph`) in profiles table for gradual rollout
-- [ ] **INFRA-07**: All existing domain tables (invoices, leads, social_posts, transactions, etc.) remain unchanged — agents access via tools
+- [x] **INFRA-05**: pgvector extension enabled with `document_embeddings` table for RAG over business artifacts
+- [x] **INFRA-06**: Feature flag (`use_langgraph`) in profiles table for gradual rollout
+- [x] **INFRA-07**: All existing domain tables (invoices, leads, social_posts, transactions, etc.) remain unchanged — agents access via tools
 
 ### Agent Graph Topology (GRAPH)
 
@@ -193,12 +193,12 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INFRA-01 | Phase 10 | Pending |
-| INFRA-02 | Phase 10 | Pending |
-| INFRA-03 | Phase 10 | Pending |
+| INFRA-02 | Phase 10 | Complete |
+| INFRA-03 | Phase 10 | Complete |
 | INFRA-04 | Phase 10 | Pending |
-| INFRA-05 | Phase 10 | Pending |
-| INFRA-06 | Phase 10 | Pending |
-| INFRA-07 | Phase 10 | Pending |
+| INFRA-05 | Phase 10 | Complete |
+| INFRA-06 | Phase 10 | Complete |
+| INFRA-07 | Phase 10 | Complete |
 | GRAPH-01 | Phase 11 | Pending |
 | GRAPH-02 | Phase 11 | Pending |
 | GRAPH-03 | Phase 11 | Pending |

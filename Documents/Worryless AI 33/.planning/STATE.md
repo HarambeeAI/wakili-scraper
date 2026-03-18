@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
-status: roadmap_complete
-stopped_at: ""
-last_updated: "2026-03-18T00:00:00.000Z"
-last_activity: 2026-03-18 — v2.0 roadmap created (phases 10-17)
+status: unknown
+stopped_at: "Completed 10-01-PLAN.md: LangGraph infrastructure database migrations"
+last_updated: "2026-03-18T20:24:10.708Z"
 progress:
   total_phases: 8
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 4
+  completed_plans: 1
 ---
 
 # Project State
@@ -21,24 +19,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 10 — LangGraph Infrastructure (ready to plan)
+**Current focus:** Phase 10 — langgraph-infrastructure
 
 ## Current Position
 
-Phase: 10 of 17 (LangGraph Infrastructure)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-18 — v2.0 roadmap created, phases 10-17 defined
-
-Progress: [░░░░░░░░░░] 0% (v2.0)
+Phase: 10 (langgraph-infrastructure) — EXECUTING
+Plan: 2 of 4 (plan 1 complete)
 
 ## Performance Metrics
 
 **Velocity (v1.0 completed):**
+
 - Total plans completed: 39
 - Phases completed: 9
 
-**v2.0 — Not started**
+**v2.0 in progress:**
+
+- Plans completed: 1 (10-01: LangGraph DB migrations)
+- Duration: 4 min
 
 *Updated after each plan completion*
 
@@ -47,12 +45,14 @@ Progress: [░░░░░░░░░░] 0% (v2.0)
 ### Decisions
 
 Decisions from v1.0 (carried forward):
+
 - Store MD workspaces as text rows in `agent_workspaces` table (not filesystem)
 - Single `heartbeat-dispatcher` cron (not per-agent crons)
 - Fixed 12-agent catalog for v1 (ships faster with better quality defaults)
 - HEARTBEAT_OK suppression: no DB write on suppressed runs
 
 New v2.0 decisions:
+
 - LangGraph server on Railway (Node.js/TypeScript) — not Edge Functions for agent execution
 - PostgresSaver for checkpointing in separate `langgraph` schema in Supabase
 - `use_langgraph` feature flag in profiles for gradual rollout
@@ -63,6 +63,9 @@ New v2.0 decisions:
 - Chat-first generative UI replacing all static agent dashboards
 - Business-stage-aware onboarding (Starting / Running / Scaling)
 - Paperclip AI patterns: goal ancestry, atomic task checkout, token budgets, audit log
+- [Phase 10-langgraph-infrastructure]: langgraph schema isolated from public schema; service_role only access for LangGraph server
+- [Phase 10-langgraph-infrastructure]: profiles.use_langgraph is the sole existing-table modification in Phase 10; DEFAULT FALSE ensures zero-impact rollout
+- [Phase 10-langgraph-infrastructure]: pgvector dimension 1536 for OpenAI text-embedding-3-small; IVFFlat index deferred until >10k rows
 
 ### Pending Todos
 
@@ -77,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18
-Stopped at: v2.0 roadmap created, phases 10-17 written to ROADMAP.md, ready for Phase 10 planning
+Last session: 2026-03-18T20:24:10.705Z
+Stopped at: Completed 10-01-PLAN.md: LangGraph infrastructure database migrations
 Resume file: None
