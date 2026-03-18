@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-18T20:26:03.523Z"
+stopped_at: Completed 10-04-PLAN.md
+last_updated: "2026-03-18T20:40:00.000Z"
 progress:
   total_phases: 8
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 4
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 
 ## Current Position
 
-Phase: 10 (langgraph-infrastructure) — EXECUTING
-Plan: 3 of 4 (plans 1-2 complete)
+Phase: 10 (langgraph-infrastructure) — COMPLETE
+Plan: 4 of 4 (all plans complete)
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 3 of 4 (plans 1-2 complete)
 
 **v2.0 in progress:**
 
-- Plans completed: 2 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold)
-- Duration: 4 min + 6 min
+- Plans completed: 4 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook)
+- Duration: 4 min + 6 min + ~8 min + 8 min
 
 *Updated after each plan completion*
 
@@ -68,6 +68,10 @@ New v2.0 decisions:
 - [Phase 10-langgraph-infrastructure]: pgvector dimension 1536 for OpenAI text-embedding-3-small; IVFFlat index deferred until >10k rows
 - [Phase 10-langgraph-infrastructure]: PostgresSaver uses direct Supabase connection (port 5432) not pooled (port 6543) — prepared statements incompatible with PgBouncer
 - [Phase 10-langgraph-infrastructure]: LangGraph Store implemented as raw pg Pool queries against langgraph.store table (no native Postgres Store in JS SDK)
+- [Phase 10-langgraph-infrastructure]: JWT validation at proxy boundary — LangGraph server is auth-free, trusts user_id injected by Edge Function
+- [Phase 10-04]: useLangGraphFlag defaults to false on error — legacy orchestrator is always the safe fallback for all users
+- [Phase 10-04]: getChatEndpoint is a pure helper (not a hook) for use in both React and non-React contexts
+- [Phase 10-04]: document_embeddings TypeScript type added proactively to prevent future type errors when 10-03 migrations go live
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T20:26:03.519Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-03-18T20:40:00.000Z
+Stopped at: Completed 10-04-PLAN.md
 Resume file: None

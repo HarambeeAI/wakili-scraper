@@ -10,7 +10,7 @@
 - [x] **INFRA-01**: LangGraph server (Node.js/TypeScript) deployed on Railway with health check endpoint
 - [x] **INFRA-02**: PostgresSaver connected to Supabase PostgreSQL in dedicated `langgraph` schema for thread checkpointing
 - [x] **INFRA-03**: LangGraph Store connected to Supabase PostgreSQL for persistent cross-thread agent memory
-- [ ] **INFRA-04**: Supabase Edge Function proxy that validates JWT and forwards requests to LangGraph server via SSE
+- [x] **INFRA-04**: Supabase Edge Function proxy that validates JWT and forwards requests to LangGraph server via SSE
 - [x] **INFRA-05**: pgvector extension enabled with `document_embeddings` table for RAG over business artifacts
 - [x] **INFRA-06**: Feature flag (`use_langgraph`) in profiles table for gradual rollout
 - [x] **INFRA-07**: All existing domain tables (invoices, leads, social_posts, transactions, etc.) remain unchanged — agents access via tools
@@ -195,7 +195,7 @@
 | INFRA-01 | Phase 10 | Complete |
 | INFRA-02 | Phase 10 | Complete |
 | INFRA-03 | Phase 10 | Complete |
-| INFRA-04 | Phase 10 | Pending |
+| INFRA-04 | Phase 10 | Complete |
 | INFRA-05 | Phase 10 | Complete |
 | INFRA-06 | Phase 10 | Complete |
 | INFRA-07 | Phase 10 | Complete |
