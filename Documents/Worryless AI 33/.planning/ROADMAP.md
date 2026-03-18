@@ -151,7 +151,7 @@ Plans:
 
 ---
 
-### 🚧 v2.0 Agent Intelligence Layer (In Progress)
+### v2.0 Agent Intelligence Layer (In Progress)
 
 **Milestone Goal:** Migrate from hand-rolled agentic layer to LangChain/LangGraph with real tool execution, persistent memory, chat-first generative UI, proactive cadence, and business-stage-aware onboarding.
 
@@ -167,7 +167,13 @@ Plans:
   3. PostgresSaver checkpoints agent thread state to the `langgraph` schema in Supabase — a conversation can be interrupted and resumed from the exact same state
   4. The LangGraph Store is connected and can write and retrieve per-agent memory objects scoped to a user namespace
   5. The `use_langgraph` feature flag in `profiles` exists and controls whether requests route to the new server or the legacy path — no user experiences the new system until the flag is enabled
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Database migrations: langgraph schema, pgvector, feature flag
+- [ ] 10-02-PLAN.md — LangGraph server scaffold with health check, persistence, and echo graph
+- [ ] 10-03-PLAN.md — Edge Function proxy with JWT validation and SSE forwarding
+- [ ] 10-04-PLAN.md — Feature flag hook and Supabase TypeScript type updates
 
 ### Phase 11: Agent Graph Topology + Memory Foundation
 **Goal**: The full 13-agent hierarchical graph is wired and routing correctly — Chief of Staff can receive a user message, decide which agent(s) to invoke, and return a response with conversation state persisted
@@ -269,7 +275,7 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 7. Workspace Prompt Wiring + Push Opt-In | v1.0 | 4/4 | Complete | 2026-03-17 |
 | 8. Phase Verifications | v1.0 | 4/4 | Complete | 2026-03-17 |
 | 9. Tech Debt Cleanup | v1.0 | 3/3 | Complete | 2026-03-17 |
-| 10. LangGraph Infrastructure | v2.0 | 0/TBD | Not started | - |
+| 10. LangGraph Infrastructure | v2.0 | 0/4 | Planned | - |
 | 11. Agent Graph Topology + Memory Foundation | v2.0 | 0/TBD | Not started | - |
 | 12. Chief of Staff Tools + Governance | v2.0 | 0/TBD | Not started | - |
 | 13. Accountant + Sales Rep Agent Tools | v2.0 | 0/TBD | Not started | - |
@@ -280,6 +286,6 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-18 — v2.0 Agent Intelligence Layer phases 10-17 added*
+*Updated: 2026-03-18 — Phase 10 planned (4 plans in 2 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
