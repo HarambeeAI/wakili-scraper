@@ -23,7 +23,7 @@
 - [ ] **GRAPH-04**: COO level-2 supervisor subgraph routing to 7 operational agents
 - [ ] **GRAPH-05**: Human-in-the-loop via `interrupt()` for all high-risk actions (sending emails, publishing posts, financial transactions, POs)
 - [ ] **GRAPH-06**: Each of the 13 agent types implemented as a LangGraph subgraph with role-specific tools
-- [ ] **GRAPH-07**: Agent state schema with messages, userId, businessContext, uiComponents, pendingApprovals, responseMetadata
+- [x] **GRAPH-07**: Agent state schema with messages, userId, businessContext, uiComponents, pendingApprovals, responseMetadata
 
 ### Agent Tools — Chief of Staff (COS)
 
@@ -105,10 +105,10 @@
 
 ### Memory & Persistence (MEM)
 
-- [ ] **MEM-01**: Per-agent memory namespace in LangGraph Store
-- [ ] **MEM-02**: Shared business context namespace readable by all agents
-- [ ] **MEM-03**: Memory writes after tool execution, user feedback, and heartbeat analysis
-- [ ] **MEM-04**: Memory reads before every agent action
+- [x] **MEM-01**: Per-agent memory namespace in LangGraph Store
+- [x] **MEM-02**: Shared business context namespace readable by all agents
+- [x] **MEM-03**: Memory writes after tool execution, user feedback, and heartbeat analysis
+- [x] **MEM-04**: Memory reads before every agent action
 - [ ] **MEM-05**: All conversations persist via PostgresSaver across sessions and devices
 - [ ] **MEM-06**: Thread management: continue old conversations or start new ones per agent
 - [ ] **MEM-07**: RAG retrieval tool using pgvector embeddings
@@ -205,11 +205,11 @@
 | GRAPH-04 | Phase 11 | Pending |
 | GRAPH-05 | Phase 11 | Pending |
 | GRAPH-06 | Phase 11 | Pending |
-| GRAPH-07 | Phase 11 | Pending |
-| MEM-01 | Phase 11 | Pending |
-| MEM-02 | Phase 11 | Pending |
-| MEM-03 | Phase 11 | Pending |
-| MEM-04 | Phase 11 | Pending |
+| GRAPH-07 | Phase 11 | Complete |
+| MEM-01 | Phase 11 | Complete |
+| MEM-02 | Phase 11 | Complete |
+| MEM-03 | Phase 11 | Complete |
+| MEM-04 | Phase 11 | Complete |
 | MEM-05 | Phase 11 | Pending |
 | MEM-06 | Phase 11 | Pending |
 | MEM-07 | Phase 11 | Pending |

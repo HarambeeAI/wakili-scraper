@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 10-04-PLAN.md
-last_updated: "2026-03-18T20:32:05.330Z"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-03-18T21:02:00.573Z"
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 9
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 10 — langgraph-infrastructure
+**Current focus:** Phase 11 — agent-graph-topology-+-memory-foundation
 
 ## Current Position
 
-Phase: 10 (langgraph-infrastructure) — COMPLETE
-Plan: 4 of 4 (all plans complete)
+Phase: 11 (agent-graph-topology-+-memory-foundation) — EXECUTING
+Plan: 2 of 5
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 4 of 4 (all plans complete)
 
 **v2.0 in progress:**
 
-- Plans completed: 4 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook)
-- Duration: 4 min + 6 min + ~8 min + 8 min
+- Plans completed: 5 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers)
+- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min
 
 *Updated after each plan completion*
 
@@ -72,6 +72,9 @@ New v2.0 decisions:
 - [Phase 10-04]: useLangGraphFlag defaults to false on error — legacy orchestrator is always the safe fallback for all users
 - [Phase 10-04]: getChatEndpoint is a pure helper (not a hook) for use in both React and non-React contexts
 - [Phase 10-04]: document_embeddings TypeScript type added proactively to prevent future type errors when 10-03 migrations go live
+- [Phase 11]: LLM client uses direct fetch wrapper (not LangChain ChatModel) — simpler integration with Lovable AI Gateway's OpenAI-compatible endpoint
+- [Phase 11]: Store namespace uses colon-separated prefix string: userId:agent_memory:agentType — encodes LangGraph tuple namespace as flat string for existing store.ts pg queries
+- [Phase 11]: AgentState uiComponents and pendingApprovals use accumulator reducer while all other channels use last-write-wins
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T20:40:00.000Z
-Stopped at: Completed 10-04-PLAN.md
+Last session: 2026-03-18T21:02:00.568Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
