@@ -1,18 +1,14 @@
-# Roadmap: Worryless AI — Proactive Multi-Agent Milestone
+# Roadmap: Worryless AI — Proactive Multi-Agent Platform
 
-## Overview
+## Milestones
 
-This milestone transforms Worryless AI from a reactive 4-agent chat platform into a proactive AI department. The build starts with the database schema that everything else depends on, then fans out in parallel to the agent spawner (onboarding tail) and the workspace editor (agent configuration layer), before converging on the heartbeat engine and finally the org view and notification delivery layer. Every phase delivers a coherent, verifiable capability without breaking the existing auth, chat, task, and onboarding system.
+- ✅ **v1.0 Proactive Multi-Agent Foundation** - Phases 1-9 (shipped 2026-03-17)
+- 🚧 **v2.0 Agent Intelligence Layer** - Phases 10-17 (in progress)
 
 ## Phases
 
-- [x] **Phase 1: Database Foundation** - Schema, seed catalog, triggers, and security hardening that every subsequent phase depends on (completed 2026-03-12)
-- [ ] **Phase 2: Agent Spawner + Team Selector** - Onboarding Step 12, spawn-agent-team edge function, role tooling configs, and activation animation
-- [x] **Phase 3: MD Workspace Editor + Agent Marketplace** - CodeMirror workspace editor, auto-save, reset-to-defaults, and marketplace panel (completed 2026-03-13)
-- [x] **Phase 4: Heartbeat System** - Dispatcher, pgmq queue, runner, HEARTBEAT_OK suppression, business-hours enforcement, and call budgets (completed 2026-03-13)
-- [x] **Phase 5: Org View + Notifications** - Team org chart, heartbeat status indicators, notification bell, push/email/in-app delivery, and morning digest (completed 2026-03-13)
-
-## Phase Details
+<details>
+<summary>✅ v1.0 Proactive Multi-Agent Foundation (Phases 1-9) - SHIPPED 2026-03-17</summary>
 
 ### Phase 1: Database Foundation
 **Goal**: All schema, seed data, triggers, RLS policies, and security primitives are in place — every subsequent phase can start writing application code immediately without waiting for DB changes
@@ -27,154 +23,263 @@ This milestone transforms Worryless AI from a reactive 4-agent chat platform int
 **Plans**: 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create 4 new tables, 2 ENUMs, and RLS policies (Migration A)
-- [ ] 01-02-PLAN.md — Workspace auto-population trigger function (Migration B)
-- [ ] 01-03-PLAN.md — Seed 13 agent types with full MD workspace templates (Migration C)
-- [ ] 01-04-PLAN.md — Backfill existing users and human verification checkpoint (Migration D)
-- [ ] 01-05-PLAN.md — Security hardening: JWT fix in 3 edge functions + sanitize.ts module
+- [x] 01-01: Create 4 new tables, 2 ENUMs, and RLS policies
+- [x] 01-02: Workspace auto-population trigger function
+- [x] 01-03: Seed 13 agent types with full MD workspace templates
+- [x] 01-04: Backfill existing users and human verification checkpoint
+- [x] 01-05: Security hardening: JWT fix in 3 edge functions + sanitize.ts module
 
 ### Phase 2: Agent Spawner + Team Selector
 **Goal**: New users complete onboarding and land in the dashboard with a curated AI team already activated and briefed on their business — agents are not configured after the fact
 **Depends on**: Phase 1
 **Requirements**: SPAWN-01, SPAWN-02, SPAWN-03, SPAWN-04, SPAWN-05, SPAWN-06, SPAWN-07, TOOLS-01, TOOLS-02, TOOLS-03, TOOLS-04
 **Success Criteria** (what must be TRUE):
-  1. After completing onboarding Step 11 (validators), a new Step 12 appears showing a recommended agent team with per-agent reasoning cards tied to the user's industry and business description — not a generic list
-  2. Clicking "Accept Suggested Team" from Step 12 activates all checked agents, triggers the "Briefing your team on [Business Name]..." animation for 2–3 seconds, and lands the user on the dashboard with agents visible in the sidebar
-  3. The `spawn-agent-team` edge function returns only agent type IDs that exist in `available_agent_types` — hallucinated or misspelled agent type IDs never reach the database
-  4. Each agent in the activated team has a `skill_config` that matches its role definition from `available_agent_types` — an HR agent's config does not include invoice or calendar-write tool categories
-  5. Existing users with the 4 default agents are not affected by this phase; their agent records remain intact
+  1. After completing onboarding Step 11 (validators), a new Step 12 appears showing a recommended agent team with per-agent reasoning cards tied to the user's industry and business description
+  2. Clicking "Accept Suggested Team" activates all checked agents, triggers the briefing animation, and lands the user on the dashboard with agents visible in the sidebar
+  3. The `spawn-agent-team` edge function returns only agent type IDs that exist in `available_agent_types`
+  4. Each agent in the activated team has a `skill_config` that matches its role definition
+  5. Existing users with the 4 default agents are not affected
 **Plans**: 5 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Verify + patch skill_config for all 13 agent types (TOOLS-01, TOOLS-02, TOOLS-03)
-- [ ] 02-02-PLAN.md — spawn-agent-team edge function with catalog ID guard + unit tests (SPAWN-01, SPAWN-02)
-- [ ] 02-03-PLAN.md — Onboarding Step 12: AgentTeamSelector component + ConversationalOnboarding integration (SPAWN-03–07)
-- [ ] 02-04-PLAN.md — Dynamic dashboard sidebar + GenericAgentPanel for new agent types (SPAWN-04)
-- [ ] 02-05-PLAN.md — Orchestrator tool boundary enforcement via skill_config injection (TOOLS-04)
+- [x] 02-01: Verify + patch skill_config for all 13 agent types
+- [x] 02-02: spawn-agent-team edge function with catalog ID guard + unit tests
+- [x] 02-03: Onboarding Step 12: AgentTeamSelector component + integration
+- [x] 02-04: Dynamic dashboard sidebar + GenericAgentPanel for new agent types
+- [x] 02-05: Orchestrator tool boundary enforcement via skill_config injection
 
 ### Phase 3: MD Workspace Editor + Agent Marketplace
 **Goal**: Users can view and customize any agent's identity, soul, SOPs, heartbeat checklist, and tools through a purpose-built markdown editor — and can add or remove agents from their team at any time post-onboarding
 **Depends on**: Phase 1
 **Requirements**: WS-01, WS-02, WS-03, WS-04, WS-05, WS-06, WS-07, MKT-01, MKT-02, MKT-03, MKT-04
 **Success Criteria** (what must be TRUE):
-  1. Opening an agent's settings panel reveals a Workspace tab with 6 sub-tabs (IDENTITY, SOUL, SOPs, MEMORY, HEARTBEAT, TOOLS); MEMORY.md tab is read-only and shows a count of entries the agent has written
-  2. Edits to IDENTITY, SOUL, SOPs, HEARTBEAT, or TOOLS files are saved automatically within 2 seconds of the user stopping typing — no save button required and no data is lost on panel close
-  3. Clicking "Reset to defaults" on any editable file and confirming the dialog restores the original catalog template — the user's edits are replaced and the restored content saves automatically
-  4. The Agent Marketplace panel lists all 12 catalog agent types; already-active agents show an "Active" badge instead of an "Add to Team" button; clicking "Add to Team" creates the agent and its workspace rows and immediately shows it in the sidebar
-  5. A user can deactivate an agent from their team; after deactivation the agent disappears from the sidebar and Team view, its workspace data is preserved, and no heartbeat fires for that agent
+  1. Opening an agent's settings panel reveals a Workspace tab with 6 sub-tabs; MEMORY.md tab is read-only
+  2. Edits to editable files are saved automatically within 2 seconds of the user stopping typing
+  3. Clicking "Reset to defaults" and confirming restores the original catalog template
+  4. The Agent Marketplace panel lists all 12 catalog agent types with correct active/inactive states
+  5. A user can deactivate an agent from their team; workspace data is preserved, heartbeat stops
 **Plans**: 5 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Test infra (vitest) + sanitize.ts client mirror + buildWorkspacePrompt utility + tests (WS-06, WS-07)
-- [ ] 03-02-PLAN.md — WorkspaceEditor (CodeMirror 6) + WorkspaceEditorLazy + useAgentWorkspace hook (WS-02, WS-04, WS-05)
-- [ ] 03-03-PLAN.md — useAgentMarketplace hook + AgentMarketplaceCard + AgentMarketplace panel (MKT-02, MKT-03, MKT-04)
-- [ ] 03-04-PLAN.md — WorkspaceTabs (6 sub-tabs) + MemoryTab + GenericAgentPanel Workspace sheet (WS-01, WS-03, WS-05)
-- [ ] 03-05-PLAN.md — Dashboard wiring: sidebar Add Agent entry + marketplace view + human verification checkpoint (WS-01, MKT-01, MKT-03, MKT-04)
+- [x] 03-01: Test infra (vitest) + sanitize.ts client mirror + buildWorkspacePrompt utility
+- [x] 03-02: WorkspaceEditor (CodeMirror 6) + WorkspaceEditorLazy + useAgentWorkspace hook
+- [x] 03-03: useAgentMarketplace hook + AgentMarketplaceCard + AgentMarketplace panel
+- [x] 03-04: WorkspaceTabs (6 sub-tabs) + MemoryTab + GenericAgentPanel Workspace sheet
+- [x] 03-05: Dashboard wiring: sidebar Add Agent entry + marketplace view
 
 ### Phase 4: Heartbeat System
-**Goal**: Each active agent proactively checks in on its configured schedule during business hours, surfaces only genuine findings, and stays silent (no DB write, no notification) when nothing needs the user's attention
-**Depends on**: Phase 3 (HEARTBEAT.md templates must be editable before the runner reads them)
+**Goal**: Each active agent proactively checks in on its configured schedule during business hours, surfaces only genuine findings, and stays silent when nothing needs the user's attention
+**Depends on**: Phase 3
 **Requirements**: SEC-02, HB-01, HB-02, HB-03, HB-04, HB-05, HB-06, HB-07, HB-08, HB-09
 **Success Criteria** (what must be TRUE):
-  1. A single `heartbeat-dispatcher` pg_cron job runs every 5 minutes, enqueues only agents whose `next_heartbeat_at` is due and whose current time falls within the user's configured active hours — agents never fire at 3am in the user's timezone
-  2. When the LLM returns `severity: "ok"` for a heartbeat run, zero rows are written to `agent_heartbeat_log` and zero notifications are created — a quiet day produces no DB activity beyond the dispatcher's `next_heartbeat_at` update
-  3. When the LLM returns `severity: "urgent"`, a notification record is created and the heartbeat runner triggers both a push notification and an email within the same invocation — the user receives the alert without refreshing
-  4. Each agent's settings panel shows a heartbeat configuration section with interval selector (1h / 2h / 4h / 8h), active hours (start/end time), and an enable/disable toggle — changes persist and are respected by the next dispatcher run
-  5. The dispatcher enforces a per-agent daily call budget (default 6 calls/day) — an agent that has reached its daily limit is skipped by the dispatcher even if `next_heartbeat_at` is due
+  1. A single `heartbeat-dispatcher` pg_cron job runs every 5 minutes, enqueues only agents due within the user's active hours
+  2. When LLM returns `severity: "ok"`, zero rows are written to `agent_heartbeat_log` and zero notifications created
+  3. When LLM returns `severity: "urgent"`, push notification and email fire within the same invocation
+  4. Each agent's settings panel shows heartbeat config with interval selector, active hours, and enable/disable toggle
+  5. The dispatcher enforces a per-agent daily call budget — agents at limit are skipped
 **Plans**: 6 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Wave 0 test scaffolds: heartbeatParser, heartbeatDispatcher, useHeartbeatConfig stubs (HB-03, HB-05, HB-06, HB-08, SEC-02)
-- [ ] 04-02-PLAN.md — DB migrations: pgmq queue + notifications table + heartbeat_daily_budget column + pg_cron jobs (SEC-02, HB-01, HB-05)
-- [ ] 04-03-PLAN.md — HeartbeatConfig UI: useHeartbeatConfig hook + HeartbeatConfigSection + GenericAgentPanel wiring (HB-08)
-- [ ] 04-04-PLAN.md — heartbeat-dispatcher edge function: due-agent query, business hours, budget enforcement, pgmq enqueue (HB-01, HB-05, HB-06, SEC-02)
-- [ ] 04-05-PLAN.md — heartbeat-runner edge function: dequeue, LLM call, severity routing, HEARTBEAT_OK suppression, Resend email (HB-02, HB-03, HB-04, HB-07)
-- [ ] 04-06-PLAN.md — send-morning-digest edge function + severity column migration + human verification checkpoint (HB-09)
+- [x] 04-01: Wave 0 test scaffolds: heartbeatParser, heartbeatDispatcher, useHeartbeatConfig stubs
+- [x] 04-02: DB migrations: pgmq queue + notifications table + heartbeat_daily_budget + pg_cron jobs
+- [x] 04-03: HeartbeatConfig UI: useHeartbeatConfig hook + HeartbeatConfigSection + GenericAgentPanel wiring
+- [x] 04-04: heartbeat-dispatcher edge function
+- [x] 04-05: heartbeat-runner edge function
+- [x] 04-06: send-morning-digest edge function + severity column migration
 
 ### Phase 5: Org View + Notifications
-**Goal**: Users can see their entire AI team at a glance — who is active, what each agent last surfaced, and whether anything needs attention — and receive alerts through the right channel at the right severity without notification fatigue
-**Depends on**: Phase 4 (live heartbeat data and suppression correctness must be verified before push and email delivery are enabled)
+**Goal**: Users can see their entire AI team at a glance and receive alerts through the right channel at the right severity without notification fatigue
+**Depends on**: Phase 4
 **Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, ORG-01, ORG-02, ORG-03, ORG-04, ORG-05
 **Success Criteria** (what must be TRUE):
-  1. The Team view (accessible from the sidebar) shows an org chart with Chief of Staff at the top and all activated agents below as direct reports; each card shows the agent's name, role, last active timestamp, task count for the past 7 days, and a heartbeat status indicator
-  2. An agent whose heartbeat fired in the last hour shows a live pulsing green indicator on its card — agents that have not fired recently show a grey sleeping state, and agents with surfaced findings show an amber attention state
-  3. A notification bell in the dashboard header shows an unread count that updates in real time (via Supabase Realtime Broadcast) when a new heartbeat finding is created — the user does not need to refresh to see the badge increment
-  4. Clicking a notification entry in the notification panel navigates to the relevant agent's panel; users can mark individual notifications as read or mark all as read; the unread count updates immediately
-  5. The Chief of Staff delivers a morning digest at 8am in the user's timezone that consolidates all "digest"-severity heartbeat findings from the previous 24 hours across all agents into a single briefing in the chat interface
+  1. Team view shows org chart with Chief of Staff at top and all activated agents as direct reports with status indicators
+  2. Notification bell shows unread count that updates in real time via Supabase Realtime
+  3. Clicking a notification navigates to the relevant agent's panel; mark-read works immediately
+  4. Chief of Staff delivers morning digest at 8am in user's timezone consolidating all digest-severity findings
+  5. Push, email, and in-app notifications all fire correctly per severity level
 **Plans**: 5 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Wave 0 test scaffolds: useNotifications + useTeamData stubs (NOTIF-01, NOTIF-02, NOTIF-05, NOTIF-06, ORG-02, ORG-03)
-- [ ] 05-02-PLAN.md — useNotifications hook + NotificationBell component + DashboardHeader wiring (NOTIF-01, NOTIF-02, NOTIF-05, NOTIF-06)
-- [ ] 05-03-PLAN.md — useTeamData hook + TeamView org chart + DashboardSidebar + Dashboard wiring (ORG-01, ORG-02, ORG-03, ORG-04, ORG-05)
-- [ ] 05-04-PLAN.md — Web Push: push_subscriptions migration + sw.js + usePushSubscription + Settings toggle + heartbeat-runner VAPID send (NOTIF-03)
-- [ ] 05-05-PLAN.md — Per-user timezone morning digest: next_digest_run_at column + send-morning-digest refactor + human verification checkpoint (NOTIF-04)
+- [x] 05-01: Wave 0 test scaffolds: useNotifications + useTeamData stubs
+- [x] 05-02: useNotifications hook + NotificationBell component + DashboardHeader wiring
+- [x] 05-03: useTeamData hook + TeamView org chart + DashboardSidebar + Dashboard wiring
+- [x] 05-04: Web Push: push_subscriptions migration + sw.js + usePushSubscription + Settings toggle
+- [x] 05-05: Per-user timezone morning digest: next_digest_run_at column + send-morning-digest refactor
 
 ### Phase 6: Heartbeat Bug Fixes
-**Goal**: Restore full heartbeat system operation by fixing two critical integration bugs — the dispatcher→runner field name mismatch (camelCase vs snake_case) that silently breaks every job, and the heartbeat status amber dot that never shows because getHeartbeatStatus checks the wrong field value
-**Depends on**: Phase 4, Phase 5 (fixes bugs introduced in those phases)
-**Requirements**: HB-01, HB-02, HB-03, HB-04, HB-05, HB-06, HB-07, HB-08, HB-09, ORG-04
-**Gap Closure**: Closes gaps from audit
+**Goal**: Restore full heartbeat system operation by fixing the dispatcher→runner field name mismatch and the heartbeat status amber dot
+**Depends on**: Phase 4, Phase 5
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Fix dispatcher→runner field name mismatch: align camelCase enqueue payload with snake_case destructuring in runner (HB-01..09)
-- [ ] 06-02-PLAN.md — Fix getHeartbeatStatus() field check: update to match severity values passed by useTeamData (ORG-04)
+- [x] 06-01: Fix dispatcher→runner field name mismatch
+- [x] 06-02: Fix getHeartbeatStatus() field check
 
 ### Phase 7: Workspace Prompt Wiring + Push Opt-In
-**Goal**: Wire buildWorkspacePrompt() into all production AI call paths in the correct injection order, and surface push notification opt-in during onboarding and first dashboard load so users can actually receive urgent alerts
+**Goal**: Wire buildWorkspacePrompt() into all production AI call paths and surface push notification opt-in during onboarding
 **Depends on**: Phase 3, Phase 5
-**Requirements**: WS-07, NOTIF-03
-**Gap Closure**: Closes gaps from audit
 **Plans**: 4 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Wave 0 scaffolds (Deno mirror + test stub) + wire buildWorkspacePrompt() into heartbeat-runner (WS-07)
-- [ ] 07-02-PLAN.md — Wire buildWorkspacePrompt() into orchestrator (Chief of Staff + specialist agents) and chat-with-agent (WS-07)
-- [ ] 07-03-PLAN.md — PushOptInBanner component + push_opt_in step in onboarding flow (NOTIF-03)
-- [ ] 07-04-PLAN.md — First-load push opt-in banner in Dashboard for existing users + human verification (NOTIF-03)
+- [x] 07-01: Wave 0 scaffolds + wire buildWorkspacePrompt() into heartbeat-runner
+- [x] 07-02: Wire buildWorkspacePrompt() into orchestrator and chat-with-agent
+- [x] 07-03: PushOptInBanner component + push_opt_in step in onboarding flow
+- [x] 07-04: First-load push opt-in banner in Dashboard for existing users
 
 ### Phase 8: Phase Verifications
-**Goal**: Produce VERIFICATION.md for all four unverified phases (01, 03, 04, 05) — code-review each phase's deliverables against its success criteria and requirements, creating the formal verification record needed to close the milestone
-**Depends on**: Phase 6 (Phase 4 verification requires heartbeat system to be functional)
-**Requirements**: (verification coverage for DB-01..07, SEC-01, SEC-03, WS-01..07, MKT-01..04, HB-01..09, NOTIF-01..06, ORG-01..05)
-**Gap Closure**: Closes nyquist/verification gaps from audit
+**Goal**: Produce VERIFICATION.md for all four unverified phases (01, 03, 04, 05)
+**Depends on**: Phase 6
+**Plans**: 4 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — VERIFICATION.md for Phase 1 (Database Foundation): verify schema, triggers, RLS, seed data, security hardening
-- [ ] 08-02-PLAN.md — VERIFICATION.md for Phase 3 (MD Workspace Editor + Marketplace): verify editor, auto-save, reset, marketplace add/deactivate
-- [ ] 08-03-PLAN.md — VERIFICATION.md for Phase 4 (Heartbeat System): verify dispatcher, runner, config UI, budget enforcement, digest (after Phase 6 fixes)
-- [ ] 08-04-PLAN.md — VERIFICATION.md for Phase 5 (Org View + Notifications): verify team view, notification bell, realtime, push, morning digest
+- [x] 08-01: VERIFICATION.md for Phase 1 (Database Foundation)
+- [x] 08-02: VERIFICATION.md for Phase 3 (MD Workspace Editor + Marketplace)
+- [x] 08-03: VERIFICATION.md for Phase 4 (Heartbeat System)
+- [x] 08-04: VERIFICATION.md for Phase 5 (Org View + Notifications)
 
 ### Phase 9: Tech Debt Cleanup
-**Goal**: Remove dead code, consolidate duplicate modules, fix cosmetic label discrepancies, and make TeamView reactively update on marketplace adds — reducing future maintenance risk and drift
-**Depends on**: Phase 6, Phase 7 (clean state before tidying)
-**Requirements**: (no new requirements — quality/maintenance)
-**Gap Closure**: Closes tech debt items from audit
+**Goal**: Remove dead code, consolidate duplicate modules, fix cosmetic label discrepancies, and make TeamView reactively update on marketplace adds
+**Depends on**: Phase 6, Phase 7
+**Plans**: 3 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Remove handleComplete() dead code + unreachable Step union members in ConversationalOnboarding.tsx (Phase 2 tech debt)
-- [ ] 09-02-PLAN.md — Consolidate sanitize.ts duplicates (src/ vs supabase/functions/_shared/) into a single shared module (Phase 3 tech debt)
-- [ ] 09-03-PLAN.md — Fix "Step 11 of 11" cosmetic label in AgentTeamSelector + add TeamView Realtime subscription for reactive marketplace updates (Phase 5 tech debt)
+- [x] 09-01: Remove handleComplete() dead code + unreachable Step union members
+- [x] 09-02: Consolidate sanitize.ts duplicates into a single shared module
+- [x] 09-03: Fix "Step 11 of 11" cosmetic label + add TeamView Realtime subscription
+
+</details>
+
+---
+
+### 🚧 v2.0 Agent Intelligence Layer (In Progress)
+
+**Milestone Goal:** Migrate from hand-rolled agentic layer to LangChain/LangGraph with real tool execution, persistent memory, chat-first generative UI, proactive cadence, and business-stage-aware onboarding.
+
+## Phase Details
+
+### Phase 10: LangGraph Infrastructure
+**Goal**: The foundational LangGraph server, persistence layer, and proxy are operational — every subsequent phase can deploy agent graphs without revisiting infrastructure
+**Depends on**: Phase 9 (v1.0 complete)
+**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05, INFRA-06, INFRA-07
+**Success Criteria** (what must be TRUE):
+  1. A LangGraph server running on Railway responds to the health check endpoint and processes requests forwarded from the Supabase Edge Function proxy
+  2. The Edge Function proxy validates a user's JWT and forwards the request to the LangGraph server via SSE — unauthenticated requests are rejected before reaching the server
+  3. PostgresSaver checkpoints agent thread state to the `langgraph` schema in Supabase — a conversation can be interrupted and resumed from the exact same state
+  4. The LangGraph Store is connected and can write and retrieve per-agent memory objects scoped to a user namespace
+  5. The `use_langgraph` feature flag in `profiles` exists and controls whether requests route to the new server or the legacy path — no user experiences the new system until the flag is enabled
+**Plans**: TBD
+
+### Phase 11: Agent Graph Topology + Memory Foundation
+**Goal**: The full 13-agent hierarchical graph is wired and routing correctly — Chief of Staff can receive a user message, decide which agent(s) to invoke, and return a response with conversation state persisted
+**Depends on**: Phase 10
+**Requirements**: GRAPH-01, GRAPH-02, GRAPH-03, GRAPH-04, GRAPH-05, GRAPH-06, GRAPH-07, MEM-01, MEM-02, MEM-03, MEM-04, MEM-05, MEM-06, MEM-07
+**Success Criteria** (what must be TRUE):
+  1. A message to Chief of Staff routes correctly to the appropriate specialist subgraph via `Command` objects — sending a finance question reaches the Accountant subgraph, not the Marketer
+  2. A request requiring multiple agents triggers parallel fan-out via `Send()` and both agent responses are combined in the final reply
+  3. Any high-risk action (sending email, publishing post, financial transaction) causes the graph to pause at `interrupt()` and surface an approval card to the user before proceeding
+  4. All agent conversations persist across sessions — a user who closes the browser and returns sees their full conversation history and can continue where they left off
+  5. Each agent reads its namespaced memory from the LangGraph Store before acting and writes updated learnings after tool execution
+**Plans**: TBD
+
+### Phase 12: Chief of Staff Tools + Governance
+**Goal**: Chief of Staff is a working strategic orchestrator — it compiles real morning briefings, delegates to specialist agents with goal ancestry, cross-correlates findings, and every action is audited with enforced token budgets
+**Depends on**: Phase 11
+**Requirements**: COS-01, COS-02, COS-03, COS-04, COS-05, COS-06, COS-07, GOV-01, GOV-02, GOV-03, GOV-04
+**Success Criteria** (what must be TRUE):
+  1. The Chief of Staff compiles a morning briefing that aggregates real heartbeat findings, overdue tasks, and today's calendar events — organized by urgency with action buttons per item
+  2. When the Chief of Staff delegates to a specialist, the delegated task carries a full goal chain (mission → objective → project → task) visible in the audit log
+  3. Every agent action and tool call is written to the immutable `agent_audit_log` table with input, output, and token count — users can ask "why did you do this?" and get a traceable answer
+  4. Each agent has a monthly token budget enforced in three tiers: warning at 80%, auto-pause at 100%, and override requires human approval
+  5. Atomic task checkout prevents two concurrent cadence runs from claiming the same work item — double-execution never occurs
+**Plans**: TBD
+
+### Phase 13: Accountant + Sales Rep Agent Tools
+**Goal**: Users have a working AI CFO and sales development rep — the Accountant executes real financial operations against live data and the Sales Rep runs the full prospecting-to-proposal cycle with real tool calls
+**Depends on**: Phase 12
+**Requirements**: ACCT-01, ACCT-02, ACCT-03, ACCT-04, ACCT-05, ACCT-06, ACCT-07, ACCT-08, ACCT-09, ACCT-10, ACCT-11, ACCT-12, SALES-01, SALES-02, SALES-03, SALES-04, SALES-05, SALES-06, SALES-07, SALES-08, SALES-09, SALES-10, SALES-11, SALES-12
+**Success Criteria** (what must be TRUE):
+  1. The Accountant can parse an uploaded bank statement or receipt photo and produce categorized transactions — user sees structured results without any manual data entry
+  2. The Accountant generates a real P&L report and 90-day cashflow projection from live transaction and invoice data — numbers reflect actual records, not placeholder text
+  3. Any Accountant action requiring email send (invoice chase) or financial commitment pauses for user approval via HITL before executing
+  4. The Sales Rep generates a batch of qualified leads via Apify, researches the top prospect, and composes a personalized outreach email — all without the user providing any API keys
+  5. The Sales Rep's pipeline analysis shows real conversion rates and revenue forecast from actual lead records — stale deals are automatically flagged
+**Plans**: TBD
+
+### Phase 14: Marketer + Persistent Browser
+**Goal**: The Marketer is a closed-loop content engine — it creates brand-consistent content, publishes via the user's real browser sessions, and fetches actual analytics to close the performance feedback loop
+**Depends on**: Phase 12
+**Requirements**: MKT-01, MKT-02, MKT-03, MKT-04, MKT-05, MKT-06, MKT-07, MKT-08, MKT-09, MKT-10, MKT-11, MKT-12, BROWSER-01, BROWSER-02, BROWSER-03, BROWSER-04, BROWSER-05
+**Success Criteria** (what must be TRUE):
+  1. The user logs in to their social accounts once through the Marketer's persistent browser — subsequent publish operations use those saved sessions without asking for credentials again
+  2. The Marketer generates a platform-specific social post with a brand-consistent image using Nano Banana 2 and schedules it — the post appears in the content calendar
+  3. Publishing a scheduled post pauses for user approval, then executes via the real browser and confirms success — the user sees the post live on the platform
+  4. When a social session expires, the Marketer's heartbeat detects it and notifies the user with a re-login prompt — the agent does not silently fail
+  5. Fetching post analytics returns real engagement numbers scraped from the logged-in platform dashboard — the Marketer identifies top and bottom performers with WHY analysis
+**Plans**: TBD
+
+### Phase 15: Personal Assistant + Operational Agents
+**Goal**: Users have a working Google Workspace-integrated executive assistant and a full tier-2 operational team — PA handles real email and calendar, and the seven COO-routed agents execute their domain-specific tools
+**Depends on**: Phase 11
+**Requirements**: PA-01, PA-02, PA-03, PA-04, PA-05, PA-06, PA-07, PA-08, PA-09, PA-10, OPS-01, OPS-02, OPS-03, OPS-04, OPS-05, OPS-06, OPS-07
+**Success Criteria** (what must be TRUE):
+  1. The Personal Assistant reads the user's Gmail inbox, categorizes emails by urgency, and drafts a response to a flagged email — all three steps complete in a single agent invocation without user configuration beyond Google OAuth
+  2. PA can create a calendar event with availability check and send invites — but only after the user approves the action via HITL
+  3. A message routed to the COO reaches the correct tier-2 agent (e.g., a contract question reaches Legal, a hiring question reaches HR) — misrouting does not occur
+  4. Customer Support can search the business knowledge base via RAG and draft a ticket response grounded in actual business artifacts — not generic text
+  5. Data Analyst can query across all business tables (invoices, leads, posts, transactions) and return a chart-ready dataset for cross-functional analysis
+**Plans**: TBD
+
+### Phase 16: Proactive Cadence Engine
+**Goal**: All agents run proactively on their configured cadence without user intervention — the system executes full LangGraph graphs on schedule and surfaces role-specific findings at the right time
+**Depends on**: Phase 13, Phase 14, Phase 15
+**Requirements**: CAD-01, CAD-02, CAD-03, CAD-04, CAD-05, CAD-06, CAD-07, CAD-08
+**Success Criteria** (what must be TRUE):
+  1. pg_cron triggers the cadence dispatcher which enqueues due agents via pgmq — agents run full LangGraph graph execution (not single LLM calls) on their scheduled cadence without any user action
+  2. Each agent executes its role-specific heartbeat checklist: Accountant checks cashflow and overdue invoices, Marketer fetches analytics and content queue, Sales Rep checks stale deals and due follow-ups
+  3. The daily cadence produces a morning briefing in the user's Chief of Staff chat by 8am in the user's timezone — the user wakes up to actionable insights
+  4. Event-triggered proactive actions fire correctly: a post going viral triggers an immediate Marketer alert, an overdue invoice triggers an Accountant chase draft, a stale deal triggers a Sales Rep re-engagement suggestion
+  5. Each agent's cadence config is stored in `user_agents.cadence_config` JSONB and respected by the dispatcher — users can adjust frequency and active hours per agent
+**Plans**: TBD
+
+### Phase 17: Generative UI + Onboarding Redesign
+**Goal**: Every agent tab is an intelligent chat interface with dynamic inline components, and the onboarding flow collects business stage context and ends with a real CoS briefing as the first message
+**Depends on**: Phase 16
+**Requirements**: GUI-01, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06, GUI-07, GUI-08, GUI-09, GUI-10, ONB-01, ONB-02, ONB-03, ONB-04, ONB-05, ONB-06
+**Success Criteria** (what must be TRUE):
+  1. Opening any agent tab shows a chat interface — all static dashboards are replaced; the user interacts with agents via conversation and inline components appear within the chat flow
+  2. Asking the Accountant for a P&L report renders an actual P&L table inline in the chat message — asking Sales Rep for pipeline status renders a Pipeline Kanban — components appear without navigating to a separate page
+  3. A HITL approval request appears as an inline card with Approve/Reject/Discuss buttons — approving triggers the agent to continue execution immediately
+  4. SSE streaming delivers text deltas and UI component directives progressively — the user sees the response being built in real time, not a loading spinner followed by a full response dump
+  5. The onboarding flow includes a business stage question (Starting/Running/Scaling) whose answer shapes the recommended agent team, and the final onboarding step produces a real Chief of Staff briefing as the first chat message
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phase 1 must complete before any other phase. Phases 2 and 3 can run in parallel after Phase 1. Phase 4 depends on Phase 3. Phase 5 depends on Phase 4. Phase 6 fixes bugs from Phases 4 and 5. Phase 7 wires missing integrations from Phases 3 and 5. Phase 8 depends on Phase 6. Phase 9 depends on Phases 6 and 7.
+Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phase 15 (can start after Phase 11) → Phase 16 (all agents must have tools) → Phase 17
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Database Foundation | 5/5 | Complete   | 2026-03-12 |
-| 2. Agent Spawner + Team Selector | 4/5 | In Progress|  |
-| 3. MD Workspace Editor + Marketplace | 5/5 | Complete   | 2026-03-13 |
-| 4. Heartbeat System | 6/6 | Complete   | 2026-03-13 |
-| 5. Org View + Notifications | 5/5 | Complete   | 2026-03-13 |
-| 6. Heartbeat Bug Fixes | 0/2 | Pending | |
-| 7. Workspace Prompt Wiring + Push Opt-In | 3/4 | In Progress|  |
-| 8. Phase Verifications | 3/4 | In Progress|  |
-| 9. Tech Debt Cleanup | 3/3 | Complete    | 2026-03-17 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Database Foundation | v1.0 | 5/5 | Complete | 2026-03-12 |
+| 2. Agent Spawner + Team Selector | v1.0 | 5/5 | Complete | 2026-03-17 |
+| 3. MD Workspace Editor + Marketplace | v1.0 | 5/5 | Complete | 2026-03-13 |
+| 4. Heartbeat System | v1.0 | 6/6 | Complete | 2026-03-13 |
+| 5. Org View + Notifications | v1.0 | 5/5 | Complete | 2026-03-13 |
+| 6. Heartbeat Bug Fixes | v1.0 | 2/2 | Complete | 2026-03-17 |
+| 7. Workspace Prompt Wiring + Push Opt-In | v1.0 | 4/4 | Complete | 2026-03-17 |
+| 8. Phase Verifications | v1.0 | 4/4 | Complete | 2026-03-17 |
+| 9. Tech Debt Cleanup | v1.0 | 3/3 | Complete | 2026-03-17 |
+| 10. LangGraph Infrastructure | v2.0 | 0/TBD | Not started | - |
+| 11. Agent Graph Topology + Memory Foundation | v2.0 | 0/TBD | Not started | - |
+| 12. Chief of Staff Tools + Governance | v2.0 | 0/TBD | Not started | - |
+| 13. Accountant + Sales Rep Agent Tools | v2.0 | 0/TBD | Not started | - |
+| 14. Marketer + Persistent Browser | v2.0 | 0/TBD | Not started | - |
+| 15. Personal Assistant + Operational Agents | v2.0 | 0/TBD | Not started | - |
+| 16. Proactive Cadence Engine | v2.0 | 0/TBD | Not started | - |
+| 17. Generative UI + Onboarding Redesign | v2.0 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-14 — Phase 7 plans created*
-*Milestone: Proactive Multi-Agent Platform*
-*Brownfield: existing auth, 4 agents, onboarding, tasks, and chat are working and must not be broken*
+*Updated: 2026-03-18 — v2.0 Agent Intelligence Layer phases 10-17 added*
+*Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
+*Milestone v2.0: Agent Intelligence Layer — in progress*

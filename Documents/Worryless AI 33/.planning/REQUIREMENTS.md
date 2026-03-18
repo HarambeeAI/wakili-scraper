@@ -185,13 +185,128 @@
 
 ## Traceability
 
-(To be filled by roadmapper)
-
 **Coverage:**
-- v2.0 requirements: 95 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 95
+- v2.0 requirements: 114 total
+- Mapped to phases: 114
+- Unmapped: 0
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INFRA-01 | Phase 10 | Pending |
+| INFRA-02 | Phase 10 | Pending |
+| INFRA-03 | Phase 10 | Pending |
+| INFRA-04 | Phase 10 | Pending |
+| INFRA-05 | Phase 10 | Pending |
+| INFRA-06 | Phase 10 | Pending |
+| INFRA-07 | Phase 10 | Pending |
+| GRAPH-01 | Phase 11 | Pending |
+| GRAPH-02 | Phase 11 | Pending |
+| GRAPH-03 | Phase 11 | Pending |
+| GRAPH-04 | Phase 11 | Pending |
+| GRAPH-05 | Phase 11 | Pending |
+| GRAPH-06 | Phase 11 | Pending |
+| GRAPH-07 | Phase 11 | Pending |
+| MEM-01 | Phase 11 | Pending |
+| MEM-02 | Phase 11 | Pending |
+| MEM-03 | Phase 11 | Pending |
+| MEM-04 | Phase 11 | Pending |
+| MEM-05 | Phase 11 | Pending |
+| MEM-06 | Phase 11 | Pending |
+| MEM-07 | Phase 11 | Pending |
+| COS-01 | Phase 12 | Pending |
+| COS-02 | Phase 12 | Pending |
+| COS-03 | Phase 12 | Pending |
+| COS-04 | Phase 12 | Pending |
+| COS-05 | Phase 12 | Pending |
+| COS-06 | Phase 12 | Pending |
+| COS-07 | Phase 12 | Pending |
+| GOV-01 | Phase 12 | Pending |
+| GOV-02 | Phase 12 | Pending |
+| GOV-03 | Phase 12 | Pending |
+| GOV-04 | Phase 12 | Pending |
+| ACCT-01 | Phase 13 | Pending |
+| ACCT-02 | Phase 13 | Pending |
+| ACCT-03 | Phase 13 | Pending |
+| ACCT-04 | Phase 13 | Pending |
+| ACCT-05 | Phase 13 | Pending |
+| ACCT-06 | Phase 13 | Pending |
+| ACCT-07 | Phase 13 | Pending |
+| ACCT-08 | Phase 13 | Pending |
+| ACCT-09 | Phase 13 | Pending |
+| ACCT-10 | Phase 13 | Pending |
+| ACCT-11 | Phase 13 | Pending |
+| ACCT-12 | Phase 13 | Pending |
+| SALES-01 | Phase 13 | Pending |
+| SALES-02 | Phase 13 | Pending |
+| SALES-03 | Phase 13 | Pending |
+| SALES-04 | Phase 13 | Pending |
+| SALES-05 | Phase 13 | Pending |
+| SALES-06 | Phase 13 | Pending |
+| SALES-07 | Phase 13 | Pending |
+| SALES-08 | Phase 13 | Pending |
+| SALES-09 | Phase 13 | Pending |
+| SALES-10 | Phase 13 | Pending |
+| SALES-11 | Phase 13 | Pending |
+| SALES-12 | Phase 13 | Pending |
+| MKT-01 | Phase 14 | Pending |
+| MKT-02 | Phase 14 | Pending |
+| MKT-03 | Phase 14 | Pending |
+| MKT-04 | Phase 14 | Pending |
+| MKT-05 | Phase 14 | Pending |
+| MKT-06 | Phase 14 | Pending |
+| MKT-07 | Phase 14 | Pending |
+| MKT-08 | Phase 14 | Pending |
+| MKT-09 | Phase 14 | Pending |
+| MKT-10 | Phase 14 | Pending |
+| MKT-11 | Phase 14 | Pending |
+| MKT-12 | Phase 14 | Pending |
+| BROWSER-01 | Phase 14 | Pending |
+| BROWSER-02 | Phase 14 | Pending |
+| BROWSER-03 | Phase 14 | Pending |
+| BROWSER-04 | Phase 14 | Pending |
+| BROWSER-05 | Phase 14 | Pending |
+| PA-01 | Phase 15 | Pending |
+| PA-02 | Phase 15 | Pending |
+| PA-03 | Phase 15 | Pending |
+| PA-04 | Phase 15 | Pending |
+| PA-05 | Phase 15 | Pending |
+| PA-06 | Phase 15 | Pending |
+| PA-07 | Phase 15 | Pending |
+| PA-08 | Phase 15 | Pending |
+| PA-09 | Phase 15 | Pending |
+| PA-10 | Phase 15 | Pending |
+| OPS-01 | Phase 15 | Pending |
+| OPS-02 | Phase 15 | Pending |
+| OPS-03 | Phase 15 | Pending |
+| OPS-04 | Phase 15 | Pending |
+| OPS-05 | Phase 15 | Pending |
+| OPS-06 | Phase 15 | Pending |
+| OPS-07 | Phase 15 | Pending |
+| CAD-01 | Phase 16 | Pending |
+| CAD-02 | Phase 16 | Pending |
+| CAD-03 | Phase 16 | Pending |
+| CAD-04 | Phase 16 | Pending |
+| CAD-05 | Phase 16 | Pending |
+| CAD-06 | Phase 16 | Pending |
+| CAD-07 | Phase 16 | Pending |
+| CAD-08 | Phase 16 | Pending |
+| GUI-01 | Phase 17 | Pending |
+| GUI-02 | Phase 17 | Pending |
+| GUI-03 | Phase 17 | Pending |
+| GUI-04 | Phase 17 | Pending |
+| GUI-05 | Phase 17 | Pending |
+| GUI-06 | Phase 17 | Pending |
+| GUI-07 | Phase 17 | Pending |
+| GUI-08 | Phase 17 | Pending |
+| GUI-09 | Phase 17 | Pending |
+| GUI-10 | Phase 17 | Pending |
+| ONB-01 | Phase 17 | Pending |
+| ONB-02 | Phase 17 | Pending |
+| ONB-03 | Phase 17 | Pending |
+| ONB-04 | Phase 17 | Pending |
+| ONB-05 | Phase 17 | Pending |
+| ONB-06 | Phase 17 | Pending |
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after initial definition*
+*Last updated: 2026-03-18 — Traceability mapped to phases 10-17*
