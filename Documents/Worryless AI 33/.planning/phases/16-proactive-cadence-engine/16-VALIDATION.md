@@ -1,7 +1,7 @@
 ---
 phase: 16
 slug: proactive-cadence-engine
-status: draft
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-03-19
@@ -39,16 +39,16 @@ updated: 2026-03-19
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 16-01-01 | 01 | 1 | CAD-01, CAD-08 | structural | `grep -c "cadence_config" worrylesssuperagent/supabase/migrations/20260320000001_cadence_config.sql && grep -c "cadence_tier" worrylesssuperagent/supabase/migrations/20260320000002_cadence_dispatcher_v2.sql` | N/A (SQL) | pending |
-| 16-01-02 | 01 | 1 | CAD-02, CAD-03, CAD-04 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/heartbeat-prompts.test.ts --reporter=verbose` | Plan creates | pending |
-| 16-01-03 | 01 | 1 | CAD-08 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/cadence-config.test.ts --reporter=verbose` | Plan creates | pending |
-| 16-02-01 | 02 | 1 | CAD-01, CAD-02 | structural | `grep -c "LANGGRAPH_SERVER_URL" worrylesssuperagent/supabase/functions/proactive-runner/index.ts && grep -c "invoke" worrylesssuperagent/supabase/functions/proactive-runner/index.ts` | Plan creates | pending |
-| 16-02-02 | 02 | 1 | CAD-01, CAD-04 | structural | `grep -c "cadence_tier" worrylesssuperagent/supabase/functions/heartbeat-dispatcher/index.ts && grep -c "get_due_cadence_agents" worrylesssuperagent/supabase/functions/heartbeat-dispatcher/index.ts` | Plan modifies | pending |
-| 16-02-03 | 02 | 1 | CAD-01, CAD-04 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/cadence-dispatcher.test.ts --reporter=verbose` | Plan creates | pending |
-| 16-03-01 | 03 | 2 | CAD-07 | structural | `grep -c "check_event_triggers" worrylesssuperagent/supabase/migrations/20260320000003_event_detector.sql` | Plan creates | pending |
-| 16-03-02 | 03 | 2 | CAD-07 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/event-detector.test.ts --reporter=verbose` | Plan creates | pending |
-| 16-04-01 | 04 | 2 | CAD-08 | structural | `grep -c "CadenceConfigSection" worrylesssuperagent/src/components/agents/CadenceConfigSection.tsx && grep -c "CadenceConfigSection" worrylesssuperagent/src/components/agents/GenericAgentPanel.tsx` | Plan creates | pending |
-| 16-05-01 | 05 | 3 | CAD-03, CAD-05, CAD-06 | structural | `grep -c "LANGGRAPH_SERVER_URL" worrylesssuperagent/supabase/functions/send-morning-digest/index.ts && grep -c "EVENT_PROMPTS" worrylesssuperagent/supabase/functions/proactive-runner/index.ts` | Plan modifies | pending |
+| 16-01-01 | 01 | 1 | CAD-01, CAD-08 | structural | `grep -c "cadence_config" worrylesssuperagent/supabase/migrations/20260320000001_cadence_config.sql && grep -c "cadence_tier" worrylesssuperagent/supabase/migrations/20260320000002_cadence_dispatcher_v2.sql` | N/A (SQL) | green |
+| 16-01-02 | 01 | 1 | CAD-02, CAD-03, CAD-04 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/heartbeat-prompts.test.ts --reporter=verbose` | Plan creates | green |
+| 16-01-03 | 01 | 1 | CAD-08 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/cadence-config.test.ts --reporter=verbose` | Plan creates | green |
+| 16-02-01 | 02 | 1 | CAD-01, CAD-02 | structural | `grep -c "LANGGRAPH_SERVER_URL" worrylesssuperagent/supabase/functions/proactive-runner/index.ts && grep -c "invoke" worrylesssuperagent/supabase/functions/proactive-runner/index.ts` | Plan creates | green |
+| 16-02-02 | 02 | 1 | CAD-01, CAD-04 | structural | `grep -c "cadence_tier" worrylesssuperagent/supabase/functions/heartbeat-dispatcher/index.ts && grep -c "get_due_cadence_agents" worrylesssuperagent/supabase/functions/heartbeat-dispatcher/index.ts` | Plan modifies | green |
+| 16-02-03 | 02 | 1 | CAD-01, CAD-04 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/cadence-dispatcher.test.ts --reporter=verbose` | Plan creates | green |
+| 16-03-01 | 03 | 2 | CAD-07 | structural | `grep -c "check_event_triggers" worrylesssuperagent/supabase/migrations/20260320000003_event_detector.sql` | Plan creates | green |
+| 16-03-02 | 03 | 2 | CAD-07 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/event-detector.test.ts --reporter=verbose` | Plan creates | green |
+| 16-04-01 | 04 | 2 | CAD-08 | structural | `grep -c "CadenceConfigSection" worrylesssuperagent/src/components/agents/CadenceConfigSection.tsx && grep -c "CadenceConfigSection" worrylesssuperagent/src/components/agents/GenericAgentPanel.tsx` | Plan creates | green |
+| 16-05-01 | 05 | 3 | CAD-03, CAD-05, CAD-06 | structural | `grep -c "LANGGRAPH_SERVER_URL" worrylesssuperagent/supabase/functions/send-morning-digest/index.ts && grep -c "EVENT_PROMPTS" worrylesssuperagent/supabase/functions/proactive-runner/index.ts` | Plan modifies | green |
 
 *Status: pending / green / red / flaky*
 
@@ -88,3 +88,18 @@ No orphaned test file references. Every test file listed is created by a specifi
 - [x] All vitest commands use `cd worrylesssuperagent/langgraph-server` (server config, not frontend)
 
 **Approval:** ready
+
+---
+
+## Validation Audit 2026-03-19
+
+| Metric | Count |
+|--------|-------|
+| Structural checks run | 6 |
+| Unit test files | 4 |
+| Unit tests passing | 141 |
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 11 task verifications passed (6 structural + 4 unit test suites + 1 cadence suite). No gaps detected.
