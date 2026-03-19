@@ -24,6 +24,10 @@ export interface ResponseMetadata {
   tokensUsed?: number;
   toolCalls?: string[];
   delegatedTo?: AgentTypeId[];
+  /** GOV-02: true when agent returned early because monthly token budget is exhausted */
+  budgetPaused?: boolean;
+  /** GOV-02: true when agent is between 80-99% of monthly token budget (warning, not blocking) */
+  budgetWarning?: boolean;
 }
 
 // Memory context loaded from LangGraph Store before agent runs
