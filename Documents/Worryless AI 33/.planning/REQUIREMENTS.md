@@ -139,11 +139,11 @@
 
 ### Persistent Browser (BROWSER)
 
-- [ ] **BROWSER-01**: Playwright persistent browser context per user for Marketer
-- [ ] **BROWSER-02**: User login flow via embedded browser iframe/popup
-- [ ] **BROWSER-03**: Session persistence via cookies/localStorage saved to disk
-- [ ] **BROWSER-04**: Session expiry detection with re-login notification
-- [ ] **BROWSER-05**: Browser-based operations: publish, analytics, competitor scraping
+- [x] **BROWSER-01**: Playwright persistent browser context per user for Marketer
+- [x] **BROWSER-02**: User login flow via embedded browser iframe/popup
+- [x] **BROWSER-03**: Session persistence via cookies/localStorage saved to disk
+- [x] **BROWSER-04**: Session expiry detection with re-login notification
+- [x] **BROWSER-05**: Browser-based operations: publish, analytics, competitor scraping
 
 ### Onboarding Redesign (ONB)
 
@@ -260,11 +260,11 @@
 | MKT-10 | Phase 14 | Pending |
 | MKT-11 | Phase 14 | Pending |
 | MKT-12 | Phase 14 | Pending |
-| BROWSER-01 | Phase 14 | Pending |
-| BROWSER-02 | Phase 14 | Pending |
-| BROWSER-03 | Phase 14 | Pending |
-| BROWSER-04 | Phase 14 | Pending |
-| BROWSER-05 | Phase 14 | Pending |
+| BROWSER-01 | Phase 14 | Complete |
+| BROWSER-02 | Phase 14 | Complete |
+| BROWSER-03 | Phase 14 | Complete |
+| BROWSER-04 | Phase 14 | Complete |
+| BROWSER-05 | Phase 14 | Complete |
 | PA-01 | Phase 15 | Pending |
 | PA-02 | Phase 15 | Pending |
 | PA-03 | Phase 15 | Pending |
