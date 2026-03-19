@@ -121,7 +121,7 @@
 - [x] **CAD-04**: Weekly cadence: cross-team summary, content performance, pipeline progression, expenses
 - [x] **CAD-05**: Monthly cadence: P&L, conversion analysis, marketing review, KPI dashboard
 - [x] **CAD-06**: Quarterly cadence: business review, strategic assessment, financial review, compliance
-- [ ] **CAD-07**: Event-triggered proactive actions (viral post, stale deal, overdue invoice, etc.)
+- [x] **CAD-07**: Event-triggered proactive actions (viral post, stale deal, overdue invoice, etc.)
 - [x] **CAD-08**: Per-agent cadence config in `user_agents.cadence_config` JSONB
 
 ### Generative UI (GUI)
@@ -288,7 +288,7 @@
 | CAD-04 | Phase 16 | Complete |
 | CAD-05 | Phase 16 | Complete |
 | CAD-06 | Phase 16 | Complete |
-| CAD-07 | Phase 16 | Pending |
+| CAD-07 | Phase 16 | Complete |
 | CAD-08 | Phase 16 | Complete |
 | GUI-01 | Phase 17 | Pending |
 | GUI-02 | Phase 17 | Pending |
