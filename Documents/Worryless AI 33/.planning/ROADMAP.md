@@ -318,6 +318,12 @@ Plans:
   2. When the Accountant generates a P&L report, an `InlinePLTable` component renders inline in the chat — not just text narration of the numbers
   3. When the Sales Rep analyzes the pipeline, a `PipelineKanban` board renders inline in the chat
   4. The `uiComponents` AgentState channel is populated by a post-tool step in base-agent, and the SSE endpoint emits these to the frontend
+**Plans**: 3 plans
+
+Plans:
+- [ ] 18-01-PLAN.md — Accountant + Sales Rep tools nodes return uiComponents (pl_report, cashflow_chart, invoice_tracker, pipeline_kanban)
+- [ ] 18-02-PLAN.md — SSE interrupt detection + useAgentChat pending_approvals message attachment
+- [ ] 18-03-PLAN.md — Integration tests for both pipelines (SSE interrupt + uiComponents emission + approval attachment)
 
 ## Progress
 
@@ -343,10 +349,10 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 15. Personal Assistant + Operational Agents | v2.0 | 6/6 | Complete | 2026-03-19 |
 | 16. Proactive Cadence Engine | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 17. Generative UI + Onboarding Redesign | v2.0 | 5/5 | Complete | 2026-03-19 |
-| 18. Agent-to-UI Data Pipeline Fix | v2.0 | 0/0 | Planned | - |
+| 18. Agent-to-UI Data Pipeline Fix | v2.0 | 0/3 | Planned | - |
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-19 — Phase 17 planned (5 plans in 3 waves)*
+*Updated: 2026-03-19 — Phase 18 planned (3 plans in 2 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
