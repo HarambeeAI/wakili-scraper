@@ -132,7 +132,7 @@
 - [x] **GUI-04**: Data table components via @tanstack/react-table
 - [x] **GUI-05**: Dynamic form components from agent tool schemas
 - [x] **GUI-06**: Approval request cards with Approve/Reject/Discuss for HITL
-- [ ] **GUI-07**: Domain-specific: Pipeline Kanban, Content Calendar, Invoice Tracker, Calendar Timeline, Meeting Brief
+- [x] **GUI-07**: Domain-specific: Pipeline Kanban, Content Calendar, Invoice Tracker, Calendar Timeline, Meeting Brief
 - [x] **GUI-08**: SSE streaming with text deltas + UI components + tool indicators
 - [x] **GUI-09**: `useAgentChat` hook managing threads, streaming, UI, approvals
 - [x] **GUI-10**: Thread list sidebar for past conversations per agent
@@ -296,7 +296,7 @@
 | GUI-04 | Phase 17 | Complete |
 | GUI-05 | Phase 17 | Complete |
 | GUI-06 | Phase 17 | Complete |
-| GUI-07 | Phase 17 | Pending |
+| GUI-07 | Phase 17 | Complete |
 | GUI-08 | Phase 17 | Complete |
 | GUI-09 | Phase 17 | Complete |
 | GUI-10 | Phase 17 | Complete |
