@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-19T02:19:32.214Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-03-19T02:34:37.256Z"
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 12 (chief-of-staff-tools-+-governance) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 2 of 4
 
 **v2.0 in progress:**
 
-- Plans completed: 10 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain)
-- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min
+- Plans completed: 11 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode)
+- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min
 
 *Updated after each plan completion*
 
@@ -90,6 +90,9 @@ New v2.0 decisions:
 - [Phase 12]: UPDATE...WHERE claimed_by IS NULL RETURNING id for atomic task checkout — atomic under READ COMMITTED, works with PgBouncer, simpler than advisory locks
 - [Phase 12]: agent_tasks.agent_type migrated ENUM to TEXT — supports all 13 v2 agent types; old ENUM not dropped (deferred cleanup)
 - [Phase 12]: GoalChainEntry[] | null as last-write-wins (not accumulator) — each delegation replaces full chain so subgraphs receive complete goal context
+- [Phase 12]: Governance at single chokepoint (createLLMNode) — 12 agents governed with 1 file modification
+- [Phase 12]: budgetPaused returns AIMessage with user-friendly override CTA; budgetWarning is non-blocking (80-99% triggers flag only)
+- [Phase 12]: GOV hook order in createLLMNode: extract content -> budget check -> build prompt (with goal chain) -> callLLM -> fire-and-forget writes -> return
 
 ### Pending Todos
 
@@ -104,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T02:19:32.211Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-03-19T02:34:37.253Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
