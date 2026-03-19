@@ -126,7 +126,7 @@
 
 ### Generative UI (GUI)
 
-- [ ] **GUI-01**: `AgentChatView` replacing all static agent dashboards
+- [x] **GUI-01**: `AgentChatView` replacing all static agent dashboards
 - [x] **GUI-02**: `GenerativeUIRenderer` mapping component types to React components
 - [x] **GUI-03**: Chart components via Recharts (bar, line, pie, area, gauge, sparkline)
 - [x] **GUI-04**: Data table components via @tanstack/react-table
@@ -135,7 +135,7 @@
 - [ ] **GUI-07**: Domain-specific: Pipeline Kanban, Content Calendar, Invoice Tracker, Calendar Timeline, Meeting Brief
 - [x] **GUI-08**: SSE streaming with text deltas + UI components + tool indicators
 - [x] **GUI-09**: `useAgentChat` hook managing threads, streaming, UI, approvals
-- [ ] **GUI-10**: Thread list sidebar for past conversations per agent
+- [x] **GUI-10**: Thread list sidebar for past conversations per agent
 
 ### Persistent Browser (BROWSER)
 
@@ -290,7 +290,7 @@
 | CAD-06 | Phase 16 | Complete |
 | CAD-07 | Phase 16 | Complete |
 | CAD-08 | Phase 16 | Complete |
-| GUI-01 | Phase 17 | Pending |
+| GUI-01 | Phase 17 | Complete |
 | GUI-02 | Phase 17 | Complete |
 | GUI-03 | Phase 17 | Complete |
 | GUI-04 | Phase 17 | Complete |
@@ -299,7 +299,7 @@
 | GUI-07 | Phase 17 | Pending |
 | GUI-08 | Phase 17 | Complete |
 | GUI-09 | Phase 17 | Complete |
-| GUI-10 | Phase 17 | Pending |
+| GUI-10 | Phase 17 | Complete |
 | ONB-01 | Phase 17 | Pending |
 | ONB-02 | Phase 17 | Pending |
 | ONB-03 | Phase 17 | Pending |

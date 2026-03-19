@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-03-19T10:48:00.000Z"
+stopped_at: Completed 17-03-PLAN.md
+last_updated: "2026-03-19T10:51:13.137Z"
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 39
-  completed_plans: 35
+  completed_plans: 37
 ---
 
 # Project State
@@ -152,6 +152,8 @@ New v2.0 decisions:
 - [Phase 17-01]: app exported from index.ts with NODE_ENV=test guard on listen() — enables supertest HTTP-level testing of SSE endpoint without port binding
 - [Phase 17-01]: uiComponentsBeforeCount snapshot before stream — only NEW ui_components emitted in SSE event (accumulator reducer means state grows across turns)
 - [Phase 17-01]: business_stage fetched from profiles before each sendMessage POST — populates business_context for agent context shaping (ONB-06)
+- [Phase 17]: AgentChatView uses plain div with scrollRef for scroll-to-bottom; Radix ScrollArea does not expose scrollable DOM node via ref
+- [Phase 17]: GenericAgentPanel replaced for all agent: prefixed views with AgentChatView in Dashboard.tsx default case
 
 ### Pending Todos
 
@@ -166,6 +168,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T10:48:00.000Z
-Stopped at: Completed 17-01-PLAN.md
+Last session: 2026-03-19T10:51:13.134Z
+Stopped at: Completed 17-03-PLAN.md
 Resume file: None
