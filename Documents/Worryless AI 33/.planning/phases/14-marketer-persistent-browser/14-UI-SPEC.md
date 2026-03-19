@@ -22,8 +22,8 @@ created: 2026-03-19
 | Preset | style: default, baseColor: slate, cssVariables: true | components.json |
 | Component library | Radix UI (via shadcn) | components.json + ui/ directory |
 | Icon library | lucide-react | Existing MarketerAgent.tsx (Plus, Sparkles, Calendar, Instagram, Image, Loader2, FolderOpen) |
-| Font (sans) | Montserrat 400/500/600/700 | tailwind.config.ts + src/index.css |
-| Font (mono) | IBM Plex Mono 400/700 | tailwind.config.ts + src/index.css |
+| Font (sans) | Montserrat 400/600 | tailwind.config.ts + src/index.css |
+| Font (mono) | IBM Plex Mono 400 | tailwind.config.ts + src/index.css |
 | Border radius | 0.5rem (lg), calc(0.5rem - 2px) (md), calc(0.5rem - 4px) (sm) | tailwind.config.ts |
 
 ### Existing shadcn Components Available (do not re-add)
@@ -59,8 +59,8 @@ Exceptions:
 |------|------|--------|-------------|-------|
 | Body | 14px (text-sm) | 400 (regular) | 1.5 | Post content preview, descriptions, form helper text, asset metadata |
 | Label | 14px (text-sm) | 600 (semibold) | 1.4 | Form labels, card section headings (e.g. "Images (3)"), stat labels |
-| Heading | 20px (text-xl) | 700 (bold) | 1.2 | Panel section titles ("Content Calendar", "Generated Assets") |
-| Display | 24px (text-2xl) | 700 (bold) | 1.2 | Stat numbers on metric cards (post count, scheduled count) |
+| Heading | 20px (text-xl) | 600 (semibold) | 1.2 | Panel section titles ("Content Calendar", "Generated Assets") |
+| Display | 24px (text-2xl) | 600 (semibold) | 1.2 | Stat numbers on metric cards (post count, scheduled count) |
 
 All text uses `font-sans` (Montserrat). Monospace (`font-mono`, IBM Plex Mono) is reserved for any post copy shown in code-like preview if needed — not required in Phase 14 components.
 
