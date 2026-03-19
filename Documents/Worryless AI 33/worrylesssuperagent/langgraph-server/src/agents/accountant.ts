@@ -12,6 +12,7 @@
 import { StateGraph } from "@langchain/langgraph";
 import type { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { AgentState } from "../types/agent-state.js";
+import type { UIComponent } from "../types/agent-state.js";
 import { AGENT_TYPES } from "../types/agent-types.js";
 import {
   createLLMNode,
@@ -30,6 +31,11 @@ import {
   forecastRunway,
 } from "../tools/accountant/index.js";
 import type { AccountantClassification } from "../tools/accountant/index.js";
+import type {
+  PLReport,
+  CashflowProjection,
+  BudgetComparison,
+} from "../tools/accountant/types.js";
 
 // ── System Prompt ──────────────────────────────────────────────────────────────
 
@@ -70,19 +76,43 @@ export function classifyAccountantRequest(
   content: string,
 ): AccountantClassification {
   return {
-    isInvoiceQuery: /\b(invoices?|bills?|receivables?|outstanding|owed)\b/i.test(content),
+    isInvoiceQuery:
+      /\b(invoices?|bills?|receivables?|outstanding|owed)\b/i.test(content),
     isInvoiceCreate: /\b(create|new|add|make).*(invoice|bill)\b/i.test(content),
-    isTransactionRecord: /\b(record|log|add).*(transaction|expense|payment|income)\b/i.test(content),
-    isBankStatementParse: /\b(bank.?statement|csv|upload.*statement|parse.*statement)\b/i.test(content),
+    isTransactionRecord:
+      /\b(record|log|add).*(transaction|expense|payment|income)\b/i.test(
+        content,
+      ),
+    isBankStatementParse:
+      /\b(bank.?statement|csv|upload.*statement|parse.*statement)\b/i.test(
+        content,
+      ),
     isReceiptParse: /\b(receipt|scan|photo|image.*expense)\b/i.test(content),
-    isCashflowQuery: /\b(cashflow|cash.?flow|projection|forecast.*cash)\b/i.test(content),
-    isPLQuery: /\b(p&l|profit.*loss|income.*statement|revenue.*report|financial.*report)\b/i.test(content),
-    isBudgetQuery: /\b(budget|spending.*vs|actual.*vs|variance)\b/i.test(content),
+    isCashflowQuery:
+      /\b(cashflow|cash.?flow|projection|forecast.*cash)\b/i.test(content),
+    isPLQuery:
+      /\b(p&l|profit.*loss|income.*statement|revenue.*report|financial.*report)\b/i.test(
+        content,
+      ),
+    isBudgetQuery: /\b(budget|spending.*vs|actual.*vs|variance)\b/i.test(
+      content,
+    ),
     isTaxQuery: /\b(tax|deduction|liability|irs|hmrc)\b/i.test(content),
-    isAnomalyQuery: /\b(anomal|unusual|suspicious|outlier|weird.*transaction)\b/i.test(content),
-    isChaseInvoice: /\b(chase|remind|follow.*up.*invoice|overdue.*invoice|payment.*reminder)\b/i.test(content),
-    isRunwayQuery: /\b(runway|burn.?rate|how.*long.*cash|months.*left)\b/i.test(content),
-    isInvoicePdfGenerate: /\b(generate.*invoice|invoice.*pdf|create.*invoice.*doc)\b/i.test(content),
+    isAnomalyQuery:
+      /\b(anomal|unusual|suspicious|outlier|weird.*transaction)\b/i.test(
+        content,
+      ),
+    isChaseInvoice:
+      /\b(chase|remind|follow.*up.*invoice|overdue.*invoice|payment.*reminder)\b/i.test(
+        content,
+      ),
+    isRunwayQuery: /\b(runway|burn.?rate|how.*long.*cash|months.*left)\b/i.test(
+      content,
+    ),
+    isInvoicePdfGenerate:
+      /\b(generate.*invoice|invoice.*pdf|create.*invoice.*doc)\b/i.test(
+        content,
+      ),
   };
 }
 
@@ -123,7 +153,10 @@ export function createAccountantToolsNode() {
       // The actual chaseOverdueInvoice with HITL interrupt is invoked in node context
       // when the user specifies an invoice ID in a follow-up turn.
       try {
-        toolResults.overdueInvoices = await listInvoices(state.userId, "overdue");
+        toolResults.overdueInvoices = await listInvoices(
+          state.userId,
+          "overdue",
+        );
       } catch (err) {
         console.error("[accountant-tools] listInvoices(overdue) failed:", err);
       }
@@ -166,7 +199,10 @@ export function createAccountantToolsNode() {
       try {
         toolResults.anomalies = await detectAnomalousTransactions(state.userId);
       } catch (err) {
-        console.error("[accountant-tools] detectAnomalousTransactions failed:", err);
+        console.error(
+          "[accountant-tools] detectAnomalousTransactions failed:",
+          err,
+        );
       }
     }
 
@@ -178,11 +214,100 @@ export function createAccountantToolsNode() {
       }
     }
 
+    // ── Build UIComponents for generative UI ──────────────────────────────
+    const uiComponents: UIComponent[] = [];
+
+    if (cls.isPLQuery && toolResults.plReport) {
+      const report = toolResults.plReport as PLReport;
+      // Transform PLReport.months to InlinePLTable PLRow format:
+      // PLRow = { category: string, current: number, previous: number, change: number }
+      const rows = report.months.map((m, idx) => {
+        const previous =
+          idx + 1 < report.months.length ? report.months[idx + 1].netProfit : 0;
+        return {
+          category: m.month,
+          current: m.netProfit,
+          previous,
+          change: m.netProfit - previous,
+        };
+      });
+      uiComponents.push({
+        type: "pl_report",
+        props: {
+          title: "Profit & Loss Report",
+          period: report.months[0]?.month ?? "Current",
+          rows,
+        },
+      });
+    }
+
+    if (cls.isCashflowQuery && toolResults.cashflow) {
+      // cashflow is a single CashflowProjection object; build chart data array
+      const cf = toolResults.cashflow as CashflowProjection;
+      uiComponents.push({
+        type: "cashflow_chart",
+        props: {
+          data: [
+            {
+              period: "Starting",
+              balance: cf.startingCash,
+              income: 0,
+              expenses: 0,
+            },
+            {
+              period: cf.period,
+              balance: cf.projectedBalance,
+              income: cf.projectedIncome,
+              expenses: cf.projectedExpenses,
+            },
+          ],
+        },
+      });
+    }
+
+    if ((cls.isInvoiceQuery || cls.isChaseInvoice) && toolResults.invoices) {
+      const invoices = toolResults.invoices as Array<Record<string, unknown>>;
+      if (invoices.length > 0) {
+        uiComponents.push({
+          type: "invoice_tracker",
+          props: { invoices },
+        });
+      }
+    }
+
+    if (cls.isBudgetQuery && toolResults.budgetComparison) {
+      // GUI-04: Emit data_table UIComponent for budget vs actual comparison
+      // DataTable expects columns: { key, label }[] and data: Record<string, unknown>[]
+      const budgetData = toolResults.budgetComparison as BudgetComparison[];
+      if (budgetData.length > 0) {
+        uiComponents.push({
+          type: "data_table",
+          props: {
+            columns: [
+              { key: "category", label: "Category" },
+              { key: "budgeted", label: "Budgeted" },
+              { key: "actual", label: "Actual" },
+              { key: "variance", label: "Variance" },
+              { key: "variancePct", label: "Variance %" },
+            ],
+            data: budgetData.map((row) => ({
+              category: row.category,
+              budgeted: row.budgeted,
+              actual: row.actual,
+              variance: row.variance,
+              variancePct: `${row.variancePct > 0 ? "+" : ""}${row.variancePct.toFixed(1)}%`,
+            })),
+          },
+        });
+      }
+    }
+
     return {
       businessContext: {
         ...state.businessContext,
         accountantToolResults: toolResults,
       },
+      ...(uiComponents.length > 0 ? { uiComponents } : {}),
     };
   };
 }
