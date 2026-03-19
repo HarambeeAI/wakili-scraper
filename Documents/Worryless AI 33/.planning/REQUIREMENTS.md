@@ -115,10 +115,10 @@
 
 ### Proactive Cadence (CAD)
 
-- [ ] **CAD-01**: Cadence dispatcher using pg_cron + pgmq triggering full LangGraph execution
-- [ ] **CAD-02**: Role-specific heartbeat checklists per agent
+- [x] **CAD-01**: Cadence dispatcher using pg_cron + pgmq triggering full LangGraph execution
+- [x] **CAD-02**: Role-specific heartbeat checklists per agent
 - [ ] **CAD-03**: Daily cadence: morning briefing, inbox triage, cashflow, pipeline, content queue
-- [ ] **CAD-04**: Weekly cadence: cross-team summary, content performance, pipeline progression, expenses
+- [x] **CAD-04**: Weekly cadence: cross-team summary, content performance, pipeline progression, expenses
 - [ ] **CAD-05**: Monthly cadence: P&L, conversion analysis, marketing review, KPI dashboard
 - [ ] **CAD-06**: Quarterly cadence: business review, strategic assessment, financial review, compliance
 - [ ] **CAD-07**: Event-triggered proactive actions (viral post, stale deal, overdue invoice, etc.)
@@ -282,10 +282,10 @@
 | OPS-05 | Phase 15 | Complete |
 | OPS-06 | Phase 15 | Complete |
 | OPS-07 | Phase 15 | Complete |
-| CAD-01 | Phase 16 | Pending |
-| CAD-02 | Phase 16 | Pending |
+| CAD-01 | Phase 16 | Complete |
+| CAD-02 | Phase 16 | Complete |
 | CAD-03 | Phase 16 | Pending |
-| CAD-04 | Phase 16 | Pending |
+| CAD-04 | Phase 16 | Complete |
 | CAD-05 | Phase 16 | Pending |
 | CAD-06 | Phase 16 | Pending |
 | CAD-07 | Phase 16 | Pending |

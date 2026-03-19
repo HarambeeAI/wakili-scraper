@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 15-05-PLAN.md (Data Analyst + Operations tools — 11 tools, 20 tests)
-last_updated: "2026-03-19T08:07:08.361Z"
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-03-19T09:26:15.060Z"
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 29
-  completed_plans: 29
+  total_plans: 34
+  completed_plans: 30
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 15 — personal-assistant-operational-agents
+**Current focus:** Phase 16 — proactive-cadence-engine
 
 ## Current Position
 
-Phase: 15 (personal-assistant-operational-agents) — COMPLETE
-Plan: 6 of 6 (DONE)
+Phase: 16 (proactive-cadence-engine) — EXECUTING
+Plan: 1 of 5
 
 ## Performance Metrics
 
@@ -133,6 +133,9 @@ New v2.0 decisions:
 - [Phase 15]: mockQuery.mockReset() in beforeEach (not vi.clearAllMocks()) — preserves getPool mock while clearing call history for vitest test isolation
 - [Phase 15-06]: Trailing \b removed from plural regex patterns (anomal, supplier, project, conflict) — word boundary fails on 'anomalies', 'suppliers', 'projects' because the plural 's' is a word character with no boundary after the stem
 - [Phase 15-06]: coo.ts opsFactories widened to (cp?) => any — heterogeneous compiled graph topologies (csTools, legalTools, hrTools, etc.) cannot share a typed factory signature after tool node rewrites added different node counts per agent
+- [Phase 16]: proactive-runner does NOT delete non-LangGraph user messages from queue — visibility timeout allows heartbeat-runner to pick them up (coexistence pattern)
+- [Phase 16]: isProactive guards both checkTokenBudget and incrementTokenUsage — prevents false budget-paused messages AND budget consumption for proactive runs
+- [Phase 16]: Deterministic proactive thread ID (proactive:agentType:userId) — persistent across runs for memory continuity and conversation threading
 
 ### Pending Todos
 
@@ -147,6 +150,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:53:02.196Z
-Stopped at: Completed 15-05-PLAN.md (Data Analyst + Operations tools — 11 tools, 20 tests)
+Last session: 2026-03-19T09:26:15.056Z
+Stopped at: Completed 16-02-PLAN.md
 Resume file: None
