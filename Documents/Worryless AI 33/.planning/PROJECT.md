@@ -50,9 +50,9 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 - [ ] Supabase Edge Functions retained as JWT-validating proxy to LangGraph server
 
 **Per-Agent Tool Execution**
-- [ ] Accountant: invoice CRUD, transaction recording, cashflow projection, P&L generation, tax estimation, anomaly detection
+- [x] Accountant: invoice CRUD, transaction recording, cashflow projection, P&L generation, tax estimation, anomaly detection — Validated in Phase 13
 - [ ] Marketer: Nano Banana 2 image generation, Playwright persistent browser for social media (publish, analytics, competitor scraping), content calendar, A/B testing
-- [ ] Sales Rep: Apify lead generation (developer-provided key), Resend outreach, email engagement tracking, pipeline analysis, revenue forecasting
+- [x] Sales Rep: Apify lead generation (developer-provided key), Resend outreach, email engagement tracking, pipeline analysis, revenue forecasting — Validated in Phase 13
 - [ ] Personal Assistant: Google Workspace (Gmail API, Calendar API, Drive API), inbox triage, meeting prep, time allocation analysis
 - [ ] All 13 agents with role-specific tools defined in V2_ARCHITECTURE.md
 
@@ -153,4 +153,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | Agent Team Selector at onboarding tail-end (not post-onboarding) | Users are most engaged and context-primed right after completing onboarding; conversion is higher than a post-login prompt | — Pending |
 
 ---
-*Last updated: 2026-03-19 after Phase 12 complete — CoS is a working strategic orchestrator with 7 tools (briefing, delegation, fan-out, correlation, memory query, action tracking, health), immutable audit log, 3-tier token budget enforcement, atomic task checkout, goal ancestry on all delegations*
+*Last updated: 2026-03-19 after Phase 13 complete — Accountant has 12 real tools (invoice CRUD, transaction categorization, bank statement/receipt parsing, cashflow/runway, P&L, tax, anomaly, HITL invoice chase, invoice HTML) and Sales Rep has 12 real tools (Apify leads, Firecrawl research, outreach compose/send with HITL, engagement tracking, deal management, proposals, pipeline/revenue analysis, stale deal detection). Both agents rewired with deterministic tool-execution nodes in their LangGraph subgraphs.*
