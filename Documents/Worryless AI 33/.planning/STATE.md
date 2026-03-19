@@ -4,12 +4,12 @@ milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
 stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-03-19T09:26:15.060Z"
+last_updated: "2026-03-19T09:27:01.584Z"
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 34
-  completed_plans: 30
+  completed_plans: 31
 ---
 
 # Project State
@@ -136,6 +136,7 @@ New v2.0 decisions:
 - [Phase 16]: proactive-runner does NOT delete non-LangGraph user messages from queue — visibility timeout allows heartbeat-runner to pick them up (coexistence pattern)
 - [Phase 16]: isProactive guards both checkTokenBudget and incrementTokenUsage — prevents false budget-paused messages AND budget consumption for proactive runs
 - [Phase 16]: Deterministic proactive thread ID (proactive:agentType:userId) — persistent across runs for memory continuity and conversation threading
+- [Phase 16]: [Phase 16-02]: proactive-runner duplicates HEARTBEAT_PROMPTS inline — Deno cannot import Node.js modules; isProactive guards both checkTokenBudget AND incrementTokenUsage; deterministic proactive thread IDs persist across runs
 
 ### Pending Todos
 
@@ -150,6 +151,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T09:26:15.056Z
+Last session: 2026-03-19T09:27:01.580Z
 Stopped at: Completed 16-02-PLAN.md
 Resume file: None
