@@ -27,13 +27,13 @@
 
 ### Agent Tools — Chief of Staff (COS)
 
-- [ ] **COS-01**: `compile_morning_briefing` tool aggregating all agent heartbeat findings, overdue tasks, and calendar events
-- [ ] **COS-02**: `delegate_to_agent` tool routing work to specialists via LangGraph `Command` with goal ancestry context
-- [ ] **COS-03**: `fan_out_to_agents` tool dispatching parallel work via `Send()` for multi-agent tasks
-- [ ] **COS-04**: `query_cross_agent_memory` tool reading any agent's Store namespace for synthesis
-- [ ] **COS-05**: `correlate_findings` tool detecting connections between concurrent agent heartbeat flags
-- [ ] **COS-06**: `track_action_items` tool following up on items from previous briefings
-- [ ] **COS-07**: `assess_agent_health` tool checking heartbeat status and error rates across all agents
+- [x] **COS-01**: `compile_morning_briefing` tool aggregating all agent heartbeat findings, overdue tasks, and calendar events
+- [x] **COS-02**: `delegate_to_agent` tool routing work to specialists via LangGraph `Command` with goal ancestry context
+- [x] **COS-03**: `fan_out_to_agents` tool dispatching parallel work via `Send()` for multi-agent tasks
+- [x] **COS-04**: `query_cross_agent_memory` tool reading any agent's Store namespace for synthesis
+- [x] **COS-05**: `correlate_findings` tool detecting connections between concurrent agent heartbeat flags
+- [x] **COS-06**: `track_action_items` tool following up on items from previous briefings
+- [x] **COS-07**: `assess_agent_health` tool checking heartbeat status and error rates across all agents
 
 ### Agent Tools — Accountant (ACCT)
 
@@ -156,10 +156,10 @@
 
 ### Governance (GOV)
 
-- [ ] **GOV-01**: Immutable audit log table for all agent actions and tool calls
-- [ ] **GOV-02**: Monthly token budget per agent with 3-tier enforcement
-- [ ] **GOV-03**: Goal ancestry on tasks: mission to objective to project to task
-- [ ] **GOV-04**: Atomic task checkout preventing double-work
+- [x] **GOV-01**: Immutable audit log table for all agent actions and tool calls
+- [x] **GOV-02**: Monthly token budget per agent with 3-tier enforcement
+- [x] **GOV-03**: Goal ancestry on tasks: mission to objective to project to task
+- [x] **GOV-04**: Atomic task checkout preventing double-work
 
 ## v2.1 Requirements (Deferred)
 
@@ -213,17 +213,17 @@
 | MEM-05 | Phase 11 | Complete |
 | MEM-06 | Phase 11 | Complete |
 | MEM-07 | Phase 11 | Complete |
-| COS-01 | Phase 12 | Pending |
-| COS-02 | Phase 12 | Pending |
-| COS-03 | Phase 12 | Pending |
-| COS-04 | Phase 12 | Pending |
-| COS-05 | Phase 12 | Pending |
-| COS-06 | Phase 12 | Pending |
-| COS-07 | Phase 12 | Pending |
-| GOV-01 | Phase 12 | Pending |
-| GOV-02 | Phase 12 | Pending |
-| GOV-03 | Phase 12 | Pending |
-| GOV-04 | Phase 12 | Pending |
+| COS-01 | Phase 12 | Complete |
+| COS-02 | Phase 12 | Complete |
+| COS-03 | Phase 12 | Complete |
+| COS-04 | Phase 12 | Complete |
+| COS-05 | Phase 12 | Complete |
+| COS-06 | Phase 12 | Complete |
+| COS-07 | Phase 12 | Complete |
+| GOV-01 | Phase 12 | Complete |
+| GOV-02 | Phase 12 | Complete |
+| GOV-03 | Phase 12 | Complete |
+| GOV-04 | Phase 12 | Complete |
 | ACCT-01 | Phase 13 | Pending |
 | ACCT-02 | Phase 13 | Pending |
 | ACCT-03 | Phase 13 | Pending |

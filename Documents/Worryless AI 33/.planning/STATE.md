@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-03-19T02:34:37.256Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-03-19T02:37:52.459Z"
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -93,6 +93,8 @@ New v2.0 decisions:
 - [Phase 12]: Governance at single chokepoint (createLLMNode) — 12 agents governed with 1 file modification
 - [Phase 12]: budgetPaused returns AIMessage with user-friendly override CTA; budgetWarning is non-blocking (80-99% triggers flag only)
 - [Phase 12]: GOV hook order in createLLMNode: extract content -> budget check -> build prompt (with goal chain) -> callLLM -> fire-and-forget writes -> return
+- [Phase 12]: correlateFindings _userId convention — underscore prefix reserved for Plan 04 audit logging integration
+- [Phase 12]: CoS tools are plain typed async functions (not LangChain Tool objects) — called deterministically by request classification, not LLM function-calling dispatch
 
 ### Pending Todos
 
@@ -107,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T02:34:37.253Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-03-19T02:37:42.122Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None
