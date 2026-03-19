@@ -203,8 +203,9 @@ function createCosRespondNode() {
 
 // Each direct-report agent is wrapped as an invoke-delegate node.
 // This avoids checkpointer conflicts between parent and child graphs.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createSubgraphNode(
-  factory: (cp?: PostgresSaver) => ReturnType<typeof createAccountantGraph>,
+  factory: (cp?: PostgresSaver) => any,
   checkpointer?: PostgresSaver,
 ) {
   return async (state: typeof AgentState.State) => {
