@@ -53,8 +53,8 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 - [x] Accountant: invoice CRUD, transaction recording, cashflow projection, P&L generation, tax estimation, anomaly detection — Validated in Phase 13
 - [x] Marketer: Nano Banana 2 image generation, Playwright persistent browser for social media (publish, analytics, competitor scraping), content calendar, research tools — Validated in Phase 14
 - [x] Sales Rep: Apify lead generation (developer-provided key), Resend outreach, email engagement tracking, pipeline analysis, revenue forecasting — Validated in Phase 13
-- [ ] Personal Assistant: Google Workspace (Gmail API, Calendar API, Drive API), inbox triage, meeting prep, time allocation analysis
-- [ ] All 13 agents with role-specific tools defined in V2_ARCHITECTURE.md
+- [x] Personal Assistant: Google Workspace (Gmail API, Calendar API, Drive API), inbox triage, meeting prep, time allocation analysis — Validated in Phase 15
+- [x] All 7 operational agents (CS, Legal, HR, PR, Procurement, Data Analyst, Operations) with role-specific tools — Validated in Phase 15
 
 **Persistent Memory & RAG**
 - [ ] Per-agent memory via LangGraph Store (accumulates learnings, user preferences, patterns)
@@ -153,4 +153,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | Agent Team Selector at onboarding tail-end (not post-onboarding) | Users are most engaged and context-primed right after completing onboarding; conversion is higher than a post-login prompt | — Pending |
 
 ---
-*Last updated: 2026-03-19 after Phase 14 complete — Marketer has 12 real tools (content generation, image generation via Gemini, content calendar, post scheduling, HITL-gated browser publishing, analytics scraping, performance analysis, content library, brand mention monitoring, competitor analysis, trending topics) with Playwright persistent browser for social media operations. Accountant and Sales Rep each have 12 tools from Phase 13. All three agents use deterministic tool-execution nodes in their LangGraph subgraphs.*
+*Last updated: 2026-03-19 after Phase 15 complete — All 8 agents now have real tools wired into tool-execution graph topology. PA has 10 Google Workspace tools, 7 operational agents have 47 tools total (CS 6, Legal 6, HR 6, PR 4, Procurement 4, Data Analyst 5, Operations 6). All graphs rewritten from createBaseAgentGraph wrappers to 5-node tool-wired topology with deterministic request classification. 84 tool tests + 35 classification tests passing.*
