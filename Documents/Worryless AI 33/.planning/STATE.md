@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 17-02-PLAN.md
-last_updated: "2026-03-19T10:43:03.584Z"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-03-19T10:48:00.000Z"
 progress:
   total_phases: 8
   completed_phases: 7
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 17 (generative-ui-onboarding-redesign) — EXECUTING
-Plan: 1 of 5
+Plan: 2 of 5
 
 ## Performance Metrics
 
@@ -149,6 +149,9 @@ New v2.0 decisions:
 - [Phase 17]: useMemo for tanstack column defs in DataTable prevents infinite re-renders (RESEARCH.md Pitfall 4)
 - [Phase 17]: DynamicForm uses native select element (not Radix UI Select) to minimize required dependencies
 - [Phase 17]: GenerativeUIRenderer renders Plan 04 placeholder types as labelled divs so dispatcher never crashes on unknown input
+- [Phase 17-01]: app exported from index.ts with NODE_ENV=test guard on listen() — enables supertest HTTP-level testing of SSE endpoint without port binding
+- [Phase 17-01]: uiComponentsBeforeCount snapshot before stream — only NEW ui_components emitted in SSE event (accumulator reducer means state grows across turns)
+- [Phase 17-01]: business_stage fetched from profiles before each sendMessage POST — populates business_context for agent context shaping (ONB-06)
 
 ### Pending Todos
 
@@ -163,6 +166,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T10:43:03.581Z
-Stopped at: Completed 17-02-PLAN.md
+Last session: 2026-03-19T10:48:00.000Z
+Stopped at: Completed 17-01-PLAN.md
 Resume file: None
