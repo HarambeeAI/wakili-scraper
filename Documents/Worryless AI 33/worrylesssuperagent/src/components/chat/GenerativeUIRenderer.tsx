@@ -18,6 +18,12 @@ import {
 import { DataTable } from "@/components/ui/DataTable";
 import { HITLApprovalCard } from "./HITLApprovalCard";
 import { DynamicForm } from "./DynamicForm";
+import { InlinePLTable } from "@/components/ui/InlinePLTable";
+import { PipelineKanban } from "@/components/ui/PipelineKanban";
+import { ContentCalendarGrid } from "@/components/ui/ContentCalendarGrid";
+import { InvoiceTrackerTable } from "@/components/ui/InvoiceTrackerTable";
+import { CalendarTimelineView } from "@/components/ui/CalendarTimelineView";
+import { MeetingBriefCard } from "@/components/ui/MeetingBriefCard";
 
 interface UIComponent {
   type: string;
@@ -32,9 +38,10 @@ function renderComponent(comp: UIComponent): React.ReactNode {
   switch (comp.type) {
     case "pl_report":
       return (
-        <DataTable
-          data={(comp.props.rows as Record<string, unknown>[]) ?? []}
-          columns={(comp.props.columns as { key: string; label: string }[]) ?? []}
+        <InlinePLTable
+          title={comp.props.title as string}
+          rows={comp.props.rows as any[]}
+          period={comp.props.period as string}
         />
       );
 
@@ -57,46 +64,37 @@ function renderComponent(comp: UIComponent): React.ReactNode {
       );
 
     case "pipeline_kanban":
-      return (
-        <div className="text-sm text-muted-foreground py-4">
-          Pipeline Kanban (Plan 04)
-        </div>
-      );
+      return <PipelineKanban deals={comp.props.deals as any[]} />;
 
     case "content_calendar":
       return (
-        <div className="text-sm text-muted-foreground py-4">
-          Content Calendar (Plan 04)
-        </div>
-      );
-
-    case "invoice_tracker":
-      return (
-        <DataTable
-          data={(comp.props.rows as Record<string, unknown>[]) ?? []}
-          columns={(comp.props.columns as { key: string; label: string }[]) ?? []}
+        <ContentCalendarGrid
+          posts={comp.props.posts as any[]}
+          weekStart={comp.props.weekStart as string}
         />
       );
 
+    case "invoice_tracker":
+      return <InvoiceTrackerTable invoices={comp.props.invoices as any[]} />;
+
     case "calendar_timeline":
       return (
-        <div className="text-sm text-muted-foreground py-4">
-          Calendar Timeline (Plan 04)
-        </div>
+        <CalendarTimelineView
+          events={comp.props.events as any[]}
+          date={comp.props.date as string}
+        />
       );
 
     case "meeting_brief":
-      return (
-        <div className="text-sm text-muted-foreground py-4">
-          Meeting Brief (Plan 04)
-        </div>
-      );
+      return <MeetingBriefCard meeting={comp.props.meeting as any} />;
 
     case "data_table":
       return (
         <DataTable
           data={(comp.props.data as Record<string, unknown>[]) ?? []}
-          columns={(comp.props.columns as { key: string; label: string }[]) ?? []}
+          columns={
+            (comp.props.columns as { key: string; label: string }[]) ?? []
+          }
         />
       );
 
@@ -148,7 +146,7 @@ function renderComponent(comp: UIComponent): React.ReactNode {
               {(comp.props.data as Record<string, unknown>[])?.map(
                 (_: Record<string, unknown>, i: number) => (
                   <Cell key={i} fill={`hsl(var(--chart-${(i % 5) + 1}))`} />
-                )
+                ),
               )}
             </Pie>
             <Tooltip />
@@ -160,11 +158,14 @@ function renderComponent(comp: UIComponent): React.ReactNode {
     case "dynamic_form":
       return (
         <DynamicForm
-          schema={comp.props.schema as Parameters<typeof DynamicForm>[0]["schema"]}
+          schema={
+            comp.props.schema as Parameters<typeof DynamicForm>[0]["schema"]
+          }
           title={comp.props.title as string | undefined}
           onSubmit={
-            (comp.props.onSubmit as (v: Record<string, string | number>) => void) ??
-            (() => {})
+            (comp.props.onSubmit as (
+              v: Record<string, string | number>,
+            ) => void) ?? (() => {})
           }
           submitLabel={comp.props.submitLabel as string | undefined}
         />
@@ -173,11 +174,19 @@ function renderComponent(comp: UIComponent): React.ReactNode {
     case "hitl_approval":
       return (
         <HITLApprovalCard
-          approval={comp.props as Parameters<typeof HITLApprovalCard>[0]["approval"]}
-          onApprove={(comp.props.onApprove as (id: string) => void) ?? (() => {})}
+          approval={
+            comp.props as Parameters<typeof HITLApprovalCard>[0]["approval"]
+          }
+          onApprove={
+            (comp.props.onApprove as (id: string) => void) ?? (() => {})
+          }
           onReject={(comp.props.onReject as (id: string) => void) ?? (() => {})}
-          onDiscuss={(comp.props.onDiscuss as (id: string) => void) ?? (() => {})}
-          status={comp.props.status as "pending" | "approved" | "rejected" | undefined}
+          onDiscuss={
+            (comp.props.onDiscuss as (id: string) => void) ?? (() => {})
+          }
+          status={
+            comp.props.status as "pending" | "approved" | "rejected" | undefined
+          }
         />
       );
 
@@ -186,7 +195,9 @@ function renderComponent(comp: UIComponent): React.ReactNode {
   }
 }
 
-export function GenerativeUIRenderer({ components }: GenerativeUIRendererProps) {
+export function GenerativeUIRenderer({
+  components,
+}: GenerativeUIRendererProps) {
   return (
     <div className="mt-4 space-y-3">
       {components.map((comp, i) => {
