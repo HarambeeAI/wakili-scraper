@@ -82,26 +82,26 @@
 
 ### Agent Tools — Personal Assistant (PA)
 
-- [ ] **PA-01**: `read_emails` tool via Google Gmail API
-- [ ] **PA-02**: `triage_inbox` tool categorizing by urgency/topic via LLM
-- [ ] **PA-03**: `draft_email_response` tool matching user communication style
-- [ ] **PA-04**: `send_email` tool via Gmail API (requires HITL)
-- [ ] **PA-05**: `list_calendar_events` tool via Google Calendar API
-- [ ] **PA-06**: `create_calendar_event` tool with availability check (requires HITL)
-- [ ] **PA-07**: `prepare_meeting_brief` tool synthesizing attendee info, history, agenda, docs
-- [ ] **PA-08**: `search_drive` tool via Google Drive API
-- [ ] **PA-09**: `detect_calendar_conflicts` tool with resolution suggestions
-- [ ] **PA-10**: `analyze_time_allocation` tool for meeting vs focus time breakdown
+- [x] **PA-01**: `read_emails` tool via Google Gmail API
+- [x] **PA-02**: `triage_inbox` tool categorizing by urgency/topic via LLM
+- [x] **PA-03**: `draft_email_response` tool matching user communication style
+- [x] **PA-04**: `send_email` tool via Gmail API (requires HITL)
+- [x] **PA-05**: `list_calendar_events` tool via Google Calendar API
+- [x] **PA-06**: `create_calendar_event` tool with availability check (requires HITL)
+- [x] **PA-07**: `prepare_meeting_brief` tool synthesizing attendee info, history, agenda, docs
+- [x] **PA-08**: `search_drive` tool via Google Drive API
+- [x] **PA-09**: `detect_calendar_conflicts` tool with resolution suggestions
+- [x] **PA-10**: `analyze_time_allocation` tool for meeting vs focus time breakdown
 
 ### Agent Tools — Operational Agents (OPS)
 
-- [ ] **OPS-01**: Customer Support: ticket CRUD (new `support_tickets` table), KB RAG search, health scoring, churn detection
-- [ ] **OPS-02**: Legal: contract review, contract calendar (new `contracts` table), regulatory monitoring, template drafting
-- [ ] **OPS-03**: HR: job posting, resume screening, candidate tracking (new `candidates` table), onboarding plans, performance reviews
-- [ ] **OPS-04**: PR: press release drafting, media monitoring, coverage tracking (new `press_coverage` table), sentiment analysis
-- [ ] **OPS-05**: Procurement: supplier search, quote comparison, PO creation (requires HITL), vendor scoring
-- [ ] **OPS-06**: Data Analyst: cross-functional query, statistical analysis, anomaly detection, chart generation, KPI aggregation
-- [ ] **OPS-07**: Operations: project management (new `projects` table), milestone tracking, bottleneck analysis, SOP drafting
+- [x] **OPS-01**: Customer Support: ticket CRUD (new `support_tickets` table), KB RAG search, health scoring, churn detection
+- [x] **OPS-02**: Legal: contract review, contract calendar (new `contracts` table), regulatory monitoring, template drafting
+- [x] **OPS-03**: HR: job posting, resume screening, candidate tracking (new `candidates` table), onboarding plans, performance reviews
+- [x] **OPS-04**: PR: press release drafting, media monitoring, coverage tracking (new `press_coverage` table), sentiment analysis
+- [x] **OPS-05**: Procurement: supplier search, quote comparison, PO creation (requires HITL), vendor scoring
+- [x] **OPS-06**: Data Analyst: cross-functional query, statistical analysis, anomaly detection, chart generation, KPI aggregation
+- [x] **OPS-07**: Operations: project management (new `projects` table), milestone tracking, bottleneck analysis, SOP drafting
 
 ### Memory & Persistence (MEM)
 
@@ -265,23 +265,23 @@
 | BROWSER-03 | Phase 14 | Complete |
 | BROWSER-04 | Phase 14 | Complete |
 | BROWSER-05 | Phase 14 | Complete |
-| PA-01 | Phase 15 | Pending |
-| PA-02 | Phase 15 | Pending |
-| PA-03 | Phase 15 | Pending |
-| PA-04 | Phase 15 | Pending |
-| PA-05 | Phase 15 | Pending |
-| PA-06 | Phase 15 | Pending |
-| PA-07 | Phase 15 | Pending |
-| PA-08 | Phase 15 | Pending |
-| PA-09 | Phase 15 | Pending |
-| PA-10 | Phase 15 | Pending |
-| OPS-01 | Phase 15 | Pending |
-| OPS-02 | Phase 15 | Pending |
-| OPS-03 | Phase 15 | Pending |
-| OPS-04 | Phase 15 | Pending |
-| OPS-05 | Phase 15 | Pending |
-| OPS-06 | Phase 15 | Pending |
-| OPS-07 | Phase 15 | Pending |
+| PA-01 | Phase 15 | Complete |
+| PA-02 | Phase 15 | Complete |
+| PA-03 | Phase 15 | Complete |
+| PA-04 | Phase 15 | Complete |
+| PA-05 | Phase 15 | Complete |
+| PA-06 | Phase 15 | Complete |
+| PA-07 | Phase 15 | Complete |
+| PA-08 | Phase 15 | Complete |
+| PA-09 | Phase 15 | Complete |
+| PA-10 | Phase 15 | Complete |
+| OPS-01 | Phase 15 | Complete |
+| OPS-02 | Phase 15 | Complete |
+| OPS-03 | Phase 15 | Complete |
+| OPS-04 | Phase 15 | Complete |
+| OPS-05 | Phase 15 | Complete |
+| OPS-06 | Phase 15 | Complete |
+| OPS-07 | Phase 15 | Complete |
 | CAD-01 | Phase 16 | Pending |
 | CAD-02 | Phase 16 | Pending |
 | CAD-03 | Phase 16 | Pending |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 14-05-PLAN.md (Phase 14 complete)
-last_updated: "2026-03-19T06:42:01.363Z"
+stopped_at: "Completed 15-01-PLAN.md (foundation: DB migration + googleapis + 8 type contracts)"
+last_updated: "2026-03-19T07:40:00.000Z"
 progress:
   total_phases: 8
   completed_phases: 5
-  total_plans: 23
-  completed_plans: 23
+  total_plans: 29
+  completed_plans: 24
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 14 — marketer-persistent-browser
+**Current focus:** Phase 15 — personal-assistant-operational-agents
 
 ## Current Position
 
-Phase: 14 (marketer-persistent-browser) — COMPLETE
-Plan: 5 of 5 (all complete)
+Phase: 15 (personal-assistant-operational-agents) — EXECUTING
+Plan: 2 of 6
 
 ## Performance Metrics
 
@@ -118,6 +118,9 @@ New v2.0 decisions:
 - [Phase 14-04]: vi.hoisted() pattern for vitest mock factories that reference shared mock objects across multiple tests
 - [Phase 14-05]: isAnalyzePerformance regex uses analy[sz]e (not analyz) to match full word at boundary -- trailing \b fails on partial stem
 - [Phase 14-05]: analytics-tools.ts page.evaluate converted to string expression to avoid TS DOM lib requirement (same pattern as 14-04 research-tools)
+- [Phase 15-01]: googleapis (not google-auth-library) installed — bundles OAuth2 client + Gmail/Calendar/Drive API clients needed for PA agent in one package
+- [Phase 15-01]: google-auth.ts reads tokens from integrations table (provider = 'google') — consistent with existing OAuth storage pattern from Phase 1 DB schema
+- [Phase 15-01]: Type contracts are TypeScript interfaces only (no Zod/runtime validation) — matches existing pattern from accountant/types.ts, marketer/types.ts
 
 ### Pending Todos
 
@@ -132,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:35:22Z
-Stopped at: Completed 14-05-PLAN.md (Phase 14 complete)
-Resume file: None
+Last session: 2026-03-19T07:40:00.000Z
+Stopped at: Completed 15-01-PLAN.md (foundation: DB migration + googleapis + 8 type contracts)
+Resume file: .planning/phases/15-personal-assistant-operational-agents/15-02-PLAN.md
