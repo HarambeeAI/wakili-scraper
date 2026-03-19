@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
-status: unknown
-stopped_at: Completed 14-04-PLAN.md
-last_updated: "2026-03-19T06:28:30Z"
+status: phase-complete
+stopped_at: Completed 14-05-PLAN.md (Phase 14 complete)
+last_updated: "2026-03-19T06:36:50.898Z"
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 23
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 
 ## Current Position
 
-Phase: 14 (marketer-persistent-browser) — EXECUTING
-Plan: 5 of 5
+Phase: 14 (marketer-persistent-browser) — COMPLETE
+Plan: 5 of 5 (all complete)
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 5 of 5
 
 **v2.0 in progress:**
 
-- Plans completed: 19 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode, 12-03: 7 CoS tools (briefing, delegation, fan-out, memory, correlation, action items, health), 12-04: cosTools node integration — supervisor graph wired with cosTools + goalChain delegation + audit log, 13-01: Phase 13 foundation — DB migration + shared DB pool + base-agent exports + type contracts, 13-02: 6 base accountant tools (invoice, transaction, bank statement, receipt, cashflow, P&L), 13-03: 6 advanced accountant tools (tax, anomaly z-score, chase HITL, runway, HTML invoice) + graph rewrite with accountantTools node, 14-01: Playwright browser manager + marketer type contracts, 14-02: 4 marketer tools — generateSocialPost + createContentCalendar + generateBrandImage + editImage, 14-04: 3 research tools — monitorBrandMentions + analyzeCompetitor + searchTrendingTopics)
-- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min + 9 min + 15 min + 8 min + 10 min + 10 min + 4 min + 4 min + 4 min
+- Plans completed: 23 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode, 12-03: 7 CoS tools (briefing, delegation, fan-out, memory, correlation, action items, health), 12-04: cosTools node integration — supervisor graph wired with cosTools + goalChain delegation + audit log, 13-01: Phase 13 foundation — DB migration + shared DB pool + base-agent exports + type contracts, 13-02: 6 base accountant tools (invoice, transaction, bank statement, receipt, cashflow, P&L), 13-03: 6 advanced accountant tools (tax, anomaly z-score, chase HITL, runway, HTML invoice) + graph rewrite with accountantTools node, 14-01: Playwright browser manager + marketer type contracts, 14-02: 4 marketer tools — generateSocialPost + createContentCalendar + generateBrandImage + editImage, 14-03: 3 tools — schedulePost + publishPost + fetchPostAnalytics + analyzePostPerformance + manageContentLibrary, 14-04: 3 research tools — monitorBrandMentions + analyzeCompetitor + searchTrendingTopics, 14-05: Marketer barrel index + agent graph rewrite with marketerTools node + classification tests)
+- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min + 9 min + 15 min + 8 min + 10 min + 10 min + 4 min + 4 min + 4 min + 4 min + 3 min
 
 *Updated after each plan completion*
 
@@ -116,6 +116,8 @@ New v2.0 decisions:
 - [Phase 14-04]: page.evaluate uses string expression (not arrow function) to avoid TS DOM lib requirement in Node-only tsconfig
 - [Phase 14-04]: firecrawlSearch extracted as shared helper within research-tools.ts — DRY for monitorBrandMentions and searchTrendingTopics
 - [Phase 14-04]: vi.hoisted() pattern for vitest mock factories that reference shared mock objects across multiple tests
+- [Phase 14-05]: isAnalyzePerformance regex uses analy[sz]e (not analyz) to match full word at boundary -- trailing \b fails on partial stem
+- [Phase 14-05]: analytics-tools.ts page.evaluate converted to string expression to avoid TS DOM lib requirement (same pattern as 14-04 research-tools)
 
 ### Pending Todos
 
@@ -130,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:28:30Z
-Stopped at: Completed 14-04-PLAN.md
+Last session: 2026-03-19T06:35:22Z
+Stopped at: Completed 14-05-PLAN.md (Phase 14 complete)
 Resume file: None
