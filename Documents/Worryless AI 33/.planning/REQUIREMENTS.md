@@ -43,12 +43,12 @@
 - [x] **ACCT-04**: `parse_receipt` tool using Gemini multimodal (photo to structured data)
 - [x] **ACCT-05**: `calculate_cashflow_projection` tool projecting 30/60/90 days
 - [x] **ACCT-06**: `generate_pl_report` tool producing P&L with MoM comparison
-- [ ] **ACCT-07**: `track_budget_vs_actual` tool comparing spending against targets
-- [ ] **ACCT-08**: `estimate_tax` tool calculating liability by jurisdiction
-- [ ] **ACCT-09**: `detect_anomalous_transaction` tool flagging outlier transactions
-- [ ] **ACCT-10**: `chase_overdue_invoice` tool drafting reminder (requires HITL)
-- [ ] **ACCT-11**: `forecast_runway` tool calculating months of cash remaining
-- [ ] **ACCT-12**: `generate_invoice_pdf` tool using Nano Banana 2
+- [x] **ACCT-07**: `track_budget_vs_actual` tool comparing spending against targets
+- [x] **ACCT-08**: `estimate_tax` tool calculating liability by jurisdiction
+- [x] **ACCT-09**: `detect_anomalous_transaction` tool flagging outlier transactions
+- [x] **ACCT-10**: `chase_overdue_invoice` tool drafting reminder (requires HITL)
+- [x] **ACCT-11**: `forecast_runway` tool calculating months of cash remaining
+- [x] **ACCT-12**: `generate_invoice_pdf` tool using Nano Banana 2
 
 ### Agent Tools — Marketer (MKT)
 
@@ -230,12 +230,12 @@
 | ACCT-04 | Phase 13 | Complete |
 | ACCT-05 | Phase 13 | Complete |
 | ACCT-06 | Phase 13 | Complete |
-| ACCT-07 | Phase 13 | Pending |
-| ACCT-08 | Phase 13 | Pending |
-| ACCT-09 | Phase 13 | Pending |
-| ACCT-10 | Phase 13 | Pending |
-| ACCT-11 | Phase 13 | Pending |
-| ACCT-12 | Phase 13 | Pending |
+| ACCT-07 | Phase 13 | Complete |
+| ACCT-08 | Phase 13 | Complete |
+| ACCT-09 | Phase 13 | Complete |
+| ACCT-10 | Phase 13 | Complete |
+| ACCT-11 | Phase 13 | Complete |
+| ACCT-12 | Phase 13 | Complete |
 | SALES-01 | Phase 13 | Complete |
 | SALES-02 | Phase 13 | Complete |
 | SALES-03 | Phase 13 | Complete |

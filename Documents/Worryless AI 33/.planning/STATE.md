@@ -103,6 +103,9 @@ New v2.0 decisions:
 - [Phase 13-accountant-sales-rep-agent-tools]: sendOutreach HITL is mandatory — interruptForApproval called before any Resend API call; trackEmailEngagement reads open/click counts from DB only (Resend webhook populates them)
 - [Phase 13-02]: pdf-parse v2 uses PDFParse class (not v1 pdfParse function) — import updated to named export with new PDFParse({ data: buffer }).getText() API
 - [Phase 13-02]: parseReceipt bypasses callLLM via direct gateway fetch — callLLM stringifies content arrays breaking multimodal image_url format
+- [Phase 13-03]: AGENT_GRAPH_REGISTRY and DIRECT_REPORT_FACTORIES widened to `(cp?) => any` — TypeScript narrows StateGraph generics per addNode call, making graphs with different node counts incompatible; cast to any follows Phase 11 COO precedent
+- [Phase 13-03]: isChaseInvoice path fetches overdue invoice list rather than calling chaseOverdueInvoice directly — HITL interrupt requires specific invoice ID from user on follow-up turn
+- [Phase 13-03]: forecastRunway returns runwayMonths=999 when netBurn <= 0 — signals infinite runway safely without divide-by-zero
 - [Phase 13-05]: salesTools node follows cosTools pattern — regex classification before LLM, results in businessContext.salesToolResults
 - [Phase 13-05]: createSubgraphNode factory typed as any in supervisor.ts — heterogeneous compiled graph topologies (salesTools vs accountantTools) cannot share a typed factory signature
 
