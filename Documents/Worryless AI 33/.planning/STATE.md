@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 16-04-PLAN.md
-last_updated: "2026-03-19T09:31:34.777Z"
+stopped_at: Completed 16-03-PLAN.md
+last_updated: "2026-03-19T09:34:18.935Z"
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 34
-  completed_plans: 32
+  completed_plans: 33
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 16 (proactive-cadence-engine) — EXECUTING
-Plan: 1 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -142,6 +142,7 @@ New v2.0 decisions:
 - [Phase 16]: accountant prompts use 'invoices with outstanding balances' not 'overdue invoices' to avoid isChaseInvoice regex trigger (overdue.*invoice pattern)
 - [Phase 16]: get_due_cadence_agents() uses UNION ALL across 4 tiers returning cadence_tier TEXT; original get_due_heartbeat_agents() preserved for legacy path
 - [Phase 16-04]: configRef pattern for debounced closure — avoids stale config capture by maintaining a ref synced on every optimistic update
+- [Phase 16]: [Phase 16-03]: contracts table uses end_date (not expiry_date) for expiring_contract event detector — SQL query adapted from plan spec
 
 ### Pending Todos
 
@@ -156,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T09:31:34.775Z
-Stopped at: Completed 16-04-PLAN.md
+Last session: 2026-03-19T09:34:18.932Z
+Stopped at: Completed 16-03-PLAN.md
 Resume file: None
