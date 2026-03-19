@@ -215,10 +215,8 @@ function createSubgraphNode(
 }
 
 // Graph factory map: agent type ID -> compiled subgraph factory
-const DIRECT_REPORT_FACTORIES: Record<
-  string,
-  (cp?: PostgresSaver) => ReturnType<typeof createAccountantGraph>
-> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DIRECT_REPORT_FACTORIES: Record<string, (cp?: PostgresSaver) => any> = {
   [AGENT_TYPES.ACCOUNTANT]: createAccountantGraph,
   [AGENT_TYPES.MARKETER]: createMarketerGraph,
   [AGENT_TYPES.SALES_REP]: createSalesRepGraph,

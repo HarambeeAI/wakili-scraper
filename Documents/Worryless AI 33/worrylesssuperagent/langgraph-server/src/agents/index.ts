@@ -30,9 +30,10 @@ import { createCOOGraph } from "./coo.js";
 
 // Registry: look up any agent graph factory by its type ID.
 // Enables dynamic agent instantiation: const factory = AGENT_GRAPH_REGISTRY["accountant"]; const graph = factory(checkpointer);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const AGENT_GRAPH_REGISTRY: Record<
   AgentTypeId,
-  ((checkpointer?: PostgresSaver) => ReturnType<typeof createAccountantGraph>) | undefined
+  ((checkpointer?: PostgresSaver) => any) | undefined
 > = {
   [AGENT_TYPES.CHIEF_OF_STAFF]: undefined, // CoS is the root supervisor, not a subgraph
   [AGENT_TYPES.ACCOUNTANT]: createAccountantGraph,
