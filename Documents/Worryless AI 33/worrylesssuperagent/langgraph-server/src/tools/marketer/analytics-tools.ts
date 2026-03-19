@@ -5,7 +5,11 @@ import { getPool } from "../shared/db.js";
 import { getPage } from "../browser/browser-manager.js";
 import { HumanMessage } from "@langchain/core/messages";
 import { callLLMWithStructuredOutput } from "../../llm/client.js";
-import type { PostAnalytics, PerformanceAnalysis, SocialPostRow } from "./types.js";
+import type {
+  PostAnalytics,
+  PerformanceAnalysis,
+  SocialPostRow,
+} from "./types.js";
 
 /**
  * MKT-06: Fetches post analytics. If postId specified, scrapes live data
@@ -35,9 +39,8 @@ export async function fetchPostAnalytics(
       comments: row.comments || 0,
       reach: row.reach || 0,
       impressions: 0,
-      engagementRate: row.reach > 0
-        ? ((row.likes + row.comments) / row.reach) * 100
-        : 0,
+      engagementRate:
+        row.reach > 0 ? ((row.likes + row.comments) / row.reach) * 100 : 0,
       scrapedAt: new Date().toISOString(),
     }));
   }
@@ -58,15 +61,18 @@ export async function fetchPostAnalytics(
   try {
     // Navigate to platform analytics page
     // Note: Platform-specific selectors -- may need updating as UIs change
-    const metrics = await page.evaluate(() => {
-      // Generic extraction attempt -- platforms use different DOM structures
-      const getText = (sel: string) => document.querySelector(sel)?.textContent?.trim() || "0";
+    // String expression avoids TS DOM lib requirement -- runs in Playwright browser context
+    const metrics = (await page.evaluate(`(() => {
+      var getText = function(sel) {
+        var el = document.querySelector(sel);
+        return el ? el.textContent.trim() : "0";
+      };
       return {
         likes: parseInt(getText('[aria-label*="like"]') || "0", 10) || 0,
         comments: parseInt(getText('[aria-label*="comment"]') || "0", 10) || 0,
-        reach: 0, // reach typically only available in platform analytics dashboards
+        reach: 0
       };
-    });
+    })()`)) as { likes: number; comments: number; reach: number };
 
     // Update DB with scraped metrics
     await db.query(
@@ -75,20 +81,23 @@ export async function fetchPostAnalytics(
       [metrics.likes, metrics.comments, metrics.reach, postId],
     );
 
-    const engagementRate = metrics.reach > 0
-      ? ((metrics.likes + metrics.comments) / metrics.reach) * 100
-      : 0;
+    const engagementRate =
+      metrics.reach > 0
+        ? ((metrics.likes + metrics.comments) / metrics.reach) * 100
+        : 0;
 
-    return [{
-      postId,
-      platform: post.platform,
-      likes: metrics.likes,
-      comments: metrics.comments,
-      reach: metrics.reach,
-      impressions: 0,
-      engagementRate,
-      scrapedAt: new Date().toISOString(),
-    }];
+    return [
+      {
+        postId,
+        platform: post.platform,
+        likes: metrics.likes,
+        comments: metrics.comments,
+        reach: metrics.reach,
+        impressions: 0,
+        engagementRate,
+        scrapedAt: new Date().toISOString(),
+      },
+    ];
   } catch (err) {
     console.error(`[analytics-tools] Scrape failed for post ${postId}:`, err);
     return [];
@@ -125,7 +134,9 @@ export async function analyzePostPerformance(
       topPosts: [],
       bottomPosts: [],
       overallInsights: "No published posts found to analyze.",
-      recommendations: ["Create and publish your first posts to start getting analytics."],
+      recommendations: [
+        "Create and publish your first posts to start getting analytics.",
+      ],
     };
   }
 
@@ -137,7 +148,10 @@ export async function analyzePostPerformance(
     likes: row.likes || 0,
     comments: row.comments || 0,
     reach: row.reach || 0,
-    engagementRate: row.reach > 0 ? (((row.likes || 0) + (row.comments || 0)) / row.reach) * 100 : 0,
+    engagementRate:
+      row.reach > 0
+        ? (((row.likes || 0) + (row.comments || 0)) / row.reach) * 100
+        : 0,
     createdAt: row.created_at,
   }));
 
@@ -147,7 +161,11 @@ Consider: content topic, post timing, platform fit, hashtag usage, call-to-actio
 Provide overall insights and 3-5 actionable recommendations for improvement.`;
 
   const { data } = await callLLMWithStructuredOutput<PerformanceAnalysis>(
-    [new HumanMessage(`Analyze these posts:\n${JSON.stringify(postsWithEngagement, null, 2)}`)],
+    [
+      new HumanMessage(
+        `Analyze these posts:\n${JSON.stringify(postsWithEngagement, null, 2)}`,
+      ),
+    ],
     PERFORMANCE_SCHEMA,
     { systemPrompt, temperature: 0.5, maxTokens: 2048 },
   );
