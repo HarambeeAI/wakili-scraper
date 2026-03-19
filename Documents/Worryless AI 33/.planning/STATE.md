@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: "Completed 15-02-PLAN.md (10 PA tools: Gmail, Calendar, Drive + barrel index + 20 tests)"
-last_updated: "2026-03-19T07:47:59.690Z"
+stopped_at: "Completed 15-03-PLAN.md (OPS-01/02/03 tools: CS ticket CRUD + KB RAG + churn, Legal contract review + calendar, HR recruiting + onboarding)"
+last_updated: "2026-03-19T07:50:00.000Z"
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 29
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 15 (personal-assistant-operational-agents) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 2 of 6
 
 **v2.0 in progress:**
 
-- Plans completed: 23 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode, 12-03: 7 CoS tools (briefing, delegation, fan-out, memory, correlation, action items, health), 12-04: cosTools node integration — supervisor graph wired with cosTools + goalChain delegation + audit log, 13-01: Phase 13 foundation — DB migration + shared DB pool + base-agent exports + type contracts, 13-02: 6 base accountant tools (invoice, transaction, bank statement, receipt, cashflow, P&L), 13-03: 6 advanced accountant tools (tax, anomaly z-score, chase HITL, runway, HTML invoice) + graph rewrite with accountantTools node, 14-01: Playwright browser manager + marketer type contracts, 14-02: 4 marketer tools — generateSocialPost + createContentCalendar + generateBrandImage + editImage, 14-03: 3 tools — schedulePost + publishPost + fetchPostAnalytics + analyzePostPerformance + manageContentLibrary, 14-04: 3 research tools — monitorBrandMentions + analyzeCompetitor + searchTrendingTopics, 14-05: Marketer barrel index + agent graph rewrite with marketerTools node + classification tests)
-- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min + 9 min + 15 min + 8 min + 10 min + 10 min + 4 min + 4 min + 4 min + 4 min + 3 min
+- Plans completed: 26 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode, 12-03: 7 CoS tools (briefing, delegation, fan-out, memory, correlation, action items, health), 12-04: cosTools node integration — supervisor graph wired with cosTools + goalChain delegation + audit log, 13-01: Phase 13 foundation — DB migration + shared DB pool + base-agent exports + type contracts, 13-02: 6 base accountant tools (invoice, transaction, bank statement, receipt, cashflow, P&L), 13-03: 6 advanced accountant tools (tax, anomaly z-score, chase HITL, runway, HTML invoice) + graph rewrite with accountantTools node, 14-01: Playwright browser manager + marketer type contracts, 14-02: 4 marketer tools — generateSocialPost + createContentCalendar + generateBrandImage + editImage, 14-03: 3 tools — schedulePost + publishPost + fetchPostAnalytics + analyzePostPerformance + manageContentLibrary, 14-04: 3 research tools — monitorBrandMentions + analyzeCompetitor + searchTrendingTopics, 14-05: Marketer barrel index + agent graph rewrite with marketerTools node + classification tests, 15-01: Phase 15 foundation — DB migration + googleapis + 8 type contracts, 15-02: 10 PA tools (Gmail, Calendar, Drive) + barrel index + 20 tests, 15-03: 18 OPS tools (CS ticket CRUD + KB RAG + churn + Legal contract review + calendar + HR recruiting + onboarding) + 23 tests)
+- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min + 9 min + 15 min + 8 min + 10 min + 10 min + 4 min + 4 min + 4 min + 4 min + 3 min + 7 min + 6 min
 
 *Updated after each plan completion*
 
@@ -125,6 +125,10 @@ New v2.0 decisions:
 - [Phase 15]: [Phase 15-04]: compareQuotes parses lead time strings (days/weeks/months) to numeric days for fair comparison
 - [Phase 15]: extractBody helper walks Gmail payload.parts for text/plain before falling back — Gmail API returns nested MIME parts for multipart messages
 - [Phase 15]: detectCalendarConflicts calls listCalendarEvents internally rather than the Calendar API directly — DRY and consistent event mapping
+- [Phase 15-03]: vi.hoisted() pattern used for all test mock factories — consistent with Phase 14 pattern, avoids TDZ ReferenceError with vi.mock factory closures
+- [Phase 15-03]: screenResume fetches candidate name in a second query after UPDATE — avoids requiring name in the function signature, keeps API minimal
+- [Phase 15-03]: monitorRegulatory includes JSON parse fallback for raw text — LLM may return non-JSON on edge cases, fallback wraps content gracefully
+- [Phase 15-03]: contractCalendar uses INTERVAL cast ('$n days')::INTERVAL — parameterized interval injection compatible with pg driver
 
 ### Pending Todos
 
