@@ -21,7 +21,7 @@
 - [x] **GRAPH-02**: Conditional routing via LangGraph `Command` objects — CoS LLM decides which agent(s) to invoke
 - [x] **GRAPH-03**: Parallel fan-out via `Send()` when multiple agents needed for a single user request
 - [x] **GRAPH-04**: COO level-2 supervisor subgraph routing to 7 operational agents
-- [ ] **GRAPH-05**: Human-in-the-loop via `interrupt()` for all high-risk actions (sending emails, publishing posts, financial transactions, POs)
+- [x] **GRAPH-05**: Human-in-the-loop via `interrupt()` for all high-risk actions (sending emails, publishing posts, financial transactions, POs)
 - [x] **GRAPH-06**: Each of the 13 agent types implemented as a LangGraph subgraph with role-specific tools
 - [x] **GRAPH-07**: Agent state schema with messages, userId, businessContext, uiComponents, pendingApprovals, responseMetadata
 
@@ -131,7 +131,7 @@
 - [ ] **GUI-03**: Chart components via Recharts (bar, line, pie, area, gauge, sparkline)
 - [ ] **GUI-04**: Data table components via @tanstack/react-table
 - [x] **GUI-05**: Dynamic form components from agent tool schemas
-- [ ] **GUI-06**: Approval request cards with Approve/Reject/Discuss for HITL
+- [x] **GUI-06**: Approval request cards with Approve/Reject/Discuss for HITL
 - [ ] **GUI-07**: Domain-specific: Pipeline Kanban, Content Calendar, Invoice Tracker, Calendar Timeline, Meeting Brief
 - [x] **GUI-08**: SSE streaming with text deltas + UI components + tool indicators
 - [x] **GUI-09**: `useAgentChat` hook managing threads, streaming, UI, approvals
@@ -203,7 +203,7 @@
 | GRAPH-02 | Phase 11 | Complete |
 | GRAPH-03 | Phase 11 | Complete |
 | GRAPH-04 | Phase 11 | Complete |
-| GRAPH-05 | Phase 18 | Pending |
+| GRAPH-05 | Phase 18 | Complete |
 | GRAPH-06 | Phase 11 | Complete |
 | GRAPH-07 | Phase 11 | Complete |
 | MEM-01 | Phase 11 | Complete |
@@ -295,7 +295,7 @@
 | GUI-03 | Phase 18 | Pending |
 | GUI-04 | Phase 18 | Pending |
 | GUI-05 | Phase 18 | Complete |
-| GUI-06 | Phase 18 | Pending |
+| GUI-06 | Phase 18 | Complete |
 | GUI-07 | Phase 18 | Pending |
 | GUI-08 | Phase 17 | Complete |
 | GUI-09 | Phase 17 | Complete |

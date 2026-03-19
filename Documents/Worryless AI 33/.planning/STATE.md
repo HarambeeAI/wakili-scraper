@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 18-04-PLAN.md
-last_updated: "2026-03-19T20:24:53.321Z"
+stopped_at: Completed 18-02-PLAN.md
+last_updated: "2026-03-19T20:25:45.073Z"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 43
-  completed_plans: 40
+  completed_plans: 41
 ---
 
 # Project State
@@ -159,6 +159,8 @@ New v2.0 decisions:
 - [Phase 17-generative-ui-onboarding-redesign]: Migration filename changed from 20260319000001 to 20260319000004_business_stage.sql — prior slot already taken by agent_audit_log.sql
 - [Phase 17-generative-ui-onboarding-redesign]: handleTeamAccept no longer calls setStep push_opt_in — user flows through integration_setup -> briefing -> push_opt_in via nextStep
 - [Phase 18-04]: PA tools node emits dynamic_form UIComponent using spread-only-if-nonempty pattern, consistent with accountant.ts/sales-rep.ts
+- [Phase 18-02]: finalState.tasks[].interrupts[] is the correct LangGraph data path for interrupt() payloads — state-level pendingApprovals accumulator is never populated by interrupt()
+- [Phase 18-02]: Fallback state-level pendingApprovals check preserved for nodes that write directly to state channel
 
 ### Pending Todos
 
@@ -173,6 +175,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T20:24:53.318Z
-Stopped at: Completed 18-04-PLAN.md
+Last session: 2026-03-19T20:25:45.069Z
+Stopped at: Completed 18-02-PLAN.md
 Resume file: None
