@@ -183,4 +183,147 @@ describe("POST /invoke/stream", () => {
     expect(contents).not.toContain("Echo me back");
     expect(contents.join("")).toContain("Real response");
   });
+
+  it("Test 7: pending_approvals event emitted when graph state has interrupt tasks", async () => {
+    const { AIMessage } = await import("@langchain/core/messages");
+
+    async function* interruptStream() {
+      yield [
+        new AIMessage("I need approval to proceed"),
+        { langgraph_node: "accountantTools" },
+      ];
+    }
+    mockGraph.stream.mockImplementation(() => interruptStream());
+
+    // Mock getState to return interrupt in tasks
+    // First call is for uiComponentsBeforeCount (initial state), second is post-stream
+    let callCount = 0;
+    mockGraph.getState.mockImplementation(async () => {
+      callCount++;
+      if (callCount === 1) {
+        // Initial state — no components yet
+        return {
+          values: {
+            uiComponents: [],
+            pendingApprovals: [],
+            responseMetadata: null,
+          },
+        };
+      }
+      // Post-stream state — has interrupt in tasks
+      return {
+        values: {
+          uiComponents: [],
+          pendingApprovals: [],
+          responseMetadata: null,
+        },
+        tasks: [
+          {
+            name: "accountantTools",
+            interrupts: [
+              {
+                value: {
+                  action: "chase_overdue_invoice",
+                  agentType: "accountant",
+                  description: "Send reminder for invoice #123",
+                  payload: { invoiceId: "123" },
+                },
+              },
+            ],
+          },
+        ],
+      };
+    });
+
+    const response = await request(app)
+      .post("/invoke/stream")
+      .send({ message: "Chase the overdue invoice", user_id: "user-1" })
+      .buffer(true)
+      .parse((res, callback) => {
+        let data = "";
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
+        res.on("end", () => callback(null, data));
+      });
+
+    const body = response.body as string;
+    const lines = body.split("\n").filter((l) => l.startsWith("data: "));
+    const events = lines.map((l) => JSON.parse(l.slice(6)));
+    const approvalEvents = events.filter((e) => e.type === "pending_approvals");
+
+    expect(approvalEvents.length).toBe(1);
+    expect(approvalEvents[0].approvals).toHaveLength(1);
+    expect(approvalEvents[0].approvals[0].action).toBe("chase_overdue_invoice");
+    expect(approvalEvents[0].approvals[0].description).toBe(
+      "Send reminder for invoice #123",
+    );
+    expect(approvalEvents[0].approvals[0].payload).toEqual({
+      invoiceId: "123",
+    });
+  });
+
+  it("Test 8: ui_components event emitted when graph state has new uiComponents", async () => {
+    const { AIMessage } = await import("@langchain/core/messages");
+
+    async function* uiStream() {
+      yield [
+        new AIMessage("Here is your P&L report"),
+        { langgraph_node: "accountantTools" },
+      ];
+    }
+    mockGraph.stream.mockImplementation(() => uiStream());
+
+    let callCount = 0;
+    mockGraph.getState.mockImplementation(async () => {
+      callCount++;
+      if (callCount === 1) {
+        return {
+          values: {
+            uiComponents: [],
+            pendingApprovals: [],
+            responseMetadata: null,
+          },
+        };
+      }
+      return {
+        values: {
+          uiComponents: [
+            {
+              type: "pl_report",
+              props: { title: "P&L", rows: [], period: "Jan 2026" },
+            },
+          ],
+          pendingApprovals: [],
+          responseMetadata: {
+            agentType: "accountant",
+            agentDisplayName: "Accountant",
+          },
+        },
+        tasks: [],
+      };
+    });
+
+    const response = await request(app)
+      .post("/invoke/stream")
+      .send({ message: "Show me P&L", user_id: "user-1" })
+      .buffer(true)
+      .parse((res, callback) => {
+        let data = "";
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
+        res.on("end", () => callback(null, data));
+      });
+
+    const body = response.body as string;
+    const lines = body.split("\n").filter((l) => l.startsWith("data: "));
+    const events = lines.map((l) => JSON.parse(l.slice(6)));
+    const uiEvents = events.filter((e) => e.type === "ui_components");
+
+    expect(uiEvents.length).toBe(1);
+    expect(uiEvents[0].components).toHaveLength(1);
+    expect(uiEvents[0].components[0].type).toBe("pl_report");
+    expect(uiEvents[0].components[0].props.title).toBe("P&L");
+  });
 });
