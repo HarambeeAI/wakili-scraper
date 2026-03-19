@@ -31,22 +31,26 @@ export function createLLMNode(config: BaseAgentConfig) {
         ? lastMsg.content
         : JSON.stringify(lastMsg.content);
 
-    // GOV-02: Check token budget before LLM call — halt if exhausted
-    const budgetStatus = await checkTokenBudget(state.userId, config.agentType);
-    if (budgetStatus.paused) {
-      return {
-        messages: [
-          new AIMessage({
-            content: `I've reached my monthly token budget limit (${budgetStatus.usedPct.toFixed(0)}% used). Please ask your Chief of Staff to approve a budget override so I can continue working.`,
-          }),
-        ],
-        responseMetadata: {
-          agentType: config.agentType,
-          agentDisplayName: AGENT_DISPLAY_NAMES[config.agentType],
-          tokensUsed: 0,
-          budgetPaused: true,
-        } as ResponseMetadata,
-      };
+    // GOV-02: Check token budget before LLM call — halt if exhausted.
+    // Skip budget check for proactive heartbeat runs — they use system budget, not user chat budget.
+    let budgetStatus = { paused: false, warned: false, usedPct: 0 };
+    if (!state.isProactive) {
+      budgetStatus = await checkTokenBudget(state.userId, config.agentType);
+      if (budgetStatus.paused) {
+        return {
+          messages: [
+            new AIMessage({
+              content: `I've reached my monthly token budget limit (${budgetStatus.usedPct.toFixed(0)}% used). Please ask your Chief of Staff to approve a budget override so I can continue working.`,
+            }),
+          ],
+          responseMetadata: {
+            agentType: config.agentType,
+            agentDisplayName: AGENT_DISPLAY_NAMES[config.agentType],
+            tokensUsed: 0,
+            budgetPaused: true,
+          } as ResponseMetadata,
+        };
+      }
     }
 
     const memoryStr =
@@ -90,12 +94,15 @@ export function createLLMNode(config: BaseAgentConfig) {
       goalChain: state.goalChain ?? null,
     }).catch((err) => console.error("[audit-log] Write failed:", err));
 
-    // GOV-02: Increment token usage counter (fire-and-forget)
-    incrementTokenUsage(
-      state.userId,
-      config.agentType,
-      result.tokensUsed,
-    ).catch((err) => console.error("[token-budget] Increment failed:", err));
+    // GOV-02: Increment token usage counter (fire-and-forget).
+    // Skip for proactive heartbeat runs — they use system budget, not user chat budget (CAD-01/Pitfall 7).
+    if (!state.isProactive) {
+      incrementTokenUsage(
+        state.userId,
+        config.agentType,
+        result.tokensUsed,
+      ).catch((err) => console.error("[token-budget] Increment failed:", err));
+    }
 
     return {
       messages: [new AIMessage({ content: result.content })],

@@ -100,4 +100,12 @@ export const AgentState = Annotation.Root({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
+
+  // Proactive heartbeat flag — when true, LLM calls skip token budget check and increment.
+  // Set to true by /invoke when is_proactive=true is passed in the request body.
+  // Prevents proactive scheduled runs from consuming user chat token budgets (CAD-01/Pitfall 7).
+  isProactive: Annotation<boolean>({
+    reducer: (_prev, next) => next,
+    default: () => false,
+  }),
 });
