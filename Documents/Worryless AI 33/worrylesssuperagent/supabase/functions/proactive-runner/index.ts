@@ -85,6 +85,29 @@ function getHeartbeatPrompt(agentTypeId: string, cadenceTier: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Event-specific prompts — duplicated from langgraph-server/src/cadence/event-detector.ts
+// for Deno compatibility. Prompts must match the Node.js module exactly.
+// CAD-07: Event-triggered proactive actions with targeted prompts.
+// ---------------------------------------------------------------------------
+const EVENT_PROMPTS: Record<string, { agentType: string; prompt: string }> = {
+  overdue_invoice: {
+    agentType: "accountant",
+    prompt:
+      "URGENT EVENT: Invoices with outstanding balances past due date detected. List all invoices that are past due, check cashflow impact of delayed payments, and flag severity by amount and days overdue. Surface findings for review.",
+  },
+  stale_deal: {
+    agentType: "sales_rep",
+    prompt:
+      "URGENT EVENT: Stale deals detected — leads with no activity in 3+ days. Detect stale deals stuck in the pipeline, track email engagement and open rates on recent outreach for those leads, and provide re-engagement recommendations. Surface findings for review.",
+  },
+  expiring_contract: {
+    agentType: "legal_advisor",
+    prompt:
+      "URGENT EVENT: Contracts expiring within 7 days detected. Review the contract calendar for upcoming expirations and renewal deadlines. Flag contracts requiring immediate attention and surface findings for review.",
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Timestamp advance helpers — advance the correct next-run column per tier.
 // The proactive-runner advances weekly/monthly/quarterly after processing.
 // Daily advancement is handled by heartbeat-dispatcher (existing behaviour).
@@ -144,7 +167,18 @@ async function processProactiveHeartbeat(
   }
 
   // --- Build heartbeat prompt ---
-  const heartbeatPrompt = getHeartbeatPrompt(agentTypeId, cadenceTier);
+  // For event-type messages, use the targeted event prompt instead of the cadence tier prompt.
+  const eventType = message.event_type as string | undefined;
+  let heartbeatPrompt: string;
+  if (cadenceTier === "event" && eventType && EVENT_PROMPTS[eventType]) {
+    heartbeatPrompt = EVENT_PROMPTS[eventType].prompt;
+  } else if (cadenceTier === "event") {
+    // Unknown event type — generic fallback
+    heartbeatPrompt =
+      "An event was triggered for your attention. Review your recent activity and surface any actionable findings.";
+  } else {
+    heartbeatPrompt = getHeartbeatPrompt(agentTypeId, cadenceTier);
+  }
 
   // --- Deterministic thread ID — persistent across proactive runs ---
   const threadId = `proactive:${agentTypeId}:${userId}`;
@@ -173,7 +207,10 @@ async function processProactiveHeartbeat(
     );
   }
 
-  const invokeData = await invokeResponse.json() as { response: string; thread_id: string };
+  const invokeData = (await invokeResponse.json()) as {
+    response: string;
+    thread_id: string;
+  };
   const rawResponse: string = invokeData.response ?? "";
 
   // --- Parse severity from LangGraph response ---
@@ -188,7 +225,13 @@ async function processProactiveHeartbeat(
       `[proactive-runner] severity=ok for user=${userId} agent=${agentTypeId} tier=${cadenceTier} — suppressed`,
     );
     // Advance tier timestamp even on "ok" runs so next run is scheduled correctly
-    await advanceTierTimestamp(supabaseAdmin, userAgentId, userId, agentTypeId, cadenceTier);
+    await advanceTierTimestamp(
+      supabaseAdmin,
+      userAgentId,
+      userId,
+      agentTypeId,
+      cadenceTier,
+    );
     return;
   }
 
@@ -232,7 +275,13 @@ async function processProactiveHeartbeat(
   }
 
   // --- Advance next-run timestamp for this tier ---
-  await advanceTierTimestamp(supabaseAdmin, userAgentId, userId, agentTypeId, cadenceTier);
+  await advanceTierTimestamp(
+    supabaseAdmin,
+    userAgentId,
+    userId,
+    agentTypeId,
+    cadenceTier,
+  );
 
   console.log(
     `[proactive-runner] Processed user=${userId} agent=${agentTypeId} tier=${cadenceTier} severity=${severity}`,
@@ -367,12 +416,10 @@ Deno.serve(async (_req) => {
 
         if (deleteMessage) {
           // Delete only after successful processing
-          await supabaseAdmin
-            .schema("pgmq_public")
-            .rpc("delete", {
-              queue_name: "heartbeat_jobs",
-              msg_id: msg.msg_id,
-            });
+          await supabaseAdmin.schema("pgmq_public").rpc("delete", {
+            queue_name: "heartbeat_jobs",
+            msg_id: msg.msg_id,
+          });
 
           processed++;
         }
@@ -385,9 +432,7 @@ Deno.serve(async (_req) => {
       }
     }
 
-    console.log(
-      `[proactive-runner] processed=${processed} skipped=${skipped}`,
-    );
+    console.log(`[proactive-runner] processed=${processed} skipped=${skipped}`);
     return new Response(JSON.stringify({ processed, skipped }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
