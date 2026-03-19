@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: "Completed 15-03-PLAN.md (OPS-01/02/03 tools: CS ticket CRUD + KB RAG + churn, Legal contract review + calendar, HR recruiting + onboarding)"
-last_updated: "2026-03-19T07:50:00.000Z"
+stopped_at: Completed 15-05-PLAN.md (Data Analyst + Operations tools — 11 tools, 20 tests)
+last_updated: "2026-03-19T07:53:02.199Z"
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State
@@ -129,6 +129,8 @@ New v2.0 decisions:
 - [Phase 15-03]: screenResume fetches candidate name in a second query after UPDATE — avoids requiring name in the function signature, keeps API minimal
 - [Phase 15-03]: monitorRegulatory includes JSON parse fallback for raw text — LLM may return non-JSON on edge cases, fallback wraps content gracefully
 - [Phase 15-03]: contractCalendar uses INTERVAL cast ('$n days')::INTERVAL — parameterized interval injection compatible with pg driver
+- [Phase 15]: isPureNumeric strict check (Number() not parseFloat()) — prevents date strings like '2026-01' from being extracted as numeric values during z-score analysis
+- [Phase 15]: mockQuery.mockReset() in beforeEach (not vi.clearAllMocks()) — preserves getPool mock while clearing call history for vitest test isolation
 
 ### Pending Todos
 
@@ -143,6 +145,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:47:59.685Z
-Stopped at: Completed 15-02-PLAN.md (10 PA tools: Gmail, Calendar, Drive + barrel index + 20 tests)
+Last session: 2026-03-19T07:53:02.196Z
+Stopped at: Completed 15-05-PLAN.md (Data Analyst + Operations tools — 11 tools, 20 tests)
 Resume file: None
