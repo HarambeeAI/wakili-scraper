@@ -61,9 +61,10 @@ Inherited from existing system. No new tokens required for Phase 13.
 | 3xl | 64px | Page-level vertical spacing |
 
 Exceptions:
-- HITL approval card: 12px horizontal padding inside the action button row (between
-  Approve and Reject buttons) — falls between sm and md; use `gap-3` (12px) in Tailwind.
-- Touch target minimum for Approve/Reject buttons: 44px height — use `h-11` (44px).
+- HITL approval card action button row: use `gap-4` (16px) between Approve and Reject
+  buttons — standard spacing scale value md.
+- Touch target minimum for Approve/Reject buttons: 48px height — use `h-12` (48px),
+  which is in the standard set and exceeds the WCAG 44px minimum.
 
 ---
 
@@ -76,7 +77,10 @@ Inherited from existing system. No new type roles needed.
 | Body | 14px (text-sm) | 400 (normal) | 1.5 | Toast descriptions, HITL card body copy, pipeline row labels |
 | Label | 12px (text-xs) | 600 (semibold) | 1.4 | Badge text, HITL action labels, status chip text |
 | Heading | 16px (text-base) | 600 (semibold) | 1.2 | HITL card title, dialog title, section headings |
-| Display | 24px (text-2xl) | 700 (bold) | 1.1 | Financial metric values (income, expenses, pending total) |
+| Display | 24px (text-2xl) | 600 (semibold) | 1.1 | Financial metric values (income, expenses, pending total) |
+
+Active weights: **400 (normal)** and **600 (semibold)** only. The 24px size alone
+provides sufficient display-level visual weight without requiring a third weight.
 
 Monospace variant: IBM Plex Mono at 14px weight 400 — used for raw currency amounts
 in the HITL invoice chase card (invoice ID, exact amount). Apply `font-mono` class.
@@ -141,9 +145,9 @@ Card (border, shadow-sm, rounded-lg)
       "Days Overdue"  [Label]  [N] days
     Email draft (read-only Textarea, 6 rows, bg-muted/40)
     Separator (8px vertical)
-    Button row (gap-3, justify-end)
-      Button variant="outline" size="h-11"   "Reject"    [text-destructive]
-      Button variant="default" size="h-11"   "Approve & Send"
+    Button row (gap-4, justify-end)
+      Button variant="outline" size="h-12"   "Reject"    [text-destructive]
+      Button variant="default" size="h-12"   "Approve & Send"
 ```
 
 **States:**
@@ -162,9 +166,9 @@ CardTitle  "Send Outreach Email"
 CardDescription  "To: [Contact Name] at [Company]"
 Email draft: Subject line (Input, read-only) + Body (Textarea, 8 rows, read-only)
 Button row:
-  Button variant="outline" size="h-11"  "Reject"         [text-destructive]
-  Button variant="outline" size="h-11"  "Edit & Approve" [text-primary, border-primary]
-  Button variant="default" size="h-11"  "Approve & Send"
+  Button variant="outline" size="h-12"  "Reject"         [text-destructive]
+  Button variant="outline" size="h-12"  "Edit & Approve" [text-primary, border-primary]
+  Button variant="default" size="h-12"  "Approve & Send"
 ```
 
 Edit & Approve: makes Subject Input and Body Textarea editable (removes `readOnly`);
@@ -224,7 +228,7 @@ by the tool-execution node and read by the existing panel render path.
 | HITL success — outreach sent | "Outreach email sent to [Contact] at [Company]." |
 | HITL rejected — invoice chase | "Invoice chase cancelled." |
 | HITL rejected — outreach | "Outreach cancelled." |
-| Destructive: delete datasheet | Confirmation: "Remove datasheet '[Name]'? This will delete [N] rows and cannot be undone." / Buttons: "Cancel" + "Remove Datasheet" (destructive) |
+| Destructive: delete datasheet | Confirmation: "Remove datasheet '[Name]'? This will delete [N] rows and cannot be undone." / Buttons: "Keep Datasheet" + "Remove Datasheet" (destructive) |
 
 All error toasts use `variant: "destructive"`. All success toasts use default variant.
 Toast duration: 5000ms for errors, 3000ms for success.
