@@ -70,15 +70,15 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 - [ ] Token budget enforcement per agent (80% warning, 100% pause, human override)
 
 **Chat-First Generative UI**
-- [ ] Each agent tab is a chat interface with dynamic inline UI components (replaces static dashboards)
-- [ ] GenerativeUIRenderer: charts (Recharts), tables (@tanstack/react-table), forms, approval cards, kanban boards, calendars, timelines
-- [ ] SSE streaming with text deltas + structured UI component directives
-- [ ] Agent-specific UI components (Pipeline Kanban for Sales, Content Calendar for Marketer, P&L Statement for Accountant, etc.)
+- [x] Each agent tab is a chat interface with dynamic inline UI components (replaces static dashboards) — Validated in Phase 17
+- [x] GenerativeUIRenderer: charts (Recharts), tables (@tanstack/react-table), forms, approval cards, kanban boards, calendars, timelines — Validated in Phase 17
+- [x] SSE streaming with text deltas + structured UI component directives — Validated in Phase 17
+- [x] Agent-specific UI components (Pipeline Kanban for Sales, Content Calendar for Marketer, P&L Statement for Accountant, etc.) — Validated in Phase 17
 
 **Onboarding Redesign**
-- [ ] Business stage detection: Starting / Running / Scaling (determines agent recommendations and initial interactions)
-- [ ] Integration setup: Google OAuth for PA, Playwright browser login for Marketer social accounts
-- [ ] First real briefing: Chief of Staff LangGraph graph produces actionable briefing from onboarding context
+- [x] Business stage detection: Starting / Running / Scaling (determines agent recommendations and initial interactions) — Validated in Phase 17
+- [x] Integration setup: Google OAuth for PA, Playwright browser login for Marketer social accounts — Validated in Phase 17
+- [x] First real briefing: Chief of Staff LangGraph graph produces actionable briefing from onboarding context — Validated in Phase 17
 
 **Persistent Agent Browser (Marketer)**
 - [x] Playwright persistent browser context per user for social media operations — Validated in Phase 14
@@ -153,4 +153,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | Agent Team Selector at onboarding tail-end (not post-onboarding) | Users are most engaged and context-primed right after completing onboarding; conversion is higher than a post-login prompt | — Pending |
 
 ---
-*Last updated: 2026-03-19 after Phase 15 complete — All 8 agents now have real tools wired into tool-execution graph topology. PA has 10 Google Workspace tools, 7 operational agents have 47 tools total (CS 6, Legal 6, HR 6, PR 4, Procurement 4, Data Analyst 5, Operations 6). All graphs rewritten from createBaseAgentGraph wrappers to 5-node tool-wired topology with deterministic request classification. 84 tool tests + 35 classification tests passing.*
+*Last updated: 2026-03-19 after Phase 17 complete — Chat-first generative UI layer built: SSE streaming endpoint, useAgentChat hook, GenerativeUIRenderer with 6 domain widgets (PipelineKanban, ContentCalendarGrid, InlinePLTable, InvoiceTrackerTable, CalendarTimelineView, MeetingBriefCard), AgentChatView replacing all static dashboards, and onboarding redesigned with business stage selector + integration setup + conversational CoS briefing.*
