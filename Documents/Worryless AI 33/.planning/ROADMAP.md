@@ -222,7 +222,14 @@ Plans:
   3. Any Accountant action requiring email send (invoice chase) or financial commitment pauses for user approval via HITL before executing
   4. The Sales Rep generates a batch of qualified leads via Apify, researches the top prospect, and composes a personalized outreach email — all without the user providing any API keys
   5. The Sales Rep's pipeline analysis shows real conversion rates and revenue forecast from actual lead records — stale deals are automatically flagged
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Foundation: DB migration (ENUM extension, columns), base-agent exports, npm deps, shared DB pool, type contracts
+- [ ] 13-02-PLAN.md — Accountant core tools: invoice CRUD, transaction recording, bank statement/receipt parsing, cashflow, P&L
+- [ ] 13-03-PLAN.md — Accountant advanced tools (tax, anomaly, chase, runway, invoice PDF) + agent graph rewrite with tool node
+- [ ] 13-04-PLAN.md — Sales core tools: lead generation (Apify), enrichment, research (Firecrawl), outreach composition, send (HITL), engagement
+- [ ] 13-05-PLAN.md — Sales advanced tools (deal management, proposals, pipeline analysis) + agent graph rewrite with tool node
 
 ### Phase 14: Marketer + Persistent Browser
 **Goal**: The Marketer is a closed-loop content engine — it creates brand-consistent content, publishes via the user's real browser sessions, and fetches actual analytics to close the performance feedback loop
@@ -290,8 +297,8 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 9. Tech Debt Cleanup | v1.0 | 3/3 | Complete | 2026-03-17 |
 | 10. LangGraph Infrastructure | v2.0 | 4/4 | Complete | 2026-03-18 |
 | 11. Agent Graph Topology + Memory Foundation | v2.0 | 5/5 | Complete | 2026-03-18 |
-| 12. Chief of Staff Tools + Governance | 4/4 | Complete    | 2026-03-19 | - |
-| 13. Accountant + Sales Rep Agent Tools | v2.0 | 0/TBD | Not started | - |
+| 12. Chief of Staff Tools + Governance | v2.0 | 4/4 | Complete | 2026-03-19 |
+| 13. Accountant + Sales Rep Agent Tools | v2.0 | 0/5 | Planned | - |
 | 14. Marketer + Persistent Browser | v2.0 | 0/TBD | Not started | - |
 | 15. Personal Assistant + Operational Agents | v2.0 | 0/TBD | Not started | - |
 | 16. Proactive Cadence Engine | v2.0 | 0/TBD | Not started | - |
@@ -299,6 +306,6 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-19 — Phase 12 planned (4 plans in 3 waves)*
+*Updated: 2026-03-19 — Phase 13 planned (5 plans in 3 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
