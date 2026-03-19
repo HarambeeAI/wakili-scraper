@@ -130,7 +130,7 @@
 - [ ] **GUI-02**: `GenerativeUIRenderer` mapping component types to React components
 - [ ] **GUI-03**: Chart components via Recharts (bar, line, pie, area, gauge, sparkline)
 - [ ] **GUI-04**: Data table components via @tanstack/react-table
-- [ ] **GUI-05**: Dynamic form components from agent tool schemas
+- [x] **GUI-05**: Dynamic form components from agent tool schemas
 - [ ] **GUI-06**: Approval request cards with Approve/Reject/Discuss for HITL
 - [ ] **GUI-07**: Domain-specific: Pipeline Kanban, Content Calendar, Invoice Tracker, Calendar Timeline, Meeting Brief
 - [x] **GUI-08**: SSE streaming with text deltas + UI components + tool indicators
@@ -294,7 +294,7 @@
 | GUI-02 | Phase 18 | Pending |
 | GUI-03 | Phase 18 | Pending |
 | GUI-04 | Phase 18 | Pending |
-| GUI-05 | Phase 18 | Pending |
+| GUI-05 | Phase 18 | Complete |
 | GUI-06 | Phase 18 | Pending |
 | GUI-07 | Phase 18 | Pending |
 | GUI-08 | Phase 17 | Complete |

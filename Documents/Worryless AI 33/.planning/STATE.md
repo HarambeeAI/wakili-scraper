@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 17-05-PLAN.md
-last_updated: "2026-03-19T10:59:03.611Z"
+stopped_at: Completed 18-04-PLAN.md
+last_updated: "2026-03-19T20:24:53.321Z"
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 8
-  total_plans: 39
-  completed_plans: 39
+  total_plans: 43
+  completed_plans: 40
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 17 — generative-ui-onboarding-redesign
+**Current focus:** Phase 18 — agent-to-ui-data-pipeline-fix
 
 ## Current Position
 
-Phase: 17 (generative-ui-onboarding-redesign) — EXECUTING
-Plan: 2 of 5
+Phase: 18 (agent-to-ui-data-pipeline-fix) — EXECUTING
+Plan: 1 of 4
 
 ## Performance Metrics
 
@@ -158,6 +158,7 @@ New v2.0 decisions:
 - [Phase 17]: PipelineKanban normalizes deal status to Title Case; unknown statuses default to New column
 - [Phase 17-generative-ui-onboarding-redesign]: Migration filename changed from 20260319000001 to 20260319000004_business_stage.sql — prior slot already taken by agent_audit_log.sql
 - [Phase 17-generative-ui-onboarding-redesign]: handleTeamAccept no longer calls setStep push_opt_in — user flows through integration_setup -> briefing -> push_opt_in via nextStep
+- [Phase 18-04]: PA tools node emits dynamic_form UIComponent using spread-only-if-nonempty pattern, consistent with accountant.ts/sales-rep.ts
 
 ### Pending Todos
 
@@ -172,6 +173,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T10:58:14.866Z
-Stopped at: Completed 17-05-PLAN.md
+Last session: 2026-03-19T20:24:53.318Z
+Stopped at: Completed 18-04-PLAN.md
 Resume file: None
