@@ -22,7 +22,7 @@ export interface BaseAgentConfig {
 
 // Builds the LLM node for a specific agent — injects memory and business context
 // Includes governance hooks: token budget check (pre-call), audit log + token increment (post-call)
-function createLLMNode(config: BaseAgentConfig) {
+export function createLLMNode(config: BaseAgentConfig) {
   return async (state: typeof AgentState.State) => {
     // Extract last message content for audit log (type guard handles BaseMessage content union)
     const lastMsg = state.messages[state.messages.length - 1];
@@ -110,7 +110,7 @@ function createLLMNode(config: BaseAgentConfig) {
 }
 
 // Respond node: routes the completed response back to the parent supervisor graph
-function createRespondNode() {
+export function createRespondNode() {
   return async (state: typeof AgentState.State) => {
     return new Command({
       graph: Command.PARENT,
