@@ -50,7 +50,9 @@ export function useAgentChat({
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [activeToolName, setActiveToolName] = useState<string | null>(null);
-  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>(
+    [],
+  );
 
   // Track the current streaming assistant message id via ref (stable across renders)
   const streamingMsgIdRef = useRef<string | null>(null);
@@ -119,7 +121,10 @@ export function useAgentChat({
             .map((m, idx) => ({
               id: `loaded-${idx}`,
               role: m.type === "human" ? "user" : "assistant",
-              content: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
+              content:
+                typeof m.content === "string"
+                  ? m.content
+                  : JSON.stringify(m.content),
             }));
           setMessages(loadedMessages);
         }
@@ -245,7 +250,20 @@ export function useAgentChat({
                         : m,
                     ),
                   );
-                } else if (data.type === "pending_approvals" && data.approvals) {
+                } else if (
+                  data.type === "pending_approvals" &&
+                  data.approvals?.length
+                ) {
+                  // Attach first approval to the streaming assistant message
+                  // so AgentChatView renders HITLApprovalCard inline
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === assistantMsgId
+                        ? { ...m, pendingApproval: data.approvals![0] }
+                        : m,
+                    ),
+                  );
+                  // Also maintain the pendingApprovals array for multi-approval flows
                   setPendingApprovals((prev) => [
                     ...prev,
                     ...(data.approvals ?? []),
@@ -312,9 +330,7 @@ export function useAgentChat({
         console.error("[useAgentChat] sendMessage error:", err);
         // Remove optimistic messages on error
         setMessages((prev) =>
-          prev.filter(
-            (m) => m.id !== userMsgId && m.id !== assistantMsgId,
-          ),
+          prev.filter((m) => m.id !== userMsgId && m.id !== assistantMsgId),
         );
         setIsStreaming(false);
         streamingMsgIdRef.current = null;
@@ -352,9 +368,7 @@ export function useAgentChat({
         }
 
         // Remove the matching pending approval
-        setPendingApprovals((prev) =>
-          prev.filter((a) => a.id !== threadId),
-        );
+        setPendingApprovals((prev) => prev.filter((a) => a.id !== threadId));
 
         // Add status message to chat
         const statusMsg: ChatMessage = {
