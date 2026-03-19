@@ -260,7 +260,14 @@ Plans:
   3. A message routed to the COO reaches the correct tier-2 agent (e.g., a contract question reaches Legal, a hiring question reaches HR) — misrouting does not occur
   4. Customer Support can search the business knowledge base via RAG and draft a ticket response grounded in actual business artifacts — not generic text
   5. Data Analyst can query across all business tables (invoices, leads, posts, transactions) and return a chart-ready dataset for cross-functional analysis
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Foundation: DB migration (5 ops tables), googleapis install, Google auth helper, 8 agent type contracts
+- [ ] 15-02-PLAN.md — PA tools: email (read/triage/draft/send), calendar (list/create/conflicts/time), meeting brief, drive search
+- [ ] 15-03-PLAN.md — CS + Legal + HR tools: ticket CRUD + KB RAG, contract review + calendar, recruiting + onboarding
+- [ ] 15-04-PLAN.md — PR + Procurement + Data Analyst + Operations tools: press + suppliers + queries + projects
+- [ ] 15-05-PLAN.md — All 8 agent graph rewrites with tool nodes + classification tests
 
 ### Phase 16: Proactive Cadence Engine
 **Goal**: All agents run proactively on their configured cadence without user intervention — the system executes full LangGraph graphs on schedule and surfaces role-specific findings at the right time
@@ -306,13 +313,13 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 11. Agent Graph Topology + Memory Foundation | v2.0 | 5/5 | Complete | 2026-03-18 |
 | 12. Chief of Staff Tools + Governance | v2.0 | 4/4 | Complete | 2026-03-19 |
 | 13. Accountant + Sales Rep Agent Tools | v2.0 | 5/5 | Complete | 2026-03-19 |
-| 14. Marketer + Persistent Browser | 5/5 | Complete    | 2026-03-19 | - |
-| 15. Personal Assistant + Operational Agents | v2.0 | 0/TBD | Not started | - |
+| 14. Marketer + Persistent Browser | v2.0 | 5/5 | Complete | 2026-03-19 |
+| 15. Personal Assistant + Operational Agents | v2.0 | 0/5 | Not started | - |
 | 16. Proactive Cadence Engine | v2.0 | 0/TBD | Not started | - |
 | 17. Generative UI + Onboarding Redesign | v2.0 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-19 — Phase 14 planned (5 plans in 3 waves)*
+*Updated: 2026-03-19 — Phase 15 planned (5 plans in 3 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
