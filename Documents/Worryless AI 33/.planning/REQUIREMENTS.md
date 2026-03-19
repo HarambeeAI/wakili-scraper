@@ -52,14 +52,14 @@
 
 ### Agent Tools — Marketer (MKT)
 
-- [ ] **MKT-01**: `generate_social_post` tool for platform-specific content (IG, X, LinkedIn, TikTok)
-- [ ] **MKT-02**: `generate_brand_image` tool using Nano Banana 2 with brand colors, product photos, logo
-- [ ] **MKT-03**: `edit_image` tool for overlays, color adjustments, compositing
+- [x] **MKT-01**: `generate_social_post` tool for platform-specific content (IG, X, LinkedIn, TikTok)
+- [x] **MKT-02**: `generate_brand_image` tool using Nano Banana 2 with brand colors, product photos, logo
+- [x] **MKT-03**: `edit_image` tool for overlays, color adjustments, compositing
 - [ ] **MKT-04**: `schedule_post` tool writing to social_posts table
 - [ ] **MKT-05**: `publish_post` tool via Playwright persistent browser (requires HITL)
 - [ ] **MKT-06**: `fetch_post_analytics` tool scraping platform dashboards via Playwright
 - [ ] **MKT-07**: `analyze_post_performance` tool comparing metrics against averages with WHY analysis
-- [ ] **MKT-08**: `create_content_calendar` tool generating weekly/monthly plan
+- [x] **MKT-08**: `create_content_calendar` tool generating weekly/monthly plan
 - [ ] **MKT-09**: `monitor_brand_mentions` tool scanning web for business name
 - [ ] **MKT-10**: `analyze_competitor` tool browsing competitor profiles via Playwright
 - [ ] **MKT-11**: `search_trending_topics` tool for industry trend discovery
@@ -248,14 +248,14 @@
 | SALES-10 | Phase 13 | Complete |
 | SALES-11 | Phase 13 | Complete |
 | SALES-12 | Phase 13 | Complete |
-| MKT-01 | Phase 14 | Pending |
-| MKT-02 | Phase 14 | Pending |
-| MKT-03 | Phase 14 | Pending |
+| MKT-01 | Phase 14 | Complete |
+| MKT-02 | Phase 14 | Complete |
+| MKT-03 | Phase 14 | Complete |
 | MKT-04 | Phase 14 | Pending |
 | MKT-05 | Phase 14 | Pending |
 | MKT-06 | Phase 14 | Pending |
 | MKT-07 | Phase 14 | Pending |
-| MKT-08 | Phase 14 | Pending |
+| MKT-08 | Phase 14 | Complete |
 | MKT-09 | Phase 14 | Pending |
 | MKT-10 | Phase 14 | Pending |
 | MKT-11 | Phase 14 | Pending |

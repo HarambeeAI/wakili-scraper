@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-03-19T06:21:57.537Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-03-19T06:29:07.551Z"
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 23
-  completed_plans: 19
+  completed_plans: 22
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 14 (marketer-persistent-browser) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 2 of 5
 
 **v2.0 in progress:**
 
-- Plans completed: 17 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode, 12-03: 7 CoS tools (briefing, delegation, fan-out, memory, correlation, action items, health), 12-04: cosTools node integration — supervisor graph wired with cosTools + goalChain delegation + audit log, 13-01: Phase 13 foundation — DB migration + shared DB pool + base-agent exports + type contracts, 13-02: 6 base accountant tools (invoice, transaction, bank statement, receipt, cashflow, P&L), 13-03: 6 advanced accountant tools (tax, anomaly z-score, chase HITL, runway, HTML invoice) + graph rewrite with accountantTools node, 14-01: Playwright browser manager + marketer type contracts)
-- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min + 9 min + 15 min + 8 min + 10 min + 10 min + 4 min
+- Plans completed: 18 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode, 12-03: 7 CoS tools (briefing, delegation, fan-out, memory, correlation, action items, health), 12-04: cosTools node integration — supervisor graph wired with cosTools + goalChain delegation + audit log, 13-01: Phase 13 foundation — DB migration + shared DB pool + base-agent exports + type contracts, 13-02: 6 base accountant tools (invoice, transaction, bank statement, receipt, cashflow, P&L), 13-03: 6 advanced accountant tools (tax, anomaly z-score, chase HITL, runway, HTML invoice) + graph rewrite with accountantTools node, 14-01: Playwright browser manager + marketer type contracts, 14-02: 4 marketer tools — generateSocialPost + createContentCalendar + generateBrandImage + editImage)
+- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min + 9 min + 15 min + 8 min + 10 min + 10 min + 4 min + 4 min
 
 *Updated after each plan completion*
 
@@ -109,6 +109,8 @@ New v2.0 decisions:
 - [Phase 13-05]: salesTools node follows cosTools pattern — regex classification before LLM, results in businessContext.salesToolResults
 - [Phase 13-05]: createSubgraphNode factory typed as any in supervisor.ts — heterogeneous compiled graph topologies (salesTools vs accountantTools) cannot share a typed factory signature
 - [Phase 14]: vitest added to langgraph-server devDependencies for browser unit tests
+- [Phase 14]: [Phase 14-02]: callLLMWithStructuredOutput uses string schema description (not Zod) — matched actual LLM client API
+- [Phase 14]: [Phase 14-02]: GoogleGenAI test mock uses ES6 class (not vi.fn) — new keyword requires constructor-compatible mock
 
 ### Pending Todos
 
@@ -123,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:21:57.532Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-03-19T06:28:31.147Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
