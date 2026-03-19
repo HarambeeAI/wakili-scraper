@@ -14,8 +14,13 @@
 import { StateGraph } from "@langchain/langgraph";
 import type { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { AgentState } from "../types/agent-state.js";
+import type { UIComponent } from "../types/agent-state.js";
 import { AGENT_TYPES } from "../types/agent-types.js";
-import { createLLMNode, createRespondNode, type BaseAgentConfig } from "./base-agent.js";
+import {
+  createLLMNode,
+  createRespondNode,
+  type BaseAgentConfig,
+} from "./base-agent.js";
 import { createReadMemoryNode } from "../memory/read-memory.js";
 import { createWriteMemoryNode } from "../memory/write-memory.js";
 import {
@@ -25,6 +30,7 @@ import {
   trackEmailEngagement,
   type SalesClassification,
 } from "../tools/sales/index.js";
+import type { PipelineAnalysis } from "../tools/sales/types.js";
 
 // ── System Prompt ──────────────────────────────────────────────────────────────
 
@@ -64,18 +70,52 @@ Tools integrated: Apify (leads), Firecrawl (research), Resend (outreach), Playwr
  */
 export function classifySalesRequest(content: string): SalesClassification {
   return {
-    isLeadGeneration: /\b(find|generate|discover|get).*(leads?|prospects?|contacts?)\b/i.test(content),
-    isLeadEnrich: /\b(enrich|enhance|lookup|more.*info|details.*about).*(lead|contact|company)\b/i.test(content),
-    isProspectResearch: /\b(research|investigate|background|look.*up|scrape).*(company|prospect|website)\b/i.test(content),
-    isComposeOutreach: /\b(write|draft|compose|create).*(email|outreach|message)\b/i.test(content),
-    isSendOutreach: /\b(send|deliver|dispatch).*(email|outreach|message)\b/i.test(content),
-    isEmailEngagement: /\b(open|click|engage|track|response|reply).*(email|outreach)\b/i.test(content),
-    isDealStatusUpdate: /\b(move|update|change|advance).*(deal|lead|status|stage|pipeline)\b/i.test(content),
-    isScheduleFollowUp: /\b(schedule|plan|set|remind).*(follow.?up|callback|check.?in)\b/i.test(content),
-    isCreateProposal: /\b(create|write|draft|generate).*(proposal|quote|offer)\b/i.test(content),
-    isPipelineAnalysis: /\b(pipeline|funnel|stages?|conversion|velocity|deal.*count)\b/i.test(content),
-    isRevenueForcast: /\b(forecast|project|predict|revenue|how.*much.*revenue)\b/i.test(content),
-    isStaleDeals: /\b(stale|stuck|cold|inactive|aging|dormant).*(deal|lead|pipeline)\b/i.test(content),
+    isLeadGeneration:
+      /\b(find|generate|discover|get).*(leads?|prospects?|contacts?)\b/i.test(
+        content,
+      ),
+    isLeadEnrich:
+      /\b(enrich|enhance|lookup|more.*info|details.*about).*(lead|contact|company)\b/i.test(
+        content,
+      ),
+    isProspectResearch:
+      /\b(research|investigate|background|look.*up|scrape).*(company|prospect|website)\b/i.test(
+        content,
+      ),
+    isComposeOutreach:
+      /\b(write|draft|compose|create).*(email|outreach|message)\b/i.test(
+        content,
+      ),
+    isSendOutreach:
+      /\b(send|deliver|dispatch).*(email|outreach|message)\b/i.test(content),
+    isEmailEngagement:
+      /\b(open|click|engage|track|response|reply).*(email|outreach)\b/i.test(
+        content,
+      ),
+    isDealStatusUpdate:
+      /\b(move|update|change|advance).*(deal|lead|status|stage|pipeline)\b/i.test(
+        content,
+      ),
+    isScheduleFollowUp:
+      /\b(schedule|plan|set|remind).*(follow.?up|callback|check.?in)\b/i.test(
+        content,
+      ),
+    isCreateProposal:
+      /\b(create|write|draft|generate).*(proposal|quote|offer)\b/i.test(
+        content,
+      ),
+    isPipelineAnalysis:
+      /\b(pipeline|funnel|stages?|conversion|velocity|deal.*count)\b/i.test(
+        content,
+      ),
+    isRevenueForcast:
+      /\b(forecast|project|predict|revenue|how.*much.*revenue)\b/i.test(
+        content,
+      ),
+    isStaleDeals:
+      /\b(stale|stuck|cold|inactive|aging|dormant).*(deal|lead|pipeline)\b/i.test(
+        content,
+      ),
   };
 }
 
@@ -164,12 +204,32 @@ export function createSalesToolsNode() {
       toolResults.requestType = "send_outreach";
     }
 
+    // ── Build UIComponents for generative UI ──────────────────────────────
+    const uiComponents: UIComponent[] = [];
+
+    if (classification.isPipelineAnalysis && toolResults.pipeline) {
+      const pipeline = toolResults.pipeline as PipelineAnalysis;
+      // Transform PipelineStageRow[] to PipelineKanban deals format:
+      // PipelineKanban expects deals[] with { id, name, status, value? }
+      const deals = pipeline.byStage.map((s) => ({
+        id: s.status,
+        name: `${s.deal_count} deal${s.deal_count !== 1 ? "s" : ""}`,
+        status: s.status,
+        value: s.total_deal_value ?? 0,
+      }));
+      uiComponents.push({
+        type: "pipeline_kanban",
+        props: { deals },
+      });
+    }
+
     // Merge tool results into businessContext for the downstream LLM node
     return {
       businessContext: {
         ...state.businessContext,
         salesToolResults: toolResults,
       },
+      ...(uiComponents.length > 0 ? { uiComponents } : {}),
     };
   };
 }
