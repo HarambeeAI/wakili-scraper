@@ -51,7 +51,7 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 
 **Per-Agent Tool Execution**
 - [x] Accountant: invoice CRUD, transaction recording, cashflow projection, P&L generation, tax estimation, anomaly detection — Validated in Phase 13
-- [ ] Marketer: Nano Banana 2 image generation, Playwright persistent browser for social media (publish, analytics, competitor scraping), content calendar, A/B testing
+- [x] Marketer: Nano Banana 2 image generation, Playwright persistent browser for social media (publish, analytics, competitor scraping), content calendar, research tools — Validated in Phase 14
 - [x] Sales Rep: Apify lead generation (developer-provided key), Resend outreach, email engagement tracking, pipeline analysis, revenue forecasting — Validated in Phase 13
 - [ ] Personal Assistant: Google Workspace (Gmail API, Calendar API, Drive API), inbox triage, meeting prep, time allocation analysis
 - [ ] All 13 agents with role-specific tools defined in V2_ARCHITECTURE.md
@@ -81,10 +81,10 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 - [ ] First real briefing: Chief of Staff LangGraph graph produces actionable briefing from onboarding context
 
 **Persistent Agent Browser (Marketer)**
-- [ ] Playwright persistent browser context per user for social media operations
-- [ ] User logs in once to social accounts on agent's browser (sessions persist)
-- [ ] Session expiry detection and re-login prompts via heartbeat
-- [ ] Publish, fetch analytics, monitor competitors via real browser (not limited APIs)
+- [x] Playwright persistent browser context per user for social media operations — Validated in Phase 14
+- [x] User logs in once to social accounts on agent's browser (sessions persist) — Validated in Phase 14
+- [x] Session expiry detection and re-login prompts via heartbeat — Validated in Phase 14
+- [x] Publish, fetch analytics, monitor competitors via real browser (not limited APIs) — Validated in Phase 14
 
 **Audit & Governance (Paperclip patterns)**
 - [ ] Immutable audit log for all agent actions and tool calls
@@ -153,4 +153,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | Agent Team Selector at onboarding tail-end (not post-onboarding) | Users are most engaged and context-primed right after completing onboarding; conversion is higher than a post-login prompt | — Pending |
 
 ---
-*Last updated: 2026-03-19 after Phase 13 complete — Accountant has 12 real tools (invoice CRUD, transaction categorization, bank statement/receipt parsing, cashflow/runway, P&L, tax, anomaly, HITL invoice chase, invoice HTML) and Sales Rep has 12 real tools (Apify leads, Firecrawl research, outreach compose/send with HITL, engagement tracking, deal management, proposals, pipeline/revenue analysis, stale deal detection). Both agents rewired with deterministic tool-execution nodes in their LangGraph subgraphs.*
+*Last updated: 2026-03-19 after Phase 14 complete — Marketer has 12 real tools (content generation, image generation via Gemini, content calendar, post scheduling, HITL-gated browser publishing, analytics scraping, performance analysis, content library, brand mention monitoring, competitor analysis, trending topics) with Playwright persistent browser for social media operations. Accountant and Sales Rep each have 12 tools from Phase 13. All three agents use deterministic tool-execution nodes in their LangGraph subgraphs.*
