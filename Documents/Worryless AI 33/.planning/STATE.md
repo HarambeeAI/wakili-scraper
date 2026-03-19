@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: "Completed 15-01-PLAN.md (foundation: DB migration + googleapis + 8 type contracts)"
-last_updated: "2026-03-19T07:40:00.000Z"
+stopped_at: "Completed 15-04-PLAN.md (PR tools: 4 tools + Procurement tools: 4 tools with HITL)"
+last_updated: "2026-03-19T07:47:55.798Z"
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 29
-  completed_plans: 24
+  completed_plans: 26
 ---
 
 # Project State
@@ -121,6 +121,10 @@ New v2.0 decisions:
 - [Phase 15-01]: googleapis (not google-auth-library) installed — bundles OAuth2 client + Gmail/Calendar/Drive API clients needed for PA agent in one package
 - [Phase 15-01]: google-auth.ts reads tokens from integrations table (provider = 'google') — consistent with existing OAuth storage pattern from Phase 1 DB schema
 - [Phase 15-01]: Type contracts are TypeScript interfaces only (no Zod/runtime validation) — matches existing pattern from accountant/types.ts, marketer/types.ts
+- [Phase 15]: [Phase 15-04]: PO stored as agent_assets with asset_type='purchase_order'; agent_assets uses title not name column
+- [Phase 15]: [Phase 15-04]: compareQuotes parses lead time strings (days/weeks/months) to numeric days for fair comparison
+- [Phase 15]: extractBody helper walks Gmail payload.parts for text/plain before falling back — Gmail API returns nested MIME parts for multipart messages
+- [Phase 15]: detectCalendarConflicts calls listCalendarEvents internally rather than the Calendar API directly — DRY and consistent event mapping
 
 ### Pending Todos
 
@@ -135,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:40:00.000Z
-Stopped at: Completed 15-01-PLAN.md (foundation: DB migration + googleapis + 8 type contracts)
-Resume file: .planning/phases/15-personal-assistant-operational-agents/15-02-PLAN.md
+Last session: 2026-03-19T07:47:46.570Z
+Stopped at: Completed 15-04-PLAN.md (PR tools: 4 tools + Procurement tools: 4 tools with HITL)
+Resume file: None
