@@ -1,7 +1,8 @@
-import { StateGraph, Command, Send } from "@langchain/langgraph";
+import { StateGraph, Command } from "@langchain/langgraph";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import type { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { AgentState } from "../types/agent-state.js";
+import type { GoalChainEntry } from "../types/agent-state.js";
 import {
   AGENT_TYPES,
   COS_DIRECT_REPORTS,
@@ -11,6 +12,9 @@ import {
 } from "../types/agent-types.js";
 import { callLLM, callLLMWithStructuredOutput } from "../llm/client.js";
 import { createReadMemoryNode } from "../memory/read-memory.js";
+import { createCosToolsNode } from "../agents/chief-of-staff.js";
+import { createFanOutSends } from "../tools/cos/fan-out-to-agents.js";
+import { writeAuditLog } from "../governance/audit-log.js";
 
 // Import all direct-report graph factories
 import { createAccountantGraph } from "../agents/accountant.js";
@@ -52,6 +56,13 @@ When answering directly:
 - Be concise but actionable
 - If you don't have enough information, say what you need
 - For specific departmental questions, suggest the user ask the relevant specialist
+
+You have access to real business data gathered by your analysis tools. When answering:
+- Reference specific findings from your morning briefing data
+- Cite agent health metrics when discussing team performance
+- Mention specific action items and their status
+- Note any correlations detected between agent findings
+If your tools gathered data for this request, use it to give a concrete, data-backed answer — not generic advice.
 
 You are NOT a general chatbot. You are a strategic advisor focused on this specific business.`;
 
@@ -101,15 +112,60 @@ function createCosRouterNode() {
 
     // Single agent routing via Command
     if (data.route === "single" || uniqueAgents.length === 1) {
+      // GOV-03: Attach goal chain to delegation
+      const delegationGoalChain: GoalChainEntry[] = [
+        {
+          level: "task",
+          description: `Delegated by Chief of Staff: "${content.slice(0, 100)}"`,
+        },
+      ];
+
+      // GOV-01: Audit the delegation (fire-and-forget)
+      writeAuditLog({
+        userId: state.userId,
+        agentTypeId: "chief_of_staff",
+        action: "delegation",
+        input: { targetAgent: uniqueAgents[0], reasoning: data.reasoning },
+        output: { route: data.route },
+        tokensUsed: 0,
+        goalChain: delegationGoalChain,
+      }).catch((err) =>
+        console.error("[audit-log] Delegation audit failed:", err),
+      );
+
       return new Command({
         goto: uniqueAgents[0],
-        update: { agentType: uniqueAgents[0] as AgentTypeId },
+        update: {
+          agentType: uniqueAgents[0] as AgentTypeId,
+          goalChain: delegationGoalChain,
+        },
       });
     }
 
-    // Multi-agent parallel fan-out via Send
-    return new Command({
-      goto: uniqueAgents.map((agent) => new Send(agent, { ...state, agentType: agent as AgentTypeId })),
+    // Multi-agent parallel fan-out via createFanOutSends (COS-03)
+    const fanOutGoalChain: GoalChainEntry[] = [
+      {
+        level: "task",
+        description: `Multi-agent request from Chief of Staff: "${content.slice(0, 100)}"`,
+      },
+    ];
+
+    // GOV-01: Audit the fan-out delegation (fire-and-forget)
+    writeAuditLog({
+      userId: state.userId,
+      agentTypeId: "chief_of_staff",
+      action: "delegation",
+      input: { targetAgents: uniqueAgents, reasoning: data.reasoning },
+      output: { route: data.route },
+      tokensUsed: 0,
+      goalChain: fanOutGoalChain,
+    }).catch((err) => console.error("[audit-log] Fan-out audit failed:", err));
+
+    // COS-03: Use createFanOutSends to build Command with Send array
+    return createFanOutSends({
+      targetAgents: uniqueAgents as AgentTypeId[],
+      goalChain: fanOutGoalChain,
+      state,
     });
   };
 }
@@ -118,8 +174,16 @@ function createCosRouterNode() {
 
 function createCosRespondNode() {
   return async (state: typeof AgentState.State) => {
+    // Inject CoS tool results into system prompt for richer, data-backed responses
+    let toolContextStr = "";
+    const toolResults = (state.businessContext as Record<string, unknown>)
+      ?.cosToolResults;
+    if (toolResults && typeof toolResults === "object") {
+      toolContextStr = `\n\nCurrent business intelligence (gathered just now):\n${JSON.stringify(toolResults, null, 2)}`;
+    }
+
     const result = await callLLM(state.messages, {
-      systemPrompt: COS_DIRECT_RESPONSE_PROMPT,
+      systemPrompt: COS_DIRECT_RESPONSE_PROMPT + toolContextStr,
       temperature: 0.7,
       maxTokens: 2048,
     });
@@ -168,13 +232,16 @@ const DIRECT_REPORT_FACTORIES: Record<
  * Creates the Chief of Staff root supervisor StateGraph.
  *
  * Topology:
- *   __start__ -> readMemory -> cosRouter -> [specialist subgraph node] -> __end__
- *                                        -> cosRespond                 -> __end__
+ *   __start__ -> readMemory -> cosTools -> cosRouter -> [specialist subgraph node] -> __end__
+ *                                                    -> cosRespond                 -> __end__
+ *
+ * cosTools: Deterministic data-gathering node — runs before routing so the LLM
+ *   has real business data (briefing, health, action items) in state.businessContext.
  *
  * The cosRouter node calls callLLMWithStructuredOutput to classify the user's
  * message into one of three routing modes:
- *   - "single": Command({ goto: agentType }) for single specialist dispatch
- *   - "multi":  Command({ goto: [Send(agent1,...), Send(agent2,...)] }) for parallel fan-out
+ *   - "single": Command({ goto: agentType, update: { goalChain } }) for single specialist dispatch
+ *   - "multi":  createFanOutSends({ targetAgents, goalChain, state }) for parallel fan-out
  *   - "direct": Command({ goto: "cosRespond" }) for CoS to answer directly
  *
  * The root graph is compiled WITH a checkpointer for full state persistence.
@@ -189,12 +256,14 @@ export function createSupervisorGraph(checkpointer?: PostgresSaver) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let builder: any = new StateGraph(AgentState)
     .addNode("readMemory", createReadMemoryNode())
+    .addNode("cosTools", createCosToolsNode())
     .addNode("cosRouter", createCosRouterNode(), {
       ends: ALL_COS_TARGETS,
     })
     .addNode("cosRespond", createCosRespondNode())
     .addEdge("__start__", "readMemory")
-    .addEdge("readMemory", "cosRouter")
+    .addEdge("readMemory", "cosTools")
+    .addEdge("cosTools", "cosRouter")
     .addEdge("cosRespond", "__end__");
 
   // Register each direct-report agent as an invoke-delegate subgraph node
