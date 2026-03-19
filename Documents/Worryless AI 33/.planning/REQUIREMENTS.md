@@ -73,12 +73,12 @@
 - [x] **SALES-04**: `compose_outreach` tool with personalization from prospect research + business context
 - [x] **SALES-05**: `send_outreach` tool via Resend (requires HITL)
 - [x] **SALES-06**: `track_email_engagement` tool via Resend webhooks
-- [ ] **SALES-07**: `update_deal_status` tool moving leads through pipeline
-- [ ] **SALES-08**: `schedule_follow_up` tool with optimal timing from memory
-- [ ] **SALES-09**: `create_proposal` tool generating sales proposals
-- [ ] **SALES-10**: `analyze_pipeline` tool for velocity and conversion rates
-- [ ] **SALES-11**: `forecast_revenue` tool projecting from pipeline + historical rates
-- [ ] **SALES-12**: `detect_stale_deals` tool flagging stuck deals
+- [x] **SALES-07**: `update_deal_status` tool moving leads through pipeline
+- [x] **SALES-08**: `schedule_follow_up` tool with optimal timing from memory
+- [x] **SALES-09**: `create_proposal` tool generating sales proposals
+- [x] **SALES-10**: `analyze_pipeline` tool for velocity and conversion rates
+- [x] **SALES-11**: `forecast_revenue` tool projecting from pipeline + historical rates
+- [x] **SALES-12**: `detect_stale_deals` tool flagging stuck deals
 
 ### Agent Tools — Personal Assistant (PA)
 
@@ -242,12 +242,12 @@
 | SALES-04 | Phase 13 | Complete |
 | SALES-05 | Phase 13 | Complete |
 | SALES-06 | Phase 13 | Complete |
-| SALES-07 | Phase 13 | Pending |
-| SALES-08 | Phase 13 | Pending |
-| SALES-09 | Phase 13 | Pending |
-| SALES-10 | Phase 13 | Pending |
-| SALES-11 | Phase 13 | Pending |
-| SALES-12 | Phase 13 | Pending |
+| SALES-07 | Phase 13 | Complete |
+| SALES-08 | Phase 13 | Complete |
+| SALES-09 | Phase 13 | Complete |
+| SALES-10 | Phase 13 | Complete |
+| SALES-11 | Phase 13 | Complete |
+| SALES-12 | Phase 13 | Complete |
 | MKT-01 | Phase 14 | Pending |
 | MKT-02 | Phase 14 | Pending |
 | MKT-03 | Phase 14 | Pending |

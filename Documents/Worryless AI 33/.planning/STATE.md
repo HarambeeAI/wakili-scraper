@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 13-02-PLAN.md
-last_updated: "2026-03-19T05:08:31.675Z"
+stopped_at: Completed 13-05-PLAN.md
+last_updated: "2026-03-19T05:15:41.867Z"
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 18
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 13 (accountant-sales-rep-agent-tools) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -35,8 +35,8 @@ Plan: 2 of 5
 
 **v2.0 in progress:**
 
-- Plans completed: 14 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode, 12-03: 7 CoS tools (briefing, delegation, fan-out, memory, correlation, action items, health), 12-04: cosTools node integration — supervisor graph wired with cosTools + goalChain delegation + audit log, 13-01: Phase 13 foundation — DB migration + shared DB pool + base-agent exports + type contracts)
-- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min + 9 min + 15 min + 8 min
+- Plans completed: 16 (10-01: LangGraph DB migrations, 10-02: LangGraph server scaffold, 10-03: LangGraph proxy Edge Function, 10-04: Frontend feature flag hook, 11-01: Agent type constants + state schema + LLM client + memory helpers, 11-02: Base agent factory + 4 specialist subgraphs, 11-03: 7 operational agents + COO supervisor, 11-04: CoS root supervisor graph + agent registry, 11-05: HITL + thread manager + RAG + supervisor wired, 12-01: Governance infrastructure — audit log + token budget + atomic checkout + goal chain, 12-02: Governance hooks wired into base agent createLLMNode, 12-03: 7 CoS tools (briefing, delegation, fan-out, memory, correlation, action items, health), 12-04: cosTools node integration — supervisor graph wired with cosTools + goalChain delegation + audit log, 13-01: Phase 13 foundation — DB migration + shared DB pool + base-agent exports + type contracts, 13-02: 6 base accountant tools (invoice, transaction, bank statement, receipt, cashflow, P&L), 13-03: 6 advanced accountant tools (tax, anomaly z-score, chase HITL, runway, HTML invoice) + graph rewrite with accountantTools node)
+- Duration: 4 min + 6 min + ~8 min + 8 min + 7 min + 12 min + 9 min + 2 min + 2 min + 9 min + 5 min + 9 min + 15 min + 8 min + 10 min + 10 min
 
 *Updated after each plan completion*
 
@@ -103,6 +103,8 @@ New v2.0 decisions:
 - [Phase 13-accountant-sales-rep-agent-tools]: sendOutreach HITL is mandatory — interruptForApproval called before any Resend API call; trackEmailEngagement reads open/click counts from DB only (Resend webhook populates them)
 - [Phase 13-02]: pdf-parse v2 uses PDFParse class (not v1 pdfParse function) — import updated to named export with new PDFParse({ data: buffer }).getText() API
 - [Phase 13-02]: parseReceipt bypasses callLLM via direct gateway fetch — callLLM stringifies content arrays breaking multimodal image_url format
+- [Phase 13-05]: salesTools node follows cosTools pattern — regex classification before LLM, results in businessContext.salesToolResults
+- [Phase 13-05]: createSubgraphNode factory typed as any in supervisor.ts — heterogeneous compiled graph topologies (salesTools vs accountantTools) cannot share a typed factory signature
 
 ### Pending Todos
 
@@ -117,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:08:31.672Z
-Stopped at: Completed 13-02-PLAN.md
+Last session: 2026-03-19T05:15:41.864Z
+Stopped at: Completed 13-05-PLAN.md
 Resume file: None
