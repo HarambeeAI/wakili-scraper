@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 13-04-PLAN.md
-last_updated: "2026-03-19T05:08:18.797Z"
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-03-19T05:08:31.675Z"
 progress:
   total_phases: 8
   completed_phases: 3
@@ -101,6 +101,8 @@ New v2.0 decisions:
 - [Phase 13-01]: Partial unique index on leads(user_id, email) WHERE email IS NOT NULL — allows leads without email while preventing email-based dupes
 - [Phase 13-accountant-sales-rep-agent-tools]: Apify cap Math.min(fetchCount ?? 20, 20) — LangGraph shorter timeout than Edge Functions; ON CONFLICT dedup with plain INSERT fallback for no-email leads
 - [Phase 13-accountant-sales-rep-agent-tools]: sendOutreach HITL is mandatory — interruptForApproval called before any Resend API call; trackEmailEngagement reads open/click counts from DB only (Resend webhook populates them)
+- [Phase 13-02]: pdf-parse v2 uses PDFParse class (not v1 pdfParse function) — import updated to named export with new PDFParse({ data: buffer }).getText() API
+- [Phase 13-02]: parseReceipt bypasses callLLM via direct gateway fetch — callLLM stringifies content arrays breaking multimodal image_url format
 
 ### Pending Todos
 
@@ -115,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:08:11.710Z
-Stopped at: Completed 13-04-PLAN.md
+Last session: 2026-03-19T05:08:31.672Z
+Stopped at: Completed 13-02-PLAN.md
 Resume file: None

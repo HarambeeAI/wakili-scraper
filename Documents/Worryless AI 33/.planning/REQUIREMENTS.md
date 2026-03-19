@@ -37,12 +37,12 @@
 
 ### Agent Tools — Accountant (ACCT)
 
-- [ ] **ACCT-01**: `create_invoice` and `list_invoices` tools for invoice CRUD
-- [ ] **ACCT-02**: `record_transaction` tool with LLM auto-categorization
-- [ ] **ACCT-03**: `parse_bank_statement` tool extracting transactions from CSV/PDF
-- [ ] **ACCT-04**: `parse_receipt` tool using Gemini multimodal (photo to structured data)
-- [ ] **ACCT-05**: `calculate_cashflow_projection` tool projecting 30/60/90 days
-- [ ] **ACCT-06**: `generate_pl_report` tool producing P&L with MoM comparison
+- [x] **ACCT-01**: `create_invoice` and `list_invoices` tools for invoice CRUD
+- [x] **ACCT-02**: `record_transaction` tool with LLM auto-categorization
+- [x] **ACCT-03**: `parse_bank_statement` tool extracting transactions from CSV/PDF
+- [x] **ACCT-04**: `parse_receipt` tool using Gemini multimodal (photo to structured data)
+- [x] **ACCT-05**: `calculate_cashflow_projection` tool projecting 30/60/90 days
+- [x] **ACCT-06**: `generate_pl_report` tool producing P&L with MoM comparison
 - [ ] **ACCT-07**: `track_budget_vs_actual` tool comparing spending against targets
 - [ ] **ACCT-08**: `estimate_tax` tool calculating liability by jurisdiction
 - [ ] **ACCT-09**: `detect_anomalous_transaction` tool flagging outlier transactions
@@ -224,12 +224,12 @@
 | GOV-02 | Phase 12 | Complete |
 | GOV-03 | Phase 12 | Complete |
 | GOV-04 | Phase 12 | Complete |
-| ACCT-01 | Phase 13 | Pending |
-| ACCT-02 | Phase 13 | Pending |
-| ACCT-03 | Phase 13 | Pending |
-| ACCT-04 | Phase 13 | Pending |
-| ACCT-05 | Phase 13 | Pending |
-| ACCT-06 | Phase 13 | Pending |
+| ACCT-01 | Phase 13 | Complete |
+| ACCT-02 | Phase 13 | Complete |
+| ACCT-03 | Phase 13 | Complete |
+| ACCT-04 | Phase 13 | Complete |
+| ACCT-05 | Phase 13 | Complete |
+| ACCT-06 | Phase 13 | Complete |
 | ACCT-07 | Phase 13 | Pending |
 | ACCT-08 | Phase 13 | Pending |
 | ACCT-09 | Phase 13 | Pending |
