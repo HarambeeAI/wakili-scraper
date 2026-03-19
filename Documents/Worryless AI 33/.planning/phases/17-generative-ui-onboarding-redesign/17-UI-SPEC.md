@@ -52,15 +52,14 @@ Exceptions:
 
 ## Typography
 
-All roles use font-family Montserrat. Mono role uses IBM Plex Mono.
+All roles use font-family Montserrat unless noted. Mono content (inline code, JSON tool output) uses IBM Plex Mono via `font-mono` class — it shares the 14px Body size and is a font-family override, not a separate size role.
 
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
-| Body | 14px | 400 | 1.5 | Message bubble text, thread list item description, onboarding question body |
 | Label | 12px | 600 | 1.4 | Agent name badge above assistant bubble, tool indicator pill, status chip, streaming cursor label |
+| Body | 14px | 400 | 1.5 | Message bubble text, thread list item description, onboarding question body. Mono variant: IBM Plex Mono 14px (`font-mono`) for inline code in markdown responses and JSON tool output — line-height 1.6. |
 | Heading | 20px | 600 | 1.2 | Agent panel page title, HITL card title, inline component headers (P&L table title, Pipeline heading) |
 | Display | 28px | 600 | 1.1 | Onboarding welcome headline, business-stage question headline |
-| Mono | 13px | 400 | 1.6 | Inline code in markdown responses, JSON tool output |
 
 Weights used: 400 (regular) and 600 (semibold) only.
 
