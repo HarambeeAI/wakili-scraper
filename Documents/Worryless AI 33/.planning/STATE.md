@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 18-02-PLAN.md
-last_updated: "2026-03-19T20:25:45.073Z"
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-03-19T20:27:11.472Z"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 43
-  completed_plans: 41
+  completed_plans: 42
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 18 (agent-to-ui-data-pipeline-fix) — EXECUTING
-Plan: 1 of 4
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -161,6 +161,8 @@ New v2.0 decisions:
 - [Phase 18-04]: PA tools node emits dynamic_form UIComponent using spread-only-if-nonempty pattern, consistent with accountant.ts/sales-rep.ts
 - [Phase 18-02]: finalState.tasks[].interrupts[] is the correct LangGraph data path for interrupt() payloads — state-level pendingApprovals accumulator is never populated by interrupt()
 - [Phase 18-02]: Fallback state-level pendingApprovals check preserved for nodes that write directly to state channel
+- [Phase 18-01]: Spread-only-if-nonempty pattern for uiComponents return — avoids appending empty arrays to accumulator on turns where no matching tool was dispatched
+- [Phase 18-01]: PLReport.months mapped month-over-month to InlinePLTable PLRow format: current=netProfit, previous=next month netProfit, change=difference
 
 ### Pending Todos
 
@@ -175,6 +177,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T20:25:45.069Z
-Stopped at: Completed 18-02-PLAN.md
+Last session: 2026-03-19T20:27:11.469Z
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None
