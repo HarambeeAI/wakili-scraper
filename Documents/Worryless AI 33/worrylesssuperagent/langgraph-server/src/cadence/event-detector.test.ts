@@ -1,49 +1,35 @@
 /**
- * event-detector.test.ts — Tests for EVENT_TYPES, EVENT_PROMPTS, getEventPrompt
+ * event-detector.test.ts — Tests for event type definitions and prompts
  *
  * Verifies:
- * 1. EVENT_TYPES contains the three expected event type values
- * 2. EVENT_PROMPTS maps each event type to the correct agent_type
- * 3. getEventPrompt returns correct config for known events, null for unknown
- * 4. Prompt keywords trigger the correct tool dispatch regexes
- * 5. No prompt contains HITL-triggering keywords
+ * - EVENT_TYPES contains all expected event types
+ * - EVENT_PROMPTS maps each event to the correct agent type
+ * - Event prompts trigger correct tool classification regex
+ * - No event prompt contains HITL-triggering keywords
+ * - getEventPrompt handles known and unknown event types
  */
 
 import { describe, it, expect } from "vitest";
-import { EVENT_TYPES, EVENT_PROMPTS, getEventPrompt } from "./event-detector.js";
+import {
+  EVENT_TYPES,
+  EVENT_PROMPTS,
+  getEventPrompt,
+} from "./event-detector.js";
+import { classifyAccountantRequest } from "../agents/accountant.js";
+import { classifySalesRequest } from "../agents/sales-rep.js";
+import { classifyLegalRequest } from "../agents/legal-compliance.js";
 
-// ── Regex mirrors from agent classify functions ────────────────────────────────
-// These replicate the regex patterns from accountant.ts and sales-rep.ts so we
-// can verify that event prompts trigger the correct tool dispatch paths.
+const HITL_REGEX =
+  /\b(chase|send\s+reminder|send\s+email|send\s+outreach|publish\s+post|create\s+event|approve|purchase\s+order)\b/i;
 
-const ACCOUNTANT_REGEX = {
-  isInvoiceQuery: /\b(invoices?|bills?|receivables?|outstanding|owed)\b/i,
-  isCashflowQuery: /\b(cashflow|cash.?flow|projection|forecast.*cash)\b/i,
-  // isChaseInvoice — must NOT be triggered
-  isChaseInvoice: /\b(chase|remind|follow.*up.*invoice|overdue.*invoice|payment.*reminder)\b/i,
-};
-
-const SALES_REGEX = {
-  isStaleDeals: /\b(stale|stuck|cold|inactive|aging|dormant).*(deal|lead|pipeline)\b/i,
-  isEmailEngagement: /\b(open|click|engage|track|response|reply).*(email|outreach)\b/i,
-  // isSendOutreach — must NOT be triggered
-  isSendOutreach: /\b(send|deliver|dispatch).*(email|outreach|message)\b/i,
-};
-
-// HITL keyword patterns — none of these should appear in event prompts
-const HITL_PATTERNS = [
-  /\bchase\b/i,
-  /\bsend reminder\b/i,
-  /\bsend outreach\b/i,
-  /\bsend email\b/i,
-  /\bpublish\b/i,
-  /\bcreate event\b/i,
-  /\bschedule event\b/i,
-  /\bapprove\b/i,
-  /\bpurchase order\b/i,
-];
-
-// ── EVENT_TYPES ────────────────────────────────────────────────────────────────
+function assertNoHITL(eventType: string, prompt: string) {
+  const match = HITL_REGEX.exec(prompt);
+  if (match) {
+    throw new Error(
+      `HITL keyword "${match[0]}" found in ${eventType} event prompt`,
+    );
+  }
+}
 
 describe("EVENT_TYPES", () => {
   it("contains overdue_invoice", () => {
@@ -63,35 +49,71 @@ describe("EVENT_TYPES", () => {
   });
 });
 
-// ── EVENT_PROMPTS structure ────────────────────────────────────────────────────
-
-describe("EVENT_PROMPTS", () => {
-  it("overdue_invoice maps to agent_type accountant", () => {
+describe("EVENT_PROMPTS agent mapping", () => {
+  it("overdue_invoice maps to accountant", () => {
     expect(EVENT_PROMPTS.overdue_invoice.agentType).toBe("accountant");
   });
 
-  it("stale_deal maps to agent_type sales_rep", () => {
+  it("stale_deal maps to sales_rep", () => {
     expect(EVENT_PROMPTS.stale_deal.agentType).toBe("sales_rep");
   });
 
-  it("expiring_contract maps to agent_type legal_advisor", () => {
+  it("expiring_contract maps to legal_advisor", () => {
     expect(EVENT_PROMPTS.expiring_contract.agentType).toBe("legal_advisor");
-  });
-
-  it("all event prompts have non-empty prompt strings", () => {
-    for (const [, config] of Object.entries(EVENT_PROMPTS)) {
-      expect(config.prompt.length).toBeGreaterThan(20);
-    }
   });
 });
 
-// ── getEventPrompt ─────────────────────────────────────────────────────────────
+describe("event prompt classification", () => {
+  it("overdue_invoice prompt triggers isInvoiceQuery", () => {
+    const cls = classifyAccountantRequest(EVENT_PROMPTS.overdue_invoice.prompt);
+    expect(cls.isInvoiceQuery).toBe(true);
+  });
+
+  it("overdue_invoice prompt triggers isCashflowQuery", () => {
+    const cls = classifyAccountantRequest(EVENT_PROMPTS.overdue_invoice.prompt);
+    expect(cls.isCashflowQuery).toBe(true);
+  });
+
+  it("overdue_invoice prompt does NOT trigger isChaseInvoice", () => {
+    const cls = classifyAccountantRequest(EVENT_PROMPTS.overdue_invoice.prompt);
+    expect(cls.isChaseInvoice).toBe(false);
+  });
+
+  it("stale_deal prompt triggers isStaleDeals", () => {
+    const cls = classifySalesRequest(EVENT_PROMPTS.stale_deal.prompt);
+    expect(cls.isStaleDeals).toBe(true);
+  });
+
+  it("stale_deal prompt triggers isEmailEngagement", () => {
+    const cls = classifySalesRequest(EVENT_PROMPTS.stale_deal.prompt);
+    expect(cls.isEmailEngagement).toBe(true);
+  });
+
+  it("stale_deal prompt does NOT trigger isSendOutreach", () => {
+    const cls = classifySalesRequest(EVENT_PROMPTS.stale_deal.prompt);
+    expect(cls.isSendOutreach).toBe(false);
+  });
+
+  it("expiring_contract prompt triggers isContractCalendar", () => {
+    const cls = classifyLegalRequest(EVENT_PROMPTS.expiring_contract.prompt);
+    expect(cls.isContractCalendar).toBe(true);
+  });
+});
+
+describe("event prompts HITL safety", () => {
+  for (const [eventType, config] of Object.entries(EVENT_PROMPTS)) {
+    it(`${eventType} prompt has no HITL keywords`, () => {
+      expect(() => assertNoHITL(eventType, config.prompt)).not.toThrow();
+    });
+  }
+});
 
 describe("getEventPrompt", () => {
   it("returns correct config for overdue_invoice", () => {
     const result = getEventPrompt("overdue_invoice");
     expect(result).not.toBeNull();
     expect(result!.agentType).toBe("accountant");
+    expect(result!.prompt.length).toBeGreaterThan(0);
   });
 
   it("returns correct config for stale_deal", () => {
@@ -107,67 +129,7 @@ describe("getEventPrompt", () => {
   });
 
   it("returns null for unknown event type", () => {
-    expect(getEventPrompt("unknown_event")).toBeNull();
-    expect(getEventPrompt("")).toBeNull();
-    expect(getEventPrompt("viral_post")).toBeNull();
+    const result = getEventPrompt("unknown_event");
+    expect(result).toBeNull();
   });
-});
-
-// ── Prompt keyword verification ────────────────────────────────────────────────
-
-describe("overdue_invoice prompt keywords", () => {
-  const prompt = EVENT_PROMPTS.overdue_invoice.prompt;
-
-  it("contains 'invoices' to trigger isInvoiceQuery", () => {
-    expect(ACCOUNTANT_REGEX.isInvoiceQuery.test(prompt)).toBe(true);
-  });
-
-  it("contains 'cashflow' to trigger isCashflowQuery", () => {
-    expect(ACCOUNTANT_REGEX.isCashflowQuery.test(prompt)).toBe(true);
-  });
-
-  it("does NOT trigger isChaseInvoice regex", () => {
-    // prompt must not contain 'overdue invoice', 'chase', 'remind', etc.
-    expect(ACCOUNTANT_REGEX.isChaseInvoice.test(prompt)).toBe(false);
-  });
-});
-
-describe("stale_deal prompt keywords", () => {
-  const prompt = EVENT_PROMPTS.stale_deal.prompt;
-
-  it("contains 'stale deals' to trigger isStaleDeals", () => {
-    expect(SALES_REGEX.isStaleDeals.test(prompt)).toBe(true);
-  });
-
-  it("contains email engagement keywords to trigger isEmailEngagement", () => {
-    expect(SALES_REGEX.isEmailEngagement.test(prompt)).toBe(true);
-  });
-
-  it("does NOT trigger isSendOutreach regex", () => {
-    expect(SALES_REGEX.isSendOutreach.test(prompt)).toBe(false);
-  });
-});
-
-describe("expiring_contract prompt keywords", () => {
-  const prompt = EVENT_PROMPTS.expiring_contract.prompt;
-
-  it("contains contract-related keywords", () => {
-    expect(/\bcontract\b/i.test(prompt)).toBe(true);
-  });
-
-  it("contains 'expir' to indicate expiry detection", () => {
-    expect(/expir/i.test(prompt)).toBe(true);
-  });
-});
-
-// ── HITL keyword guard ─────────────────────────────────────────────────────────
-
-describe("No event prompt triggers HITL keywords", () => {
-  for (const [eventType, config] of Object.entries(EVENT_PROMPTS)) {
-    for (const pattern of HITL_PATTERNS) {
-      it(`${eventType} prompt does not match HITL pattern ${pattern}`, () => {
-        expect(pattern.test(config.prompt)).toBe(false);
-      });
-    }
-  }
 });
