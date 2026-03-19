@@ -1,10 +1,21 @@
 # Milestones
 
+## v2.0 Agent Intelligence Layer (Shipped: 2026-03-19)
+
+**Phases completed:** 9 phases, 43 plans, 27 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
 ## v1.0: Proactive Multi-Agent Foundation (Completed 2026-03-17)
 
 **Goal:** Transform Worryless AI from a reactive 4-agent chat platform into a proactive AI department with heartbeat monitoring, workspace customization, agent marketplace, and notification delivery.
 
 **Phases completed:** 9 (39 plans executed)
+
 - Phase 1: Database Foundation (schema, seed catalog, triggers, RLS)
 - Phase 2: Agent Spawner + Team Selector (onboarding Step 12, spawn-agent-team)
 - Phase 3: MD Workspace Editor + Agent Marketplace (CodeMirror, auto-save, marketplace)
@@ -18,6 +29,7 @@
 **Last phase number:** 9
 
 **Key outcomes:**
+
 - 13 agent types in catalog with 6-file workspace system
 - Heartbeat pipeline: pg_cron → pgmq → runner with severity routing (ok/digest/headsup/urgent)
 - Morning digest, email, push notification delivery

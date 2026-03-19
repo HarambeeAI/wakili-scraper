@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Worryless AI is a multi-agent automation platform that spawns a tailored AI team for small business owners and teams (2–10 people). After a guided onboarding that collects deep business context, an Agent Spawner recommends and activates a full org-structured team of AI specialists — each with a defined identity, SOPs, memory, and role-specific tools. Agents run proactively via a heartbeat system, surfacing insights and taking approved actions without waiting to be asked.
+Worryless AI is a multi-agent automation platform that spawns a tailored AI team for small business owners and teams (2–10 people). After a guided onboarding that collects deep business context and detects business stage (Starting/Running/Scaling), an Agent Spawner recommends and activates a full org-structured team of AI specialists — each with a defined identity, SOPs, memory, and role-specific tools backed by a LangGraph multi-agent server. Agents run proactively via a cadence engine (daily/weekly/monthly/quarterly), surfacing insights and taking approved actions without waiting to be asked. Every agent interaction happens through an intelligent chat interface with inline generative UI components.
 
 ## Core Value
 
@@ -12,145 +12,124 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 
 ### Validated
 
-<!-- Already exists and working in the current codebase -->
+<!-- v1.0 — Proactive Multi-Agent Foundation -->
 
-- ✓ Email/password authentication with Supabase Auth — existing
-- ✓ Multi-step conversational onboarding (11 steps: business name, website, industry, location, description, validators) — existing
-- ✓ Website crawl → Business Artifacts knowledge base — existing
-- ✓ Four default agent UIs: Accountant, Marketer, Sales Rep, Personal Assistant — existing
-- ✓ Chief of Staff orchestrator that routes queries to specialist agents — existing
-- ✓ Agent validator system (per-agent human approval chain for high-risk tasks) — existing
-- ✓ Task lifecycle: pending → scheduled → running → needs_approval → completed — existing
-- ✓ Scheduled task automation via Supabase cron (`run-scheduled-tasks`) — existing
-- ✓ Chat interface with markdown rendering, file attachments, multi-agent routing — existing
-- ✓ Business Artifacts panel (company context, website content, uploaded docs) — existing
-- ✓ Dashboard with overview metrics (hours saved, tasks completed, money saved) — existing
-- ✓ Agent-specific UIs: invoice tracking, lead pipeline, social post scheduling, email/calendar — existing
-- ✓ Google Gmail + Calendar integration for Personal Assistant — existing
-- ✓ Content generation, image generation, lead research, outreach email generation — existing
-- ✓ Landing page with pricing, specialists, FAQ — existing
-
-### Active
+- ✓ Email/password authentication with Supabase Auth — v1.0
+- ✓ Multi-step conversational onboarding (11 steps) — v1.0
+- ✓ Website crawl → Business Artifacts knowledge base — v1.0
+- ✓ Four default agent UIs: Accountant, Marketer, Sales Rep, Personal Assistant — v1.0
+- ✓ Chief of Staff orchestrator routing queries to specialist agents — v1.0
+- ✓ Agent validator system (per-agent human approval chain) — v1.0
+- ✓ Task lifecycle: pending → scheduled → running → needs_approval → completed — v1.0
+- ✓ Scheduled task automation via Supabase cron — v1.0
+- ✓ Chat interface with markdown rendering, file attachments — v1.0
+- ✓ Business Artifacts panel — v1.0
+- ✓ Dashboard with overview metrics — v1.0
+- ✓ Agent-specific UIs: invoice tracking, lead pipeline, social post scheduling, email/calendar — v1.0
+- ✓ Google Gmail + Calendar integration for Personal Assistant — v1.0
+- ✓ Content generation, image generation, lead research, outreach generation — v1.0
+- ✓ Landing page with pricing, specialists, FAQ — v1.0
 
 <!-- v2.0 — Agent Intelligence Layer -->
 
-## Current Milestone: v2.0 Agent Intelligence Layer
+- ✓ LangGraph server (Node.js/TypeScript) on Railway with PostgresSaver checkpointing — v2.0
+- ✓ Hierarchical supervisor topology: CoS → 5 specialists + COO → 7 operational agents — v2.0
+- ✓ Real tool execution per agent via LangChain tool() definitions — v2.0
+- ✓ Human-in-the-loop via interrupt() for high-risk actions with inline approval cards — v2.0
+- ✓ Supabase Edge Functions as JWT-validating proxy to LangGraph server — v2.0
+- ✓ Accountant: 12 financial tools (invoice CRUD, P&L, cashflow, tax, anomaly detection) — v2.0
+- ✓ Marketer: 12 tools (content gen, brand images, Playwright publishing, analytics, research) — v2.0
+- ✓ Sales Rep: 12 tools (Apify leads, Resend outreach, pipeline analysis, revenue forecasting) — v2.0
+- ✓ Personal Assistant: 10 tools (Gmail API, Calendar API, Drive API, inbox triage, meeting prep) — v2.0
+- ✓ 7 operational agents with domain-specific tools (CS, Legal, HR, PR, Procurement, Data Analyst, Ops) — v2.0
+- ✓ Per-agent memory via LangGraph Store — v2.0
+- ✓ Shared business context namespace across all agents — v2.0
+- ✓ pgvector document embeddings for RAG — v2.0
+- ✓ Chat persistence via PostgresSaver — v2.0
+- ✓ Proactive cadence engine: pg_cron → pgmq → full LangGraph graph execution — v2.0
+- ✓ Role-specific heartbeat checklists per agent — v2.0
+- ✓ Daily/weekly/monthly/quarterly cadence per agent — v2.0
+- ✓ Goal ancestry on tasks (mission → objective → project → task) — v2.0
+- ✓ Token budget enforcement per agent — v2.0
+- ✓ Chat-first generative UI: AgentChatView replacing static dashboards — v2.0
+- ✓ GenerativeUIRenderer: charts, tables, forms, approval cards, kanbans, calendars, timelines — v2.0
+- ✓ SSE streaming with text deltas + UI components + tool indicators — v2.0
+- ✓ Agent-to-UI data pipeline: tool nodes populate uiComponents, SSE emits, frontend renders inline — v2.0
+- ✓ Onboarding redesign: business stage detection, integration setup, first CoS briefing — v2.0
+- ✓ Playwright persistent browser for Marketer social media operations — v2.0
+- ✓ Immutable audit log for all agent actions — v2.0
+- ✓ Atomic task checkout preventing double-work — v2.0
 
-**Goal:** Migrate from hand-rolled agentic layer to LangChain/LangGraph with real tool execution, persistent memory, chat-first generative UI, proactive cadence (daily/weekly/monthly/quarterly), and business-stage-aware onboarding.
+### Active
 
-**Architecture:** See `.planning/V2_ARCHITECTURE.md` for full design.
+<!-- Next milestone requirements will be defined via /gsd:new-milestone -->
 
-**Target features:**
-
-**LangGraph Multi-Agent Backend**
-- [ ] Dedicated LangGraph server (Node.js/TypeScript) on Railway with PostgresSaver checkpointing
-- [ ] Hierarchical supervisor topology: Chief of Staff (root) → 5 direct reports + COO (level-2 → 7 operational agents)
-- [ ] Real tool execution per agent via LangChain `tool()` definitions mapped to role-specific APIs
-- [ ] Human-in-the-loop via LangGraph `interrupt()` for high-risk actions (sending emails, publishing posts, financial transactions)
-- [ ] Supabase Edge Functions retained as JWT-validating proxy to LangGraph server
-
-**Per-Agent Tool Execution**
-- [x] Accountant: invoice CRUD, transaction recording, cashflow projection, P&L generation, tax estimation, anomaly detection — Validated in Phase 13
-- [x] Marketer: Nano Banana 2 image generation, Playwright persistent browser for social media (publish, analytics, competitor scraping), content calendar, research tools — Validated in Phase 14
-- [x] Sales Rep: Apify lead generation (developer-provided key), Resend outreach, email engagement tracking, pipeline analysis, revenue forecasting — Validated in Phase 13
-- [x] Personal Assistant: Google Workspace (Gmail API, Calendar API, Drive API), inbox triage, meeting prep, time allocation analysis — Validated in Phase 15
-- [x] All 7 operational agents (CS, Legal, HR, PR, Procurement, Data Analyst, Operations) with role-specific tools — Validated in Phase 15
-
-**Persistent Memory & RAG**
-- [ ] Per-agent memory via LangGraph Store (accumulates learnings, user preferences, patterns)
-- [ ] Business context shared across all agents via Store namespace
-- [ ] pgvector document embeddings for RAG over business artifacts
-- [ ] Chat persistence across sessions via PostgresSaver (all conversations preserved)
-
-**Proactive Cadence Engine**
-- [ ] pg_cron → pgmq → full LangGraph graph execution (replaces single-shot LLM severity check)
-- [ ] Role-specific heartbeat checklists (e.g., Marketer: fetch analytics, check queue, scan trends)
-- [ ] Daily/weekly/monthly/quarterly cadence per agent (not just heartbeat monitoring)
-- [ ] Goal ancestry on all tasks (Paperclip pattern: mission → objective → project → task)
-- [ ] Token budget enforcement per agent (80% warning, 100% pause, human override)
-
-**Chat-First Generative UI**
-- [x] Each agent tab is a chat interface with dynamic inline UI components (replaces static dashboards) — Validated in Phase 17
-- [x] GenerativeUIRenderer: charts (Recharts), tables (@tanstack/react-table), forms, approval cards, kanban boards, calendars, timelines — Validated in Phase 17
-- [x] SSE streaming with text deltas + structured UI component directives — Validated in Phase 17
-- [x] Agent-specific UI components (Pipeline Kanban for Sales, Content Calendar for Marketer, P&L Statement for Accountant, etc.) — Validated in Phase 17
-
-**Onboarding Redesign**
-- [x] Business stage detection: Starting / Running / Scaling (determines agent recommendations and initial interactions) — Validated in Phase 17
-- [x] Integration setup: Google OAuth for PA, Playwright browser login for Marketer social accounts — Validated in Phase 17
-- [x] First real briefing: Chief of Staff LangGraph graph produces actionable briefing from onboarding context — Validated in Phase 17
-
-**Persistent Agent Browser (Marketer)**
-- [x] Playwright persistent browser context per user for social media operations — Validated in Phase 14
-- [x] User logs in once to social accounts on agent's browser (sessions persist) — Validated in Phase 14
-- [x] Session expiry detection and re-login prompts via heartbeat — Validated in Phase 14
-- [x] Publish, fetch analytics, monitor competitors via real browser (not limited APIs) — Validated in Phase 14
-
-**Audit & Governance (Paperclip patterns)**
-- [ ] Immutable audit log for all agent actions and tool calls
-- [ ] Atomic task checkout preventing double-work
-- [ ] Monthly token budgets per agent with enforcement
+(No active requirements — run `/gsd:new-milestone` to define v3.0)
 
 ### Out of Scope
 
-- Custom freeform agent creation (describe-a-role → generate agent) — deferred to v2; fixed catalog is sufficient for v1
-- Real-time agent-to-agent messaging in the UI — agents communicate via task delegation through Chief of Staff
-- Mobile app — web-first
-- Marketplace with community-contributed agent templates — v2+
-- Agent-controlled browser automation (clicking UI elements) — tool integration via APIs only in v1
-- Multi-workspace / agency mode (managing multiple client businesses) — v2+
+- Custom freeform agent creation (describe-a-role → generate agent) — fixed catalog sufficient for now
+- Real-time agent-to-agent messaging in UI — agents coordinate via CoS delegation and shared Store
+- Mobile app — web-first, PWA works well
+- Marketplace with community-contributed agent templates — focus on first-party quality
+- Multi-workspace / agency mode (managing multiple client businesses)
+- Voice input for agent chat
+- Offline mode — real-time proactive agents are core value
+
+## Current State
+
+**Shipped:** v2.0 Agent Intelligence Layer (2026-03-20)
+
+**Architecture:**
+- Frontend: React 18 + TypeScript SPA (Vite) + Tailwind + shadcn/ui (~19,700 LOC)
+- LangGraph Server: Node.js/TypeScript on Railway (~16,700 LOC) with PostgresSaver, Store, pgvector
+- Backend: Supabase PostgreSQL + Edge Functions (Deno) as JWT proxy
+- AI: Lovable AI Gateway (Gemini 3 Flash for text, Nano Banana 2 for images)
+- Scheduling: pg_cron + pgmq → full LangGraph graph execution
+- Browser: Playwright persistent contexts for Marketer social media ops
+
+**13-agent hierarchy:**
+- Chief of Staff (root supervisor) → Accountant, Marketer, Sales Rep, Personal Assistant, COO
+- COO (level-2 supervisor) → Customer Support, Legal, HR, PR, Procurement, Data Analyst, Operations
+
+**114 v2.0 requirements delivered** across 9 phases (10-18), 43 plans.
 
 ## Context
 
-**Codebase:** React 18 + TypeScript SPA (Vite), Supabase backend (PostgreSQL + Edge Functions on Deno runtime). All AI calls route through Lovable AI Gateway using Google Gemini 3 Flash Preview. RLS enforces per-user data isolation on all tables.
-
 **Target User:** Small business owners and teams of 2–10 people. Not developers. The platform must feel like onboarding a real team — not configuring software.
 
-**Openclaw Concepts Borrowed:**
+**Openclaw Concepts:**
 - Heartbeat framework: proactive agent ticks that suppress noise (HEARTBEAT_OK) but surface real insights
-- MD file workspace per agent: IDENTITY, SOUL, SOPs, MEMORY, HEARTBEAT, TOOLS — stored in Supabase, editable in UI
+- MD file workspace per agent: IDENTITY, SOUL, SOPs, MEMORY, HEARTBEAT, TOOLS — stored in Supabase
 - Per-agent skill/tool filtering: each agent type gets only the tools relevant to their role
 - Org structure with depth limits: orchestrator → specialists, no lateral spawning
 
-**Agent Catalog (12 types for v1):**
-
-| Type | Role | Key Skills |
-|------|------|-----------|
-| accountant | Financial tracking, reporting, cashflow | Invoice parsing, spreadsheet analysis, tax reminders |
-| marketer | Content, campaigns, brand | Social content, image gen, scheduling, analytics |
-| sales_rep | Pipeline, leads, outreach | Lead research, email generation, CRM tracking |
-| personal_assistant | Inbox, calendar, briefings | Gmail sync, calendar management, daily briefings |
-| customer_support | Ticket routing, response drafting | Inbox triage, template matching, escalation |
-| legal_compliance | Regulatory monitoring, contracts | Web search (legal DBs), document review, deadline tracking |
-| hr | Team management, hiring, culture | Job description drafting, leave tracking, onboarding checklists |
-| pr_comms | Brand mentions, press, thought leadership | Media monitoring, press release drafting, social listening |
-| procurement | Suppliers, purchasing, approvals | Vendor database, PO drafting, spend tracking |
-| data_analyst | Metrics, reporting, insights | Data parsing, chart generation, trend analysis |
-| operations | Processes, SOPs, efficiency | SOP drafting, process mapping, task delegation |
-| coo | Cross-functional coordination | Multi-agent reporting, escalation handling, weekly summaries |
-
-**Chief of Staff** is always present as the orchestrator (not in the catalog — it's the default coordinator).
-
 ## Constraints
 
-- **Frontend Stack**: React + TypeScript + Vite + Tailwind + shadcn/ui — unchanged
-- **Database**: Supabase PostgreSQL with RLS — unchanged. LangGraph checkpointing in separate `langgraph` schema
-- **Edge Functions**: Retained as JWT proxy to LangGraph server — not for agent execution
-- **NEW: LangGraph Server**: Node.js/TypeScript on Railway. Uses `@langchain/langgraph`, PostgresSaver, Store
-- **AI Models**: Lovable AI Gateway (Gemini 3 Flash for text, Nano Banana 2 for images). Claude API for complex reasoning
-- **Scheduling**: pg_cron + pgmq retained — triggers LangGraph graph execution instead of single LLM calls
-- **API Keys**: All external service keys (Apify, Resend, Firecrawl) developer-provided via Supabase Vault. Users never configure API keys
-- **No TypeScript strictness**: existing codebase has `noImplicitAny: false`, `strictNullChecks: false` — maintain this
+- **Frontend Stack**: React + TypeScript + Vite + Tailwind + shadcn/ui
+- **Database**: Supabase PostgreSQL with RLS. LangGraph checkpointing in `langgraph` schema
+- **Edge Functions**: JWT proxy to LangGraph server — not for agent execution
+- **LangGraph Server**: Node.js/TypeScript on Railway. `@langchain/langgraph`, PostgresSaver, Store
+- **AI Models**: Lovable AI Gateway (Gemini 3 Flash), Nano Banana 2 (images), Claude API (complex reasoning)
+- **Scheduling**: pg_cron + pgmq → LangGraph graph execution
+- **API Keys**: External service keys developer-provided via Supabase Vault
+- **No TypeScript strictness**: `noImplicitAny: false`, `strictNullChecks: false`
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Store MD workspaces in Supabase table (not filesystem) | Web app has no OS filesystem access; Supabase text fields are editable, queryable, and RLS-protected | — Pending |
-| Single heartbeat-dispatcher cron (not per-agent crons) | Supabase pg_cron has limited slots; one dispatcher that iterates due agents is more scalable | — Pending |
-| Fixed 12-agent catalog for v1 (not freeform) | Freeform agent creation requires complex prompt engineering and UX; fixed catalog ships faster with better quality defaults | — Pending |
-| HEARTBEAT_OK suppression: no DB write on suppressed runs | Reduces DB writes by ~90% on quiet days; only surface and log non-OK heartbeats | — Pending |
-| Agent Team Selector at onboarding tail-end (not post-onboarding) | Users are most engaged and context-primed right after completing onboarding; conversion is higher than a post-login prompt | — Pending |
+| Store MD workspaces in Supabase table (not filesystem) | Web app has no OS filesystem access; Supabase text fields are editable, queryable, and RLS-protected | ✓ Good |
+| Single heartbeat-dispatcher cron (not per-agent crons) | Supabase pg_cron has limited slots; one dispatcher that iterates due agents is more scalable | ✓ Good |
+| Fixed 12-agent catalog (not freeform) | Freeform agent creation requires complex prompt engineering and UX; fixed catalog ships faster | ✓ Good |
+| HEARTBEAT_OK suppression: no DB write on suppressed runs | Reduces DB writes by ~90% on quiet days | ✓ Good |
+| Agent Team Selector at onboarding tail-end | Users most engaged and context-primed right after onboarding | ✓ Good |
+| LangGraph on Railway (not embedded in Edge Functions) | Edge Functions have 60s timeout; LangGraph needs persistent connections, streaming | ✓ Good — clean separation |
+| Hierarchical supervisor (not flat) | Prevents CoS from managing 12 agents directly; COO handles operational tier | ✓ Good — clean routing |
+| Playwright persistent browser for Marketer | Social media APIs are limited/expensive; real browser sessions give full access | ✓ Good — enables analytics scraping |
+| SSE streaming (not WebSockets) | Simpler, works through proxies, sufficient for one-way agent→client streaming | ✓ Good |
+| Agent-to-UI via uiComponents state channel | Clean separation: agents write typed objects, frontend renders — no coupling | ✓ Good |
+| interrupt() for HITL (not custom approval flow) | LangGraph native pattern; checkpointed state survives restarts | ✓ Good |
 
 ---
-*Last updated: 2026-03-19 after Phase 18 complete — Agent-to-UI data pipeline gap closure: Accountant/Sales Rep/PA tool nodes now populate uiComponents (pl_report, cashflow_chart, invoice_tracker, data_table, pipeline_kanban, dynamic_form), SSE endpoint detects LangGraph interrupt() payloads for HITL approval cards, useAgentChat attaches approvals to messages for inline rendering. Both broken E2E pipelines wired and tested. v2.0 milestone gap closure complete.*
+*Last updated: 2026-03-20 after v2.0 milestone complete — Agent Intelligence Layer shipped with 13-agent hierarchy, 65+ tools, proactive cadence engine, chat-first generative UI, and full E2E data pipelines.*
