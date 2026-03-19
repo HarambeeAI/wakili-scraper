@@ -270,10 +270,44 @@ app.post("/invoke/stream", async (req, res) => {
       emit({ type: "ui_components", components: newComponents });
     }
 
-    // Emit pending_approvals if any
-    const pendingApprovals = finalValues?.pendingApprovals ?? [];
-    if (pendingApprovals.length > 0) {
+    // Check for HITL interrupts in graph task state
+    // When interrupt() is called, the stream completes normally but
+    // finalState.tasks[].interrupts[] contains the interrupt payloads.
+    const tasks =
+      (
+        finalState as {
+          tasks?: Array<{ interrupts?: Array<{ value: unknown }> }>;
+        }
+      )?.tasks ?? [];
+    const interruptValues = tasks
+      .flatMap((t) => t.interrupts ?? [])
+      .map((i) => i.value);
+
+    if (interruptValues.length > 0) {
+      // Build PendingApproval objects from interrupt payloads
+      const pendingApprovals = interruptValues.map((v, idx) => {
+        const payload = v as {
+          action?: string;
+          agentType?: string;
+          description?: string;
+          payload?: Record<string, unknown>;
+        };
+        return {
+          id: `interrupt_${Date.now()}_${idx}`,
+          action: payload.action ?? "unknown",
+          agentType: payload.agentType ?? agentTypeVal,
+          description: payload.description ?? "Action requires approval",
+          payload: payload.payload ?? {},
+          createdAt: new Date().toISOString(),
+        };
+      });
       emit({ type: "pending_approvals", approvals: pendingApprovals });
+    } else {
+      // Fallback: check state-level pendingApprovals (if any node wrote directly)
+      const statePendingApprovals = finalValues?.pendingApprovals ?? [];
+      if (statePendingApprovals.length > 0) {
+        emit({ type: "pending_approvals", approvals: statePendingApprovals });
+      }
     }
 
     // Emit done
