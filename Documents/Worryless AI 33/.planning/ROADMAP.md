@@ -280,7 +280,14 @@ Plans:
   3. The daily cadence produces a morning briefing in the user's Chief of Staff chat by 8am in the user's timezone — the user wakes up to actionable insights
   4. Event-triggered proactive actions fire correctly: a post going viral triggers an immediate Marketer alert, an overdue invoice triggers an Accountant chase draft, a stale deal triggers a Sales Rep re-engagement suggestion
   5. Each agent's cadence config is stored in `user_agents.cadence_config` JSONB and respected by the dispatcher — users can adjust frequency and active hours per agent
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 16-01-PLAN.md — DB migrations (cadence_config JSONB, multi-tier timestamps) + heartbeat prompts module with classification tests
+- [ ] 16-02-PLAN.md — proactive-runner Edge Function + heartbeat-dispatcher multi-tier update
+- [ ] 16-03-PLAN.md — Event-trigger detector SQL function + event type definitions + tests
+- [ ] 16-04-PLAN.md — CadenceConfigSection UI + useCadenceConfig hook + GenericAgentPanel wiring
+- [ ] 16-05-PLAN.md — Morning briefing CoS thread delivery + proactive-runner event handling + cadence barrel index
 
 ### Phase 17: Generative UI + Onboarding Redesign
 **Goal**: Every agent tab is an intelligent chat interface with dynamic inline components, and the onboarding flow collects business stage context and ends with a real CoS briefing as the first message
@@ -315,12 +322,12 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 12. Chief of Staff Tools + Governance | v2.0 | 4/4 | Complete | 2026-03-19 |
 | 13. Accountant + Sales Rep Agent Tools | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 14. Marketer + Persistent Browser | v2.0 | 5/5 | Complete | 2026-03-19 |
-| 15. Personal Assistant + Operational Agents | 6/6 | Complete    | 2026-03-19 | - |
-| 16. Proactive Cadence Engine | v2.0 | 0/TBD | Not started | - |
+| 15. Personal Assistant + Operational Agents | v2.0 | 6/6 | Complete | 2026-03-19 |
+| 16. Proactive Cadence Engine | v2.0 | 0/5 | Planned | - |
 | 17. Generative UI + Onboarding Redesign | v2.0 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-19 — Phase 15 planned (6 plans in 3 waves)*
+*Updated: 2026-03-19 — Phase 16 planned (5 plans in 3 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
