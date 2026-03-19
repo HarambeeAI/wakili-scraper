@@ -78,10 +78,13 @@ function createRouterNode() {
 // LangGraph JS supports passing a compiled graph directly to addNode, but to
 // avoid subgraph checkpointer conflicts we use the invoke-delegate pattern:
 // the COO graph invokes each subgraph synchronously and merges the state update.
+//
+// Factory typed as `any` — heterogeneous compiled graph topologies (csTools,
+// legalTools, hrTools, etc.) cannot share a typed factory signature because
+// TypeScript narrows StateGraph generics per addNode call. Follows Phase 13-05 pattern.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createSubgraphNode(
-  factory: (
-    cp?: PostgresSaver,
-  ) => ReturnType<typeof createCustomerSupportGraph>,
+  factory: (cp?: PostgresSaver) => any,
   checkpointer?: PostgresSaver,
 ) {
   return async (state: typeof AgentState.State) => {
@@ -121,10 +124,8 @@ export function createCOOGraph(checkpointer?: PostgresSaver) {
     .addEdge("readMemory", "router");
 
   // Map of agent type ID to graph factory
-  const opsFactories: Record<
-    string,
-    (cp?: PostgresSaver) => ReturnType<typeof createCustomerSupportGraph>
-  > = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const opsFactories: Record<string, (cp?: PostgresSaver) => any> = {
     [AGENT_TYPES.CUSTOMER_SUPPORT]: createCustomerSupportGraph,
     [AGENT_TYPES.LEGAL_COMPLIANCE]: createLegalComplianceGraph,
     [AGENT_TYPES.HR]: createHRGraph,
