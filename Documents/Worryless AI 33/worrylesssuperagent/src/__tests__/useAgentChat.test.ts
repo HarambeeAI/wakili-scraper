@@ -47,7 +47,9 @@ vi.mock("@/hooks/useLangGraphFlag", () => ({
     loading: false,
     error: null,
   }),
-  getChatEndpoint: vi.fn().mockReturnValue("https://example.supabase.co/functions/v1/orchestrator"),
+  getChatEndpoint: vi
+    .fn()
+    .mockReturnValue("https://example.supabase.co/functions/v1/orchestrator"),
 }));
 
 // Helper: create a ReadableStream that emits SSE data
@@ -141,7 +143,9 @@ describe("useAgentChat", () => {
 
     // User message should be in messages
     const messages = result.current.messages;
-    expect(messages.some((m) => m.role === "user" && m.content === "test message")).toBe(true);
+    expect(
+      messages.some((m) => m.role === "user" && m.content === "test message"),
+    ).toBe(true);
   });
 
   it("Test 2: SSE delta events accumulate into a single assistant message content", async () => {
@@ -173,7 +177,9 @@ describe("useAgentChat", () => {
     });
 
     await waitFor(() => {
-      const assistantMsg = result.current.messages.find((m) => m.role === "assistant");
+      const assistantMsg = result.current.messages.find(
+        (m) => m.role === "assistant",
+      );
       expect(assistantMsg?.content).toBe("Hello World");
     });
   });
@@ -259,7 +265,9 @@ describe("useAgentChat", () => {
     });
 
     await waitFor(() => {
-      const assistantMsg = result.current.messages.find((m) => m.role === "assistant");
+      const assistantMsg = result.current.messages.find(
+        (m) => m.role === "assistant",
+      );
       expect(assistantMsg?.uiComponents).toEqual(components);
     });
   });
@@ -319,7 +327,8 @@ describe("useAgentChat", () => {
       if (typeof url === "string" && url.includes("/invoke/resume")) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ response: "Approved", thread_id: "t1" }),
+          json: () =>
+            Promise.resolve({ response: "Approved", thread_id: "t1" }),
         });
       }
       return Promise.resolve({
@@ -341,7 +350,8 @@ describe("useAgentChat", () => {
     });
 
     const resumeCall = mockFetch.mock.calls.find(
-      ([url]: [string]) => typeof url === "string" && url.includes("/invoke/resume"),
+      ([url]: [string]) =>
+        typeof url === "string" && url.includes("/invoke/resume"),
     );
     expect(resumeCall).toBeDefined();
 
@@ -389,6 +399,59 @@ describe("useAgentChat", () => {
     expect(result.current.threads[0].thread_id).toBe("thread-1");
   });
 
+  it("Test 10: pending_approvals SSE event attaches approval to assistant message's pendingApproval field", async () => {
+    const approval = {
+      id: "interrupt_12345_0",
+      action: "send_email",
+      agentType: "personal_assistant",
+      description: "Send email to client@example.com",
+      payload: { to: "client@example.com", subject: "Follow up" },
+      createdAt: new Date().toISOString(),
+    };
+
+    mockFetch.mockImplementation((url: string) => {
+      if (typeof url === "string" && url.includes("/threads/")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ threads: [] }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        headers: { get: () => "text/event-stream" },
+        body: createSSEStream([
+          { type: "delta", content: "I need your approval to send this email" },
+          { type: "pending_approvals", approvals: [approval] },
+          { type: "done", metadata: null, thread_id: "t1" },
+        ]),
+      });
+    });
+
+    const { useAgentChat } = await import("@/hooks/useAgentChat");
+    const { result } = renderHook(() =>
+      useAgentChat({ userId: "test-user-id", agentType: "personal_assistant" }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage("Send the follow up email");
+    });
+
+    await waitFor(() => {
+      const assistantMsg = result.current.messages.find(
+        (m) => m.role === "assistant",
+      );
+      expect(assistantMsg?.pendingApproval).toBeDefined();
+      expect(assistantMsg?.pendingApproval?.action).toBe("send_email");
+      expect(assistantMsg?.pendingApproval?.description).toBe(
+        "Send email to client@example.com",
+      );
+    });
+
+    // Also verify the pendingApprovals array is populated
+    expect(result.current.pendingApprovals).toHaveLength(1);
+    expect(result.current.pendingApprovals[0].id).toBe("interrupt_12345_0");
+  });
+
   it("Test 9: sendMessage fetches business_stage from profiles and includes business_context in POST body", async () => {
     const { supabase } = await import("@/integrations/supabase/client");
 
@@ -399,12 +462,18 @@ describe("useAgentChat", () => {
     });
     const mockEq = vi.fn().mockReturnValue({ single: mockSingle });
     const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-    (supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
-      if (table === "profiles") {
-        return { select: mockSelect };
-      }
-      return { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: null }) };
-    });
+    (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(
+      (table: string) => {
+        if (table === "profiles") {
+          return { select: mockSelect };
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({ data: null, error: null }),
+        };
+      },
+    );
 
     let capturedBody: Record<string, unknown> | null = null;
 
@@ -415,8 +484,15 @@ describe("useAgentChat", () => {
           json: () => Promise.resolve({ threads: [] }),
         });
       }
-      if (typeof url === "string" && url.includes("/invoke/stream") && options?.body) {
-        capturedBody = JSON.parse(options.body as string) as Record<string, unknown>;
+      if (
+        typeof url === "string" &&
+        url.includes("/invoke/stream") &&
+        options?.body
+      ) {
+        capturedBody = JSON.parse(options.body as string) as Record<
+          string,
+          unknown
+        >;
       }
       return Promise.resolve({
         ok: true,
@@ -439,6 +515,9 @@ describe("useAgentChat", () => {
 
     expect(capturedBody).not.toBeNull();
     expect(capturedBody?.business_context).toBeDefined();
-    expect((capturedBody?.business_context as Record<string, unknown>)?.business_stage).toBe("growth");
+    expect(
+      (capturedBody?.business_context as Record<string, unknown>)
+        ?.business_stage,
+    ).toBe("growth");
   });
 });
