@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 18-01-PLAN.md
-last_updated: "2026-03-19T20:27:11.472Z"
+stopped_at: Completed 18-03-PLAN.md
+last_updated: "2026-03-19T23:30:00.000Z"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 43
-  completed_plans: 42
+  completed_plans: 44
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 18 (agent-to-ui-data-pipeline-fix) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Performance Metrics
 
@@ -163,6 +163,7 @@ New v2.0 decisions:
 - [Phase 18-02]: Fallback state-level pendingApprovals check preserved for nodes that write directly to state channel
 - [Phase 18-01]: Spread-only-if-nonempty pattern for uiComponents return — avoids appending empty arrays to accumulator on turns where no matching tool was dispatched
 - [Phase 18-01]: PLReport.months mapped month-over-month to InlinePLTable PLRow format: current=netProfit, previous=next month netProfit, change=difference
+- [Phase 18-03]: mockGetState.mockImplementation with callCount counter — distinct return values for initial-state vs post-stream calls without resetting the mock between calls
 
 ### Pending Todos
 
