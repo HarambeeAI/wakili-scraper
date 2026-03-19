@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 15-05-PLAN.md (Data Analyst + Operations tools — 11 tools, 20 tests)
-last_updated: "2026-03-19T07:53:02.199Z"
+stopped_at: Completed 15-06-PLAN.md (All 8 agent graph rewrites — tool-wired topology, 35 classification tests)
+last_updated: "2026-03-19T08:06:00Z"
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 29
-  completed_plans: 28
+  completed_plans: 29
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 
 ## Current Position
 
-Phase: 15 (personal-assistant-operational-agents) — EXECUTING
-Plan: 3 of 6
+Phase: 15 (personal-assistant-operational-agents) — COMPLETE
+Plan: 6 of 6 (DONE)
 
 ## Performance Metrics
 
@@ -131,6 +131,8 @@ New v2.0 decisions:
 - [Phase 15-03]: contractCalendar uses INTERVAL cast ('$n days')::INTERVAL — parameterized interval injection compatible with pg driver
 - [Phase 15]: isPureNumeric strict check (Number() not parseFloat()) — prevents date strings like '2026-01' from being extracted as numeric values during z-score analysis
 - [Phase 15]: mockQuery.mockReset() in beforeEach (not vi.clearAllMocks()) — preserves getPool mock while clearing call history for vitest test isolation
+- [Phase 15-06]: Trailing \b removed from plural regex patterns (anomal, supplier, project, conflict) — word boundary fails on 'anomalies', 'suppliers', 'projects' because the plural 's' is a word character with no boundary after the stem
+- [Phase 15-06]: coo.ts opsFactories widened to (cp?) => any — heterogeneous compiled graph topologies (csTools, legalTools, hrTools, etc.) cannot share a typed factory signature after tool node rewrites added different node counts per agent
 
 ### Pending Todos
 
