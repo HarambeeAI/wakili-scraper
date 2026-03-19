@@ -309,7 +309,7 @@ Plans:
 - [ ] 17-05-PLAN.md — Onboarding redesign: BusinessStageSelector + IntegrationSetup + CoS briefing step
 
 ### Phase 18: Agent-to-UI Data Pipeline Fix
-**Goal**: The two broken E2E data pipelines are wired end-to-end — HITL approval cards display in chat when agents call interrupt(), and generative UI components (P&L tables, pipeline kanbans, etc.) render inline when agents execute tools
+**Goal**: The two broken E2E data pipelines are wired end-to-end — HITL approval cards display in chat when agents call interrupt(), and generative UI components (P&L tables, pipeline kanbans, data tables, dynamic forms) render inline when agents execute tools
 **Depends on**: Phase 17
 **Requirements**: GRAPH-05, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06, GUI-07
 **Gap Closure**: Closes gaps from v2.0 milestone audit
@@ -317,13 +317,16 @@ Plans:
   1. When an agent calls `interruptForApproval()`, the SSE endpoint surfaces the interrupt payload and the user sees an inline HITLApprovalCard with Approve/Reject/Discuss buttons — clicking Approve resumes the graph
   2. When the Accountant generates a P&L report, an `InlinePLTable` component renders inline in the chat — not just text narration of the numbers
   3. When the Sales Rep analyzes the pipeline, a `PipelineKanban` board renders inline in the chat
-  4. The `uiComponents` AgentState channel is populated by a post-tool step in base-agent, and the SSE endpoint emits these to the frontend
-**Plans**: 3 plans
+  4. The `uiComponents` AgentState channel is populated by tool nodes in agent subgraphs, and the SSE endpoint emits these to the frontend
+  5. When the Accountant runs budget vs actual comparison, a `DataTable` renders inline with category, budgeted, actual, variance columns
+  6. When the PA receives an event creation request, a `DynamicForm` renders inline with calendar event fields
+**Plans**: 4 plans
 
 Plans:
-- [ ] 18-01-PLAN.md — Accountant + Sales Rep tools nodes return uiComponents (pl_report, cashflow_chart, invoice_tracker, pipeline_kanban)
+- [ ] 18-01-PLAN.md — Accountant + Sales Rep tools nodes return uiComponents (pl_report, cashflow_chart, invoice_tracker, data_table, pipeline_kanban)
 - [ ] 18-02-PLAN.md — SSE interrupt detection + useAgentChat pending_approvals message attachment
 - [ ] 18-03-PLAN.md — Integration tests for both pipelines (SSE interrupt + uiComponents emission + approval attachment)
+- [ ] 18-04-PLAN.md — PA tools node emits dynamic_form UIComponent for calendar event creation
 
 ## Progress
 
@@ -349,10 +352,10 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 15. Personal Assistant + Operational Agents | v2.0 | 6/6 | Complete | 2026-03-19 |
 | 16. Proactive Cadence Engine | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 17. Generative UI + Onboarding Redesign | v2.0 | 5/5 | Complete | 2026-03-19 |
-| 18. Agent-to-UI Data Pipeline Fix | v2.0 | 0/3 | Planned | - |
+| 18. Agent-to-UI Data Pipeline Fix | v2.0 | 0/4 | Planned | - |
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-19 — Phase 18 planned (3 plans in 2 waves)*
+*Updated: 2026-03-19 — Phase 18 revised (4 plans in 2 waves, added data_table + dynamic_form coverage)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
