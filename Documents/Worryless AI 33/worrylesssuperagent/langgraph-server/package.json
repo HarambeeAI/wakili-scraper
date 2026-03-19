@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@google/genai": "^1.46.0",
     "@langchain/core": "^1.1.33",
     "@langchain/langgraph": "^1.2.3",
     "@langchain/langgraph-checkpoint-postgres": "^1.0.1",
@@ -17,6 +18,7 @@
     "express": "^4.21.0",
     "pdf-parse": "^2.4.5",
     "pg": "^8.13.0",
+    "playwright": "^1.58.2",
     "zod": "^3.25.32"
   },
   "devDependencies": {
@@ -25,6 +27,7 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/pg": "^8.11.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.0"
   }
 }
