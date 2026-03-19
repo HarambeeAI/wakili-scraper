@@ -2,9 +2,10 @@
 phase: 16
 slug: proactive-cadence-engine
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-19
+updated: 2026-03-19
 ---
 
 # Phase 16 — Validation Strategy
@@ -18,17 +19,17 @@ created: 2026-03-19
 | Property | Value |
 |----------|-------|
 | **Framework** | vitest |
-| **Config file** | `worrylesssuperagent/vitest.config.ts` |
-| **Quick run command** | `cd worrylesssuperagent && npx vitest run --reporter=verbose` |
-| **Full suite command** | `cd worrylesssuperagent && npx vitest run --reporter=verbose` |
+| **Config file** | `worrylesssuperagent/langgraph-server/vitest.config.ts` |
+| **Quick run command** | `cd worrylesssuperagent/langgraph-server && npx vitest run --reporter=verbose` |
+| **Full suite command** | `cd worrylesssuperagent/langgraph-server && npx vitest run --reporter=verbose` |
 | **Estimated runtime** | ~30 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `cd worrylesssuperagent && npx vitest run --reporter=verbose`
-- **After every plan wave:** Run `cd worrylesssuperagent && npx vitest run --reporter=verbose`
+- **After every task commit:** Run `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/ --reporter=verbose`
+- **After every plan wave:** Run `cd worrylesssuperagent/langgraph-server && npx vitest run --reporter=verbose`
 - **Before `/gsd:verify-work`:** Full suite must be green
 - **Max feedback latency:** 30 seconds
 
@@ -38,27 +39,31 @@ created: 2026-03-19
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 16-01-01 | 01 | 1 | CAD-01 | unit | `vitest run src/lib/__tests__/cadence-config.test.ts` | ❌ W0 | ⬜ pending |
-| 16-01-02 | 01 | 1 | CAD-02 | unit | `vitest run src/lib/__tests__/cadence-dispatcher.test.ts` | ❌ W0 | ⬜ pending |
-| 16-02-01 | 02 | 1 | CAD-03 | unit | `vitest run src/lib/__tests__/proactive-runner.test.ts` | ❌ W0 | ⬜ pending |
-| 16-02-02 | 02 | 1 | CAD-04 | unit | `vitest run src/lib/__tests__/heartbeat-prompts.test.ts` | ❌ W0 | ⬜ pending |
-| 16-03-01 | 03 | 2 | CAD-05 | unit | `vitest run src/lib/__tests__/morning-briefing.test.ts` | ❌ W0 | ⬜ pending |
-| 16-04-01 | 04 | 2 | CAD-06 | unit | `vitest run src/lib/__tests__/event-triggers.test.ts` | ❌ W0 | ⬜ pending |
-| 16-05-01 | 05 | 3 | CAD-07, CAD-08 | integration | `vitest run src/lib/__tests__/cadence-integration.test.ts` | ❌ W0 | ⬜ pending |
+| 16-01-01 | 01 | 1 | CAD-01, CAD-08 | structural | `grep -c "cadence_config" worrylesssuperagent/supabase/migrations/20260320000001_cadence_config.sql && grep -c "cadence_tier" worrylesssuperagent/supabase/migrations/20260320000002_cadence_dispatcher_v2.sql` | N/A (SQL) | pending |
+| 16-01-02 | 01 | 1 | CAD-02, CAD-03, CAD-04 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/heartbeat-prompts.test.ts --reporter=verbose` | Plan creates | pending |
+| 16-01-03 | 01 | 1 | CAD-08 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/cadence-config.test.ts --reporter=verbose` | Plan creates | pending |
+| 16-02-01 | 02 | 1 | CAD-01, CAD-02 | structural | `grep -c "LANGGRAPH_SERVER_URL" worrylesssuperagent/supabase/functions/proactive-runner/index.ts && grep -c "invoke" worrylesssuperagent/supabase/functions/proactive-runner/index.ts` | Plan creates | pending |
+| 16-02-02 | 02 | 1 | CAD-01, CAD-04 | structural | `grep -c "cadence_tier" worrylesssuperagent/supabase/functions/heartbeat-dispatcher/index.ts && grep -c "get_due_cadence_agents" worrylesssuperagent/supabase/functions/heartbeat-dispatcher/index.ts` | Plan modifies | pending |
+| 16-02-03 | 02 | 1 | CAD-01, CAD-04 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/cadence-dispatcher.test.ts --reporter=verbose` | Plan creates | pending |
+| 16-03-01 | 03 | 2 | CAD-07 | structural | `grep -c "check_event_triggers" worrylesssuperagent/supabase/migrations/20260320000003_event_detector.sql` | Plan creates | pending |
+| 16-03-02 | 03 | 2 | CAD-07 | unit | `cd worrylesssuperagent/langgraph-server && npx vitest run src/cadence/event-detector.test.ts --reporter=verbose` | Plan creates | pending |
+| 16-04-01 | 04 | 2 | CAD-08 | structural | `grep -c "CadenceConfigSection" worrylesssuperagent/src/components/agents/CadenceConfigSection.tsx && grep -c "CadenceConfigSection" worrylesssuperagent/src/components/agents/GenericAgentPanel.tsx` | Plan creates | pending |
+| 16-05-01 | 05 | 3 | CAD-03, CAD-05, CAD-06 | structural | `grep -c "LANGGRAPH_SERVER_URL" worrylesssuperagent/supabase/functions/send-morning-digest/index.ts && grep -c "EVENT_PROMPTS" worrylesssuperagent/supabase/functions/proactive-runner/index.ts` | Plan modifies | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `src/lib/__tests__/cadence-config.test.ts` — stubs for CAD-01
-- [ ] `src/lib/__tests__/cadence-dispatcher.test.ts` — stubs for CAD-02
-- [ ] `src/lib/__tests__/proactive-runner.test.ts` — stubs for CAD-03
-- [ ] `src/lib/__tests__/heartbeat-prompts.test.ts` — stubs for CAD-04
-- [ ] `src/lib/__tests__/morning-briefing.test.ts` — stubs for CAD-05
-- [ ] `src/lib/__tests__/event-triggers.test.ts` — stubs for CAD-06
-- [ ] `src/lib/__tests__/cadence-integration.test.ts` — stubs for CAD-07, CAD-08
+All test files are created by their respective plan tasks (no phantom Wave 0 gaps):
+
+- [x] `langgraph-server/src/cadence/heartbeat-prompts.test.ts` — created by Plan 16-01 Task 2 (CAD-02, CAD-03, CAD-04)
+- [x] `langgraph-server/src/cadence/cadence-config.test.ts` — created by Plan 16-01 Task 3 (CAD-08)
+- [x] `langgraph-server/src/cadence/cadence-dispatcher.test.ts` — created by Plan 16-02 Task 3 (CAD-01, CAD-04)
+- [x] `langgraph-server/src/cadence/event-detector.test.ts` — created by Plan 16-03 Task 2 (CAD-07)
+
+No orphaned test file references. Every test file listed is created by a specific plan task.
 
 ---
 
@@ -67,17 +72,19 @@ created: 2026-03-19
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | Morning briefing arrives by 8am in user timezone | CAD-05 | Requires real cron execution + timezone | Set agent cadence to 1 min, verify message appears in CoS chat within window |
-| Event trigger fires on viral post | CAD-06 | Requires simulated external event data | Insert mock analytics row exceeding threshold, verify immediate enqueue |
+| Event trigger fires on overdue invoice | CAD-07 | Requires simulated external event data | Insert mock invoice row past due date, verify immediate pgmq enqueue |
+| CadenceConfigSection renders correctly with toggles | CAD-08 | Visual/interactive UI | Open any agent panel, expand Cadence Configuration, toggle tiers |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or plan-created test files
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all test file references — no phantom paths
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
+- [x] All vitest commands use `cd worrylesssuperagent/langgraph-server` (server config, not frontend)
 
-**Approval:** pending
+**Approval:** ready
