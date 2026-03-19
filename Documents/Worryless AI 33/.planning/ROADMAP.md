@@ -308,10 +308,21 @@ Plans:
 - [ ] 17-04-PLAN.md — Domain components: PipelineKanban, InlinePLTable, ContentCalendarGrid, InvoiceTrackerTable, CalendarTimelineView, MeetingBriefCard
 - [ ] 17-05-PLAN.md — Onboarding redesign: BusinessStageSelector + IntegrationSetup + CoS briefing step
 
+### Phase 18: Agent-to-UI Data Pipeline Fix
+**Goal**: The two broken E2E data pipelines are wired end-to-end — HITL approval cards display in chat when agents call interrupt(), and generative UI components (P&L tables, pipeline kanbans, etc.) render inline when agents execute tools
+**Depends on**: Phase 17
+**Requirements**: GRAPH-05, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06, GUI-07
+**Gap Closure**: Closes gaps from v2.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. When an agent calls `interruptForApproval()`, the SSE endpoint surfaces the interrupt payload and the user sees an inline HITLApprovalCard with Approve/Reject/Discuss buttons — clicking Approve resumes the graph
+  2. When the Accountant generates a P&L report, an `InlinePLTable` component renders inline in the chat — not just text narration of the numbers
+  3. When the Sales Rep analyzes the pipeline, a `PipelineKanban` board renders inline in the chat
+  4. The `uiComponents` AgentState channel is populated by a post-tool step in base-agent, and the SSE endpoint emits these to the frontend
+
 ## Progress
 
 **Execution Order:**
-Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phase 15 (can start after Phase 11) → Phase 16 (all agents must have tools) → Phase 17
+Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phase 15 (can start after Phase 11) → Phase 16 (all agents must have tools) → Phase 17 → Phase 18 (gap closure)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -331,7 +342,8 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 14. Marketer + Persistent Browser | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 15. Personal Assistant + Operational Agents | v2.0 | 6/6 | Complete | 2026-03-19 |
 | 16. Proactive Cadence Engine | v2.0 | 5/5 | Complete | 2026-03-19 |
-| 17. Generative UI + Onboarding Redesign | 5/5 | Complete    | 2026-03-19 | - |
+| 17. Generative UI + Onboarding Redesign | v2.0 | 5/5 | Complete | 2026-03-19 |
+| 18. Agent-to-UI Data Pipeline Fix | v2.0 | 0/0 | Planned | - |
 
 ---
 *Roadmap created: 2026-03-12*
