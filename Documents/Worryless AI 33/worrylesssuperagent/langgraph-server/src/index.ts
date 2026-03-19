@@ -1,6 +1,6 @@
 import express from "express";
 import { Command } from "@langchain/langgraph";
-import { HumanMessage } from "@langchain/core/messages";
+import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { getCheckpointer } from "./persistence/checkpointer.js";
 import {
   storeHealthCheck,
@@ -17,7 +17,7 @@ import {
 } from "./threads/manager.js";
 import type { AgentTypeId } from "./types/agent-types.js";
 
-const app = express();
+export const app = express();
 app.use(express.json());
 
 const PORT = parseInt(process.env.PORT || "3001", 10);
@@ -126,6 +126,178 @@ app.post("/invoke", async (req, res) => {
     res.status(500).json({
       error: error instanceof Error ? error.message : "Unknown error",
     });
+  }
+});
+
+// ── Supervisor Graph SSE Streaming ────────────────────────────────────
+// POST /invoke/stream
+// Body: { message: string, user_id: string, thread_id?: string, agent_type?: string, business_context?: Record<string, unknown> }
+//
+// Streams the agent response as Server-Sent Events (SSE).
+// Event types:
+//   delta            — { type: "delta", content: string }
+//   tool_start       — { type: "tool_start", tool_name: string }
+//   ui_components    — { type: "ui_components", components: UIComponent[] }
+//   pending_approvals — { type: "pending_approvals", approvals: PendingApproval[] }
+//   done             — { type: "done", metadata: ResponseMetadata | null, thread_id: string }
+//   error            — { type: "error", message: string }
+app.post("/invoke/stream", async (req, res) => {
+  const { message, user_id, thread_id, agent_type, business_context } =
+    req.body as {
+      message?: unknown;
+      user_id?: unknown;
+      thread_id?: unknown;
+      agent_type?: unknown;
+      business_context?: unknown;
+    };
+
+  if (!message || typeof message !== "string") {
+    res.status(400).json({ error: "message (string) is required" });
+    return;
+  }
+  if (!user_id || typeof user_id !== "string") {
+    res.status(400).json({ error: "user_id (string) is required" });
+    return;
+  }
+
+  // Set SSE headers
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const emit = (event: Record<string, unknown>) => {
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  };
+
+  try {
+    const checkpointer = await getCheckpointer();
+    const graph = createSupervisorGraph(checkpointer);
+
+    const agentTypeVal = (
+      typeof agent_type === "string" ? agent_type : "supervisor"
+    ) as AgentTypeId | "supervisor";
+    const threadId =
+      typeof thread_id === "string"
+        ? thread_id
+        : createThreadId(user_id, agentTypeVal);
+    const isNewThread = !(typeof thread_id === "string");
+
+    const config = {
+      configurable: {
+        thread_id: threadId,
+      },
+    };
+
+    // Read initial uiComponents count before streaming so we only emit NEW components
+    let uiComponentsBeforeCount = 0;
+    try {
+      const initialState = await graph.getState(config);
+      uiComponentsBeforeCount =
+        (initialState?.values as { uiComponents?: unknown[] } | null)
+          ?.uiComponents?.length ?? 0;
+    } catch {
+      // thread may not exist yet — start from 0
+    }
+
+    const stream = await graph.stream(
+      {
+        messages: [new HumanMessage(message)],
+        userId: user_id,
+        agentType: agentTypeVal === "supervisor" ? "" : agentTypeVal,
+        isProactive: false,
+        businessContext:
+          business_context && typeof business_context === "object"
+            ? (business_context as Record<string, unknown>)
+            : {},
+      },
+      { ...config, streamMode: "messages" },
+    );
+
+    let lastToolNode: string | null = null;
+
+    for await (const chunk of stream) {
+      // In "messages" streamMode, each chunk is [BaseMessage, metadata]
+      const [messageChunk, metadata] = Array.isArray(chunk)
+        ? chunk
+        : [chunk, {}];
+
+      // Filter: only emit AIMessage/AIMessageChunk content (skip HumanMessage echoes)
+      const isAI =
+        messageChunk?._getType?.() === "ai" ||
+        messageChunk?.constructor?.name === "AIMessageChunk" ||
+        messageChunk?.constructor?.name === "AIMessage" ||
+        messageChunk instanceof AIMessage;
+
+      if (isAI && messageChunk?.content) {
+        const content =
+          typeof messageChunk.content === "string"
+            ? messageChunk.content
+            : Array.isArray(messageChunk.content)
+              ? messageChunk.content
+                  .map((c: unknown) =>
+                    typeof c === "object" && c !== null && "text" in c
+                      ? (c as { text: string }).text
+                      : "",
+                  )
+                  .join("")
+              : "";
+        if (content) {
+          emit({ type: "delta", content });
+        }
+      }
+
+      // Emit tool_start when we detect a tool node in the metadata
+      const nodeName =
+        (metadata as { langgraph_node?: string })?.langgraph_node ?? null;
+      if (nodeName && nodeName !== lastToolNode && nodeName.includes("Tools")) {
+        emit({ type: "tool_start", tool_name: nodeName });
+        lastToolNode = nodeName;
+      }
+    }
+
+    // Read final state after stream completes
+    const finalState = await graph.getState(config);
+    const finalValues = finalState?.values as {
+      uiComponents?: unknown[];
+      pendingApprovals?: unknown[];
+      responseMetadata?: unknown;
+    } | null;
+
+    // Emit only NEW ui_components (since before stream started)
+    const allComponents = finalValues?.uiComponents ?? [];
+    const newComponents = allComponents.slice(uiComponentsBeforeCount);
+    if (newComponents.length > 0) {
+      emit({ type: "ui_components", components: newComponents });
+    }
+
+    // Emit pending_approvals if any
+    const pendingApprovals = finalValues?.pendingApprovals ?? [];
+    if (pendingApprovals.length > 0) {
+      emit({ type: "pending_approvals", approvals: pendingApprovals });
+    }
+
+    // Emit done
+    emit({
+      type: "done",
+      metadata: finalValues?.responseMetadata ?? null,
+      thread_id: threadId,
+    });
+
+    res.end();
+
+    // Register new thread (fire-and-forget)
+    if (isNewThread) {
+      registerThread(user_id, agentTypeVal, threadId).catch((err) => {
+        console.warn("[invoke/stream] Failed to register thread:", err);
+      });
+    }
+  } catch (error) {
+    console.error("[invoke/stream] Error:", error);
+    emit({
+      type: "error",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    res.end();
   }
 });
 
@@ -313,7 +485,10 @@ app.get("/store/:prefix/:key", async (req, res) => {
 });
 
 // ── Start Server ──────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`[langgraph-server] Running on port ${PORT}`);
-  console.log(`[langgraph-server] Health: http://localhost:${PORT}/health`);
-});
+// Only start listening when this module is run directly (not when imported for testing)
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`[langgraph-server] Running on port ${PORT}`);
+    console.log(`[langgraph-server] Health: http://localhost:${PORT}/health`);
+  });
+}
