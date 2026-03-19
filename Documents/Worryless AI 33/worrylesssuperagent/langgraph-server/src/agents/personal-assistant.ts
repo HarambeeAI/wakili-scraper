@@ -12,6 +12,7 @@
 import { StateGraph } from "@langchain/langgraph";
 import type { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 import { AgentState } from "../types/agent-state.js";
+import type { UIComponent } from "../types/agent-state.js";
 import { AGENT_TYPES } from "../types/agent-types.js";
 import {
   createLLMNode,
@@ -205,11 +206,71 @@ export function createPAToolsNode() {
         message: "Need search query",
       };
 
+    // ── Build UIComponents for generative UI ──────────────────────────────
+    const uiComponents: UIComponent[] = [];
+
+    // GUI-05: Emit dynamic_form for event creation requests
+    // The form collects structured event details before the LLM calls create_calendar_event (which triggers HITL)
+    if (cls.isCreateEvent) {
+      uiComponents.push({
+        type: "dynamic_form",
+        props: {
+          title: "Create Calendar Event",
+          submitLabel: "Schedule Event",
+          schema: [
+            {
+              name: "summary",
+              label: "Event Title",
+              type: "text",
+              required: true,
+              placeholder: "e.g. Team standup, Client call",
+            },
+            {
+              name: "startTime",
+              label: "Start Time",
+              type: "text",
+              required: true,
+              placeholder: "e.g. 2026-03-20T10:00:00",
+            },
+            {
+              name: "endTime",
+              label: "End Time",
+              type: "text",
+              required: true,
+              placeholder: "e.g. 2026-03-20T11:00:00",
+            },
+            {
+              name: "description",
+              label: "Description",
+              type: "textarea",
+              required: false,
+              placeholder: "Optional event description",
+            },
+            {
+              name: "location",
+              label: "Location",
+              type: "text",
+              required: false,
+              placeholder: "e.g. Zoom, Office Room 3",
+            },
+            {
+              name: "attendees",
+              label: "Attendees (comma-separated emails)",
+              type: "text",
+              required: false,
+              placeholder: "e.g. alice@co.com, bob@co.com",
+            },
+          ],
+        },
+      });
+    }
+
     return {
       businessContext: {
         ...state.businessContext,
         paToolResults: toolResults,
       },
+      ...(uiComponents.length > 0 ? { uiComponents } : {}),
     };
   };
 }
