@@ -55,15 +55,15 @@
 - [x] **MKT-01**: `generate_social_post` tool for platform-specific content (IG, X, LinkedIn, TikTok)
 - [x] **MKT-02**: `generate_brand_image` tool using Nano Banana 2 with brand colors, product photos, logo
 - [x] **MKT-03**: `edit_image` tool for overlays, color adjustments, compositing
-- [ ] **MKT-04**: `schedule_post` tool writing to social_posts table
-- [ ] **MKT-05**: `publish_post` tool via Playwright persistent browser (requires HITL)
-- [ ] **MKT-06**: `fetch_post_analytics` tool scraping platform dashboards via Playwright
-- [ ] **MKT-07**: `analyze_post_performance` tool comparing metrics against averages with WHY analysis
+- [x] **MKT-04**: `schedule_post` tool writing to social_posts table
+- [x] **MKT-05**: `publish_post` tool via Playwright persistent browser (requires HITL)
+- [x] **MKT-06**: `fetch_post_analytics` tool scraping platform dashboards via Playwright
+- [x] **MKT-07**: `analyze_post_performance` tool comparing metrics against averages with WHY analysis
 - [x] **MKT-08**: `create_content_calendar` tool generating weekly/monthly plan
 - [ ] **MKT-09**: `monitor_brand_mentions` tool scanning web for business name
 - [ ] **MKT-10**: `analyze_competitor` tool browsing competitor profiles via Playwright
 - [ ] **MKT-11**: `search_trending_topics` tool for industry trend discovery
-- [ ] **MKT-12**: `manage_content_library` tool for searching and reusing past assets
+- [x] **MKT-12**: `manage_content_library` tool for searching and reusing past assets
 
 ### Agent Tools — Sales Rep (SALES)
 
@@ -251,15 +251,15 @@
 | MKT-01 | Phase 14 | Complete |
 | MKT-02 | Phase 14 | Complete |
 | MKT-03 | Phase 14 | Complete |
-| MKT-04 | Phase 14 | Pending |
-| MKT-05 | Phase 14 | Pending |
-| MKT-06 | Phase 14 | Pending |
-| MKT-07 | Phase 14 | Pending |
+| MKT-04 | Phase 14 | Complete |
+| MKT-05 | Phase 14 | Complete |
+| MKT-06 | Phase 14 | Complete |
+| MKT-07 | Phase 14 | Complete |
 | MKT-08 | Phase 14 | Complete |
 | MKT-09 | Phase 14 | Pending |
 | MKT-10 | Phase 14 | Pending |
 | MKT-11 | Phase 14 | Pending |
-| MKT-12 | Phase 14 | Pending |
+| MKT-12 | Phase 14 | Complete |
 | BROWSER-01 | Phase 14 | Complete |
 | BROWSER-02 | Phase 14 | Complete |
 | BROWSER-03 | Phase 14 | Complete |

@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-03-19T06:29:07.551Z"
+stopped_at: Completed 14-03-PLAN.md
+last_updated: "2026-03-19T06:29:30.205Z"
 progress:
   total_phases: 8
   completed_phases: 4
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 14 (marketer-persistent-browser) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Performance Metrics
 
@@ -111,6 +111,8 @@ New v2.0 decisions:
 - [Phase 14]: vitest added to langgraph-server devDependencies for browser unit tests
 - [Phase 14]: [Phase 14-02]: callLLMWithStructuredOutput uses string schema description (not Zod) — matched actual LLM client API
 - [Phase 14]: [Phase 14-02]: GoogleGenAI test mock uses ES6 class (not vi.fn) — new keyword requires constructor-compatible mock
+- [Phase 14]: callLLMWithStructuredOutput uses string schema description (not Zod) -- matches actual API from llm/client.ts
+- [Phase 14]: vi.mock factories use top-level vi.fn() references to avoid vitest hoisting ReferenceError -- object literals in factory closures fail
 
 ### Pending Todos
 
@@ -125,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:28:31.147Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-03-19T06:29:30.202Z
+Stopped at: Completed 14-03-PLAN.md
 Resume file: None
