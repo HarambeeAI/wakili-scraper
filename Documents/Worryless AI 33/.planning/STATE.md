@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 16-05-PLAN.md
-last_updated: "2026-03-19T10:00:00.000Z"
+stopped_at: Completed 17-02-PLAN.md
+last_updated: "2026-03-19T10:43:03.584Z"
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 34
-  completed_plans: 34
+  total_plans: 39
+  completed_plans: 35
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 16 — proactive-cadence-engine
+**Current focus:** Phase 17 — generative-ui-onboarding-redesign
 
 ## Current Position
 
-Phase: 16 (proactive-cadence-engine) — COMPLETE
-Plan: 5 of 5 (all complete)
+Phase: 17 (generative-ui-onboarding-redesign) — EXECUTING
+Plan: 1 of 5
 
 ## Performance Metrics
 
@@ -146,6 +146,9 @@ New v2.0 decisions:
 - [Phase 16-05]: Fire-and-forget pattern for CoS LangGraph thread write in morning digest — failure does not block notification/email critical path
 - [Phase 16-05]: EVENT_PROMPTS duplicated inline in proactive-runner (Deno cannot import Node modules) — same pattern as HEARTBEAT_PROMPTS duplication
 - [Phase 16-05]: use_langgraph flag fetched per user in digest loop — consistent with existing per-user profile query pattern
+- [Phase 17]: useMemo for tanstack column defs in DataTable prevents infinite re-renders (RESEARCH.md Pitfall 4)
+- [Phase 17]: DynamicForm uses native select element (not Radix UI Select) to minimize required dependencies
+- [Phase 17]: GenerativeUIRenderer renders Plan 04 placeholder types as labelled divs so dispatcher never crashes on unknown input
 
 ### Pending Todos
 
@@ -160,6 +163,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T10:00:00.000Z
-Stopped at: Completed 16-05-PLAN.md
+Last session: 2026-03-19T10:43:03.581Z
+Stopped at: Completed 17-02-PLAN.md
 Resume file: None
