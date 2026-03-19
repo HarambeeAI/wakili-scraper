@@ -117,12 +117,12 @@
 
 - [x] **CAD-01**: Cadence dispatcher using pg_cron + pgmq triggering full LangGraph execution
 - [x] **CAD-02**: Role-specific heartbeat checklists per agent
-- [ ] **CAD-03**: Daily cadence: morning briefing, inbox triage, cashflow, pipeline, content queue
+- [x] **CAD-03**: Daily cadence: morning briefing, inbox triage, cashflow, pipeline, content queue
 - [x] **CAD-04**: Weekly cadence: cross-team summary, content performance, pipeline progression, expenses
-- [ ] **CAD-05**: Monthly cadence: P&L, conversion analysis, marketing review, KPI dashboard
-- [ ] **CAD-06**: Quarterly cadence: business review, strategic assessment, financial review, compliance
+- [x] **CAD-05**: Monthly cadence: P&L, conversion analysis, marketing review, KPI dashboard
+- [x] **CAD-06**: Quarterly cadence: business review, strategic assessment, financial review, compliance
 - [ ] **CAD-07**: Event-triggered proactive actions (viral post, stale deal, overdue invoice, etc.)
-- [ ] **CAD-08**: Per-agent cadence config in `user_agents.cadence_config` JSONB
+- [x] **CAD-08**: Per-agent cadence config in `user_agents.cadence_config` JSONB
 
 ### Generative UI (GUI)
 
@@ -284,12 +284,12 @@
 | OPS-07 | Phase 15 | Complete |
 | CAD-01 | Phase 16 | Complete |
 | CAD-02 | Phase 16 | Complete |
-| CAD-03 | Phase 16 | Pending |
+| CAD-03 | Phase 16 | Complete |
 | CAD-04 | Phase 16 | Complete |
-| CAD-05 | Phase 16 | Pending |
-| CAD-06 | Phase 16 | Pending |
+| CAD-05 | Phase 16 | Complete |
+| CAD-06 | Phase 16 | Complete |
 | CAD-07 | Phase 16 | Pending |
-| CAD-08 | Phase 16 | Pending |
+| CAD-08 | Phase 16 | Complete |
 | GUI-01 | Phase 17 | Pending |
 | GUI-02 | Phase 17 | Pending |
 | GUI-03 | Phase 17 | Pending |

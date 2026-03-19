@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-03-19T09:27:01.584Z"
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-03-19T09:28:30.226Z"
 progress:
   total_phases: 8
   completed_phases: 6
@@ -137,6 +137,10 @@ New v2.0 decisions:
 - [Phase 16]: isProactive guards both checkTokenBudget and incrementTokenUsage — prevents false budget-paused messages AND budget consumption for proactive runs
 - [Phase 16]: Deterministic proactive thread ID (proactive:agentType:userId) — persistent across runs for memory continuity and conversation threading
 - [Phase 16]: [Phase 16-02]: proactive-runner duplicates HEARTBEAT_PROMPTS inline — Deno cannot import Node.js modules; isProactive guards both checkTokenBudget AND incrementTokenUsage; deterministic proactive thread IDs persist across runs
+- [Phase 16]: accountant monthly prompt uses 'unusual or suspicious' instead of 'anomaly' — isAnomalyQuery regex requires word boundary after 'anomal' stem which 'anomaly' doesn't satisfy
+- [Phase 16]: DEFAULT_CADENCE_CONFIG co-located in heartbeat-prompts.ts — single cadence module export point, no separate cadence-config.ts needed
+- [Phase 16]: accountant prompts use 'invoices with outstanding balances' not 'overdue invoices' to avoid isChaseInvoice regex trigger (overdue.*invoice pattern)
+- [Phase 16]: get_due_cadence_agents() uses UNION ALL across 4 tiers returning cadence_tier TEXT; original get_due_heartbeat_agents() preserved for legacy path
 
 ### Pending Todos
 
@@ -151,6 +155,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T09:27:01.580Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-03-19T09:28:05.392Z
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None
