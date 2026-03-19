@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: "Completed 13-01-PLAN.md"
-last_updated: "2026-03-19T05:00:01Z"
+stopped_at: Completed 13-04-PLAN.md
+last_updated: "2026-03-19T05:08:18.797Z"
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 18
-  completed_plans: 14
+  completed_plans: 16
 ---
 
 # Project State
@@ -99,6 +99,8 @@ New v2.0 decisions:
 - [Phase 13-01]: Shared DB pool in tools/shared/db.ts mirrors store.ts pattern — consistent pool management across all tool files
 - [Phase 13-01]: createLLMNode/createRespondNode exported with export keyword only — no signature or behavior changes
 - [Phase 13-01]: Partial unique index on leads(user_id, email) WHERE email IS NOT NULL — allows leads without email while preventing email-based dupes
+- [Phase 13-accountant-sales-rep-agent-tools]: Apify cap Math.min(fetchCount ?? 20, 20) — LangGraph shorter timeout than Edge Functions; ON CONFLICT dedup with plain INSERT fallback for no-email leads
+- [Phase 13-accountant-sales-rep-agent-tools]: sendOutreach HITL is mandatory — interruptForApproval called before any Resend API call; trackEmailEngagement reads open/click counts from DB only (Resend webhook populates them)
 
 ### Pending Todos
 
@@ -113,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:00:01Z
-Stopped at: Completed 13-01-PLAN.md
-Resume file: .planning/phases/13-accountant-sales-rep-agent-tools/13-02-PLAN.md
+Last session: 2026-03-19T05:08:11.710Z
+Stopped at: Completed 13-04-PLAN.md
+Resume file: None

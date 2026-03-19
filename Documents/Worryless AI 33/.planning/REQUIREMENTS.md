@@ -67,12 +67,12 @@
 
 ### Agent Tools — Sales Rep (SALES)
 
-- [ ] **SALES-01**: `generate_leads` tool via Apify (developer-provided key)
-- [ ] **SALES-02**: `enrich_lead_data` tool via web search
-- [ ] **SALES-03**: `research_prospect` tool via Firecrawl + web search
-- [ ] **SALES-04**: `compose_outreach` tool with personalization from prospect research + business context
-- [ ] **SALES-05**: `send_outreach` tool via Resend (requires HITL)
-- [ ] **SALES-06**: `track_email_engagement` tool via Resend webhooks
+- [x] **SALES-01**: `generate_leads` tool via Apify (developer-provided key)
+- [x] **SALES-02**: `enrich_lead_data` tool via web search
+- [x] **SALES-03**: `research_prospect` tool via Firecrawl + web search
+- [x] **SALES-04**: `compose_outreach` tool with personalization from prospect research + business context
+- [x] **SALES-05**: `send_outreach` tool via Resend (requires HITL)
+- [x] **SALES-06**: `track_email_engagement` tool via Resend webhooks
 - [ ] **SALES-07**: `update_deal_status` tool moving leads through pipeline
 - [ ] **SALES-08**: `schedule_follow_up` tool with optimal timing from memory
 - [ ] **SALES-09**: `create_proposal` tool generating sales proposals
@@ -236,12 +236,12 @@
 | ACCT-10 | Phase 13 | Pending |
 | ACCT-11 | Phase 13 | Pending |
 | ACCT-12 | Phase 13 | Pending |
-| SALES-01 | Phase 13 | Pending |
-| SALES-02 | Phase 13 | Pending |
-| SALES-03 | Phase 13 | Pending |
-| SALES-04 | Phase 13 | Pending |
-| SALES-05 | Phase 13 | Pending |
-| SALES-06 | Phase 13 | Pending |
+| SALES-01 | Phase 13 | Complete |
+| SALES-02 | Phase 13 | Complete |
+| SALES-03 | Phase 13 | Complete |
+| SALES-04 | Phase 13 | Complete |
+| SALES-05 | Phase 13 | Complete |
+| SALES-06 | Phase 13 | Complete |
 | SALES-07 | Phase 13 | Pending |
 | SALES-08 | Phase 13 | Pending |
 | SALES-09 | Phase 13 | Pending |
