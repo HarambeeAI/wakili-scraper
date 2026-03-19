@@ -299,7 +299,14 @@ Plans:
   3. A HITL approval request appears as an inline card with Approve/Reject/Discuss buttons — approving triggers the agent to continue execution immediately
   4. SSE streaming delivers text deltas and UI component directives progressively — the user sees the response being built in real time, not a loading spinner followed by a full response dump
   5. The onboarding flow includes a business stage question (Starting/Running/Scaling) whose answer shapes the recommended agent team, and the final onboarding step produces a real Chief of Staff briefing as the first chat message
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 17-01-PLAN.md — SSE streaming endpoint + useAgentChat hook
+- [ ] 17-02-PLAN.md — GenerativeUIRenderer + DataTable + HITLApprovalCard + ToolIndicator + StreamingCursor
+- [ ] 17-03-PLAN.md — AgentChatView + ThreadListSidebar + Dashboard wiring
+- [ ] 17-04-PLAN.md — Domain components: PipelineKanban, InlinePLTable, ContentCalendarGrid, InvoiceTrackerTable, CalendarTimelineView, MeetingBriefCard
+- [ ] 17-05-PLAN.md — Onboarding redesign: BusinessStageSelector + IntegrationSetup + CoS briefing step
 
 ## Progress
 
@@ -323,11 +330,11 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 13. Accountant + Sales Rep Agent Tools | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 14. Marketer + Persistent Browser | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 15. Personal Assistant + Operational Agents | v2.0 | 6/6 | Complete | 2026-03-19 |
-| 16. Proactive Cadence Engine | 5/5 | Complete   | 2026-03-19 | - |
-| 17. Generative UI + Onboarding Redesign | v2.0 | 0/TBD | Not started | - |
+| 16. Proactive Cadence Engine | v2.0 | 5/5 | Complete | 2026-03-19 |
+| 17. Generative UI + Onboarding Redesign | v2.0 | 0/5 | Planned | - |
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-19 — Phase 16 planned (5 plans in 3 waves)*
+*Updated: 2026-03-19 — Phase 17 planned (5 plans in 3 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
