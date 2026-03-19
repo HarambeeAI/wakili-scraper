@@ -147,12 +147,12 @@
 
 ### Onboarding Redesign (ONB)
 
-- [ ] **ONB-01**: Business stage question: Starting / Running / Scaling
-- [ ] **ONB-02**: Stage-specific follow-up questions
-- [ ] **ONB-03**: Agent team recommendation via CoS LangGraph graph
-- [ ] **ONB-04**: Integration setup: Google OAuth for PA, browser login for Marketer
-- [ ] **ONB-05**: First real briefing from CoS as first chat message
-- [ ] **ONB-06**: Business stage stored in profiles, shapes agent interactions
+- [x] **ONB-01**: Business stage question: Starting / Running / Scaling
+- [x] **ONB-02**: Stage-specific follow-up questions
+- [x] **ONB-03**: Agent team recommendation via CoS LangGraph graph
+- [x] **ONB-04**: Integration setup: Google OAuth for PA, browser login for Marketer
+- [x] **ONB-05**: First real briefing from CoS as first chat message
+- [x] **ONB-06**: Business stage stored in profiles, shapes agent interactions
 
 ### Governance (GOV)
 
@@ -300,12 +300,12 @@
 | GUI-08 | Phase 17 | Complete |
 | GUI-09 | Phase 17 | Complete |
 | GUI-10 | Phase 17 | Complete |
-| ONB-01 | Phase 17 | Pending |
-| ONB-02 | Phase 17 | Pending |
-| ONB-03 | Phase 17 | Pending |
-| ONB-04 | Phase 17 | Pending |
-| ONB-05 | Phase 17 | Pending |
-| ONB-06 | Phase 17 | Pending |
+| ONB-01 | Phase 17 | Complete |
+| ONB-02 | Phase 17 | Complete |
+| ONB-03 | Phase 17 | Complete |
+| ONB-04 | Phase 17 | Complete |
+| ONB-05 | Phase 17 | Complete |
+| ONB-06 | Phase 17 | Complete |
 
 ---
 *Requirements defined: 2026-03-18*

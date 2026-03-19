@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Agent Intelligence Layer
 status: unknown
-stopped_at: Completed 17-04-PLAN.md
-last_updated: "2026-03-19T10:56:33.097Z"
+stopped_at: Completed 17-05-PLAN.md
+last_updated: "2026-03-19T10:58:14.869Z"
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 39
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 # Project State
@@ -156,6 +156,8 @@ New v2.0 decisions:
 - [Phase 17]: GenericAgentPanel replaced for all agent: prefixed views with AgentChatView in Dashboard.tsx default case
 - [Phase 17]: InlinePLTable uses plain HTML table not DataTable for full row-level color control over MoM change column
 - [Phase 17]: PipelineKanban normalizes deal status to Title Case; unknown statuses default to New column
+- [Phase 17-generative-ui-onboarding-redesign]: Migration filename changed from 20260319000001 to 20260319000004_business_stage.sql — prior slot already taken by agent_audit_log.sql
+- [Phase 17-generative-ui-onboarding-redesign]: handleTeamAccept no longer calls setStep push_opt_in — user flows through integration_setup -> briefing -> push_opt_in via nextStep
 
 ### Pending Todos
 
@@ -170,6 +172,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T10:56:27.910Z
-Stopped at: Completed 17-04-PLAN.md
+Last session: 2026-03-19T10:58:14.866Z
+Stopped at: Completed 17-05-PLAN.md
 Resume file: None
