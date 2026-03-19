@@ -241,7 +241,14 @@ Plans:
   3. Publishing a scheduled post pauses for user approval, then executes via the real browser and confirms success — the user sees the post live on the platform
   4. When a social session expires, the Marketer's heartbeat detects it and notifies the user with a re-login prompt — the agent does not silently fail
   5. Fetching post analytics returns real engagement numbers scraped from the logged-in platform dashboard — the Marketer identifies top and bottom performers with WHY analysis
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — Foundation: npm deps (playwright, @google/genai), Dockerfile Chromium, type contracts, browser manager + login flow
+- [ ] 14-02-PLAN.md — Content + image tools: generateSocialPost, generateBrandImage, editImage, createContentCalendar
+- [ ] 14-03-PLAN.md — Schedule + publish + analytics tools: schedulePost, publishPost (HITL), fetchPostAnalytics, analyzePostPerformance, manageContentLibrary
+- [ ] 14-04-PLAN.md — Research tools: monitorBrandMentions, analyzeCompetitor (Playwright), searchTrendingTopics
+- [ ] 14-05-PLAN.md — Marketer barrel index + agent graph rewrite with marketerTools node
 
 ### Phase 15: Personal Assistant + Operational Agents
 **Goal**: Users have a working Google Workspace-integrated executive assistant and a full tier-2 operational team — PA handles real email and calendar, and the seven COO-routed agents execute their domain-specific tools
@@ -298,14 +305,14 @@ Phase 10 → Phase 11 → Phase 12 → Phase 13 and Phase 14 (parallel) → Phas
 | 10. LangGraph Infrastructure | v2.0 | 4/4 | Complete | 2026-03-18 |
 | 11. Agent Graph Topology + Memory Foundation | v2.0 | 5/5 | Complete | 2026-03-18 |
 | 12. Chief of Staff Tools + Governance | v2.0 | 4/4 | Complete | 2026-03-19 |
-| 13. Accountant + Sales Rep Agent Tools | 5/5 | Complete    | 2026-03-19 | - |
-| 14. Marketer + Persistent Browser | v2.0 | 0/TBD | Not started | - |
+| 13. Accountant + Sales Rep Agent Tools | v2.0 | 5/5 | Complete | 2026-03-19 |
+| 14. Marketer + Persistent Browser | v2.0 | 0/5 | Planned | - |
 | 15. Personal Assistant + Operational Agents | v2.0 | 0/TBD | Not started | - |
 | 16. Proactive Cadence Engine | v2.0 | 0/TBD | Not started | - |
 | 17. Generative UI + Onboarding Redesign | v2.0 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-03-12*
-*Updated: 2026-03-19 — Phase 13 planned (5 plans in 3 waves)*
+*Updated: 2026-03-19 — Phase 14 planned (5 plans in 3 waves)*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — in progress*
