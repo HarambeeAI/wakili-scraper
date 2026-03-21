@@ -136,12 +136,12 @@ Plans:
   3. A BullMQ worker processes a heartbeat job by calling `graph.invoke()` and completing without error
   4. Daily briefing and morning digest jobs are registered as BullMQ repeatable jobs and appear in the queue on schedule
   5. The `get_due_cadence_agents()` SQL function executes on Railway Postgres without referencing pg_cron or pgmq
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 23-01: Update LangGraph server Dockerfile for Playwright + volume, update DATABASE_URL + GEMINI_API_KEY env vars
-- [ ] 23-02: Implement cadence/dispatcher.ts (node-cron tick → BullMQ enqueue) + cadence/worker.ts (BullMQ → graph.invoke())
-- [ ] 23-03: Adapt get_due_cadence_agents() SQL function, convert daily briefing + digest to BullMQ repeatable jobs
+- [ ] 23-01-PLAN.md — Dockerfile + railway.toml for Playwright volume, install BullMQ/ioredis/node-cron deps, create Redis connection factory
+- [ ] 23-02-PLAN.md — Implement cadence-dispatcher (node-cron tick -> BullMQ enqueue), cadence-worker (BullMQ -> graph.invoke()), push-helper, wire into index.ts
+- [ ] 23-03-PLAN.md — Verify get_due_cadence_agents() SQL function, implement BullMQ repeatable jobs for daily briefing + morning digest
 
 ### Phase 24: Frontend Migration
 **Goal**: The frontend runs entirely on Railway with no Supabase dependency — Logto handles auth, all data fetching calls the Express API server, and the Vite build is served by Nginx
@@ -153,7 +153,7 @@ Plans:
   3. An authenticated user's agent chat sends SSE requests to the Railway LangGraph server URL and receives streaming responses
   4. The environment variables `VITE_API_URL`, `VITE_LANGGRAPH_URL`, and `VITE_LOGTO_*` are set to Railway endpoints and the app builds cleanly with them
   5. The Vite build is packaged into a Nginx Docker container and deployed as a Railway service serving the SPA
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 24-01: Remove @supabase/supabase-js, install @logto/react, wire LogtoProvider + sign-in/callback/sign-out routes
@@ -169,7 +169,7 @@ Plans:
   2. A first-time user can register, complete onboarding, activate an agent team, and send a message to the Chief of Staff from the public Railway frontend URL
   3. A scheduled agent heartbeat fires, processes, and surface an insight in the dashboard without manual intervention
   4. Image generation (via Gemini Imagen 3) and email sending (via Resend) both complete successfully from the production environment
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 25-01: Assign Railway domains to all public services, set CORS origins to production frontend domain, run full smoke test checklist
