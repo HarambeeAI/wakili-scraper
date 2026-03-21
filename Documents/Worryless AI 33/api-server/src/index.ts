@@ -27,6 +27,12 @@ import {
 import { crawlWebsite } from "./routes/crawlWebsite.js";
 import { parseDatasheet } from "./routes/parseDatasheet.js";
 import { generateLeads } from "./routes/generateLeads.js";
+import { chatWithAgent } from "./routes/chatWithAgent.js";
+import { orchestrator } from "./routes/orchestrator.js";
+import { spawnAgentTeam } from "./routes/spawnAgentTeam.js";
+import { generateOutreach } from "./routes/generateOutreach.js";
+import { planningAgent } from "./routes/planningAgent.js";
+import { syncGmailCalendar } from "./routes/syncGmailCalendar.js";
 
 // --- Route registrations (auth already applied via global /api middleware above) ---
 app.post("/api/generate-content", generateContent);
@@ -39,6 +45,12 @@ app.delete("/api/push-subscriptions", deletePushSubscription);
 app.post("/api/crawl-business-website", crawlWebsite);
 app.post("/api/parse-datasheet", parseDatasheet);
 app.post("/api/generate-leads", generateLeads);
+app.post("/api/chat-with-agent", chatWithAgent);
+app.post("/api/orchestrator", orchestrator);
+app.post("/api/spawn-agent-team", spawnAgentTeam);
+app.post("/api/generate-outreach", generateOutreach);
+app.post("/api/planning-agent", planningAgent);
+app.post("/api/sync-gmail-calendar", syncGmailCalendar);
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 if (process.env.NODE_ENV !== "test") {
