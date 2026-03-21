@@ -14,8 +14,11 @@ app.get("/health", (_req, res) => {
 // Auth middleware for all /api/* routes — rejects missing/invalid JWTs before any handler
 app.use("/api", verifyLogtoJWT);
 
-// Route registrations will be added by subsequent plans (22-02 through 22-05).
-// Each plan adds its own app.post('/api/...', handler) lines (auth already applied above).
+// --- Route imports ---
+import { generateContent } from "./routes/generateContent.js";
+
+// --- Route registrations (auth already applied via global /api middleware above) ---
+app.post("/api/generate-content", generateContent);
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 if (process.env.NODE_ENV !== "test") {
