@@ -65,6 +65,28 @@ import {
 } from "./routes/userAgents.js";
 import { getAgentTypes } from "./routes/agentTypes.js";
 import { getWorkspace, updateWorkspace } from "./routes/workspaces.js";
+import { getLeads, createLead, deleteLead } from "./routes/leads.js";
+import {
+  getSocialPosts,
+  createSocialPost,
+  deleteSocialPost,
+} from "./routes/socialPosts.js";
+import {
+  getInvoices,
+  createInvoice,
+  deleteInvoice,
+} from "./routes/invoices.js";
+import { getTransactions, createTransaction } from "./routes/transactions.js";
+import {
+  getDatasheets,
+  createDatasheet,
+  deleteDatasheet,
+} from "./routes/datasheets.js";
+import {
+  getOutreachEmails,
+  createOutreachEmail,
+} from "./routes/outreachEmails.js";
+import { getAgentAssets } from "./routes/agentAssets.js";
 
 // --- Route registrations (auth already applied via global /api middleware above) ---
 app.post("/api/generate-content", generateContent);
@@ -110,6 +132,25 @@ app.patch("/api/user-agents/:agentTypeId/cadence", updateCadenceConfig);
 app.get("/api/agent-types", getAgentTypes);
 app.get("/api/workspaces/:agentTypeId/:fileType", getWorkspace);
 app.patch("/api/workspaces/:agentTypeId/:fileType", updateWorkspace);
+
+// --- Agent-specific CRUD routes (Phase 24-02) ---
+app.get("/api/leads", getLeads);
+app.post("/api/leads", createLead);
+app.delete("/api/leads/:id", deleteLead);
+app.get("/api/social-posts", getSocialPosts);
+app.post("/api/social-posts", createSocialPost);
+app.delete("/api/social-posts/:id", deleteSocialPost);
+app.get("/api/invoices", getInvoices);
+app.post("/api/invoices", createInvoice);
+app.delete("/api/invoices/:id", deleteInvoice);
+app.get("/api/transactions", getTransactions);
+app.post("/api/transactions", createTransaction);
+app.get("/api/datasheets", getDatasheets);
+app.post("/api/datasheets", createDatasheet);
+app.delete("/api/datasheets/:id", deleteDatasheet);
+app.get("/api/outreach-emails", getOutreachEmails);
+app.post("/api/outreach-emails", createOutreachEmail);
+app.get("/api/agent-assets", getAgentAssets);
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 if (process.env.NODE_ENV !== "test") {
