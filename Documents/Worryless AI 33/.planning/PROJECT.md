@@ -74,7 +74,7 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 - [x] PostgreSQL provisioned on Railway with all 34 app tables + langgraph schema + pgvector applied (Phase 20, 2026-03-21)
 - [x] Logto auth wiring: @logto/react frontend SDK + jose JWT middleware on LangGraph server (Phase 21, 2026-03-21)
 - [ ] Logto auth flow fully replacing Supabase Auth (frontend migration)
-- [ ] pg_cron + pgmq scheduling replaced with Railway-compatible alternative (node-cron or BullMQ + Redis)
+- [x] pg_cron + pgmq scheduling replaced with BullMQ + Redis + node-cron (Phase 23, 2026-03-21)
 
 **API Layer Migration**
 - [x] 23 Supabase Edge Functions converted to Express routes on Railway (Phase 22, 2026-03-21)
@@ -106,7 +106,7 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 ## Current State
 
 **Shipped:** v2.0 Agent Intelligence Layer (2026-03-20)
-**In progress:** v2.1 Railway Deployment — Phase 22 (API Server) complete (2026-03-21). All 23 Supabase Edge Functions ported to Express routes: agent chat, orchestrator, spawn-team, langgraph-proxy SSE, content/image generation (direct Gemini API), business data tools, email, push subscriptions. Lazy SDK init pattern established. Docker + railway.toml ready for deployment.
+**In progress:** v2.1 Railway Deployment — Phase 23 (Scheduling Migration) complete (2026-03-21). BullMQ + node-cron replaces pg_cron + pgmq: cadence dispatcher (5-min cron), BullMQ worker (concurrency 3, graph.invoke), push notification helper, repeatable jobs (daily briefing 7am UTC, morning digest 6am UTC). Redis connection factory with TLS detection. 167 cadence tests passing.
 
 **Architecture:**
 - Frontend: React 18 + TypeScript SPA (Vite) + Tailwind + shadcn/ui (~19,700 LOC)
@@ -114,7 +114,7 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 - Database: Railway PostgreSQL 18 with pgvector (34 app tables + langgraph schema, migrated from Supabase)
 - Backend: Supabase Edge Functions (Deno) as JWT proxy — migrating to Express on Railway
 - AI: Lovable AI Gateway (Gemini 3 Flash for text, Nano Banana 2 for images)
-- Scheduling: pg_cron + pgmq → full LangGraph graph execution
+- Scheduling: BullMQ + node-cron + Redis → full LangGraph graph execution (migrated from pg_cron + pgmq)
 - Browser: Playwright persistent contexts for Marketer social media ops
 
 **13-agent hierarchy:**
@@ -161,4 +161,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | interrupt() for HITL (not custom approval flow) | LangGraph native pattern; checkpointed state survives restarts | ✓ Good |
 
 ---
-*Last updated: 2026-03-21 after Phase 22 (API Server) complete — All Edge Functions ported to Express, direct Gemini API, Docker-ready for Railway.*
+*Last updated: 2026-03-21 after Phase 23 (Scheduling Migration) complete — BullMQ + node-cron replaces pg_cron/pgmq, Redis connection factory, repeatable jobs for daily briefing and morning digest.*
