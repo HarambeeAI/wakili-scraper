@@ -11,7 +11,7 @@
 
 import cron from "node-cron";
 import { Queue } from "bullmq";
-import { createRedisConnection } from "./redis.js";
+import { getBullMQConnectionOptions } from "./redis.js";
 import { getPool } from "../tools/shared/db.js";
 
 export const QUEUE_NAME = "heartbeat";
@@ -21,7 +21,7 @@ let heartbeatQueue: Queue | null = null;
 function getHeartbeatQueue(): Queue {
   if (heartbeatQueue) return heartbeatQueue;
   heartbeatQueue = new Queue(QUEUE_NAME, {
-    connection: createRedisConnection(),
+    connection: getBullMQConnectionOptions(),
   });
   return heartbeatQueue;
 }

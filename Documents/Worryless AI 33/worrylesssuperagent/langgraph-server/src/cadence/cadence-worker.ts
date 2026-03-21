@@ -13,7 +13,7 @@
  */
 
 import { Worker, Job } from "bullmq";
-import { createRedisConnection } from "./redis.js";
+import { getBullMQConnectionOptions } from "./redis.js";
 import { getCheckpointer } from "../persistence/checkpointer.js";
 import { createSupervisorGraph } from "../graph/supervisor.js";
 import { getHeartbeatPrompt } from "./heartbeat-prompts.js";
@@ -73,7 +73,13 @@ export function startHeartbeatWorker(): Worker {
         await pool.query(
           `INSERT INTO heartbeat_log (user_id, agent_type, cadence_tier, result_summary, severity)
            VALUES ($1, $2, $3, $4, $5)`,
-          [user_id, agent_type_id, cadence_tier, content.substring(0, 500), "info"],
+          [
+            user_id,
+            agent_type_id,
+            cadence_tier,
+            content.substring(0, 500),
+            "info",
+          ],
         );
       } catch (logErr) {
         console.warn(
@@ -85,7 +91,11 @@ export function startHeartbeatWorker(): Worker {
       // Send push notification for non-empty heartbeat results
       if (content.length > 0) {
         const displayName = AGENT_DISPLAY_NAMES[agent_type_id] ?? agent_type_id;
-        await sendPushNotification(user_id, displayName, content.substring(0, 200));
+        await sendPushNotification(
+          user_id,
+          displayName,
+          content.substring(0, 200),
+        );
       }
 
       console.log(
@@ -94,7 +104,7 @@ export function startHeartbeatWorker(): Worker {
       return { success: true };
     },
     {
-      connection: createRedisConnection(),
+      connection: getBullMQConnectionOptions(),
       concurrency: 3,
     },
   );
