@@ -68,7 +68,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md` for full details.
   3. Logto service is deployed on Railway, the admin console is accessible, and email/password sign-in method is enabled
   4. All services resolve each other via Railway private networking (`*.railway.internal` hostnames) without exposing internal ports publicly
   5. All external API keys (GEMINI, FIRECRAWL, APIFY, RESEND, GOOGLE_CLIENT_ID/SECRET) and VAPID keys are set as Railway service variables
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [ ] 19-01: Provision Railway Postgres (pgvector 18 trixie template) + Redis services
