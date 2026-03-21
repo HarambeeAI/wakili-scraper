@@ -11,7 +11,7 @@
 - [ ] **RAIL-02**: Redis service provisioned on Railway for BullMQ job queue
 - [ ] **RAIL-03**: Logto Auth service deployed on Railway with dedicated PostgreSQL for identity data
 - [ ] **RAIL-04**: LangGraph Server deployed on Railway via Docker with Playwright Chromium and persistent volume at `/playwright-data`
-- [ ] **RAIL-05**: API Server (Express) deployed on Railway replacing all Supabase Edge Functions
+- [x] **RAIL-05**: API Server (Express) deployed on Railway replacing all Supabase Edge Functions
 - [ ] **RAIL-06**: Frontend deployed on Railway as static Nginx container serving Vite build
 - [ ] **RAIL-07**: All services connected via Railway private networking (`service.railway.internal:PORT`)
 - [ ] **RAIL-08**: Railway-generated domains assigned to Frontend, API Server, and LangGraph Server
@@ -35,7 +35,7 @@
 
 ### API Server — Edge Function Conversion (API)
 
-- [ ] **API-01**: Express server with CORS, JSON parsing, and Logto auth middleware deployed as Railway service
+- [x] **API-01**: Express server with CORS, JSON parsing, and Logto auth middleware deployed as Railway service
 - [ ] **API-02**: `POST /api/chat-with-agent` route replacing `chat-with-agent` Edge Function
 - [ ] **API-03**: `POST /api/orchestrator` route replacing `orchestrator` Edge Function
 - [ ] **API-04**: `POST /api/spawn-agent-team` route replacing `spawn-agent-team` Edge Function
@@ -104,7 +104,7 @@
 | RAIL-02 | Phase 19 | Pending |
 | RAIL-03 | Phase 19 | Pending |
 | RAIL-04 | Phase 23 | Pending |
-| RAIL-05 | Phase 22 | Pending |
+| RAIL-05 | Phase 22 | Complete |
 | RAIL-06 | Phase 24 | Pending |
 | RAIL-07 | Phase 19 | Pending |
 | RAIL-08 | Phase 25 | Pending |
@@ -119,7 +119,7 @@
 | AUTH-04 | Phase 21 | Complete |
 | AUTH-05 | Phase 21 | Complete |
 | AUTH-06 | Phase 21 | Complete |
-| API-01 | Phase 22 | Pending |
+| API-01 | Phase 22 | Complete |
 | API-02 | Phase 22 | Pending |
 | API-03 | Phase 22 | Pending |
 | API-04 | Phase 22 | Pending |

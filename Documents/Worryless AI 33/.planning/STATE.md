@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 21-02-PLAN.md (LangGraph server auth middleware)
-last_updated: "2026-03-21T09:20:53.242Z"
+stopped_at: Completed 22-01-PLAN.md (API server scaffold)
+last_updated: "2026-03-21T09:51:46.752Z"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 12
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 21 — auth-wiring
+**Current focus:** Phase 22 — api-server
 
 ## Current Position
 
-Phase: 22
-Plan: Not started
+Phase: 22 (api-server) — EXECUTING
+Plan: 2 of 5
 
 ## Performance Metrics
 
@@ -58,6 +58,8 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 20]: Table count is 34 (not 35) — 33 app tables + public.users; plan had off-by-one in expected count
 - [Phase 21]: LogtoProvider wraps outside QueryClientProvider as outermost provider; useAuth returns API resource access token (not id_token)
 - [Phase 21]: jose JWKS middleware on LangGraph server: stateless JWT validation via createRemoteJWKSet + jwtVerify, user_id from sub claim
+- [Phase 22]: Lazy JWKS initialization in auth middleware to avoid crash in test environment
+- [Phase 22]: Global app.use('/api', verifyLogtoJWT) guard instead of per-route auth middleware
 
 ### Pending Todos
 
@@ -71,6 +73,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:20:07.372Z
-Stopped at: Completed 21-02-PLAN.md (LangGraph server auth middleware)
+Last session: 2026-03-21T09:51:46.749Z
+Stopped at: Completed 22-01-PLAN.md (API server scaffold)
 Resume file: None
