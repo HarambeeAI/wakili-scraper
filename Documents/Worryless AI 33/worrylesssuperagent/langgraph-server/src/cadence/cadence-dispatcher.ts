@@ -4,7 +4,7 @@
  * Fires every 5 minutes, queries get_due_cadence_agents() from Postgres,
  * and enqueues one BullMQ job per due agent.
  *
- * Replaces: pg_cron `*/5 * * * *` + pgmq enqueue in Supabase heartbeat-runner.
+ * Replaces: pg_cron (every 5 minutes) + pgmq enqueue in Supabase heartbeat-runner.
  *
  * Only started when NODE_ENV !== "test" (see src/index.ts startup guard).
  */
@@ -29,7 +29,7 @@ function getHeartbeatQueue(): Queue {
 export function startCadenceScheduler(): void {
   const queue = getHeartbeatQueue();
 
-  // Fire every 5 minutes — replaces pg_cron `*/5 * * * *`
+  // Fire every 5 minutes — replaces pg_cron every-5-minutes job
   cron.schedule("*/5 * * * *", async () => {
     try {
       const pool = getPool();

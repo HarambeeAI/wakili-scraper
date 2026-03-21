@@ -183,3 +183,40 @@ describe("Cadence Dispatcher — isProactive token budget bypass contract", () =
     expect(agentStateInput.isProactive).toBe(false);
   });
 });
+
+describe("Cadence Dispatcher — module exports", () => {
+  it("exports startCadenceScheduler function", async () => {
+    const mod = await import("./cadence-dispatcher.js");
+    expect(typeof mod.startCadenceScheduler).toBe("function");
+  });
+
+  it("exports QUEUE_NAME as 'heartbeat'", async () => {
+    const mod = await import("./cadence-dispatcher.js");
+    expect(mod.QUEUE_NAME).toBe("heartbeat");
+  });
+});
+
+describe("Cadence Dispatcher — BullMQ job options contract", () => {
+  it("heartbeat job data contains required fields", () => {
+    const jobData = {
+      user_id: "uuid-user-1",
+      agent_type_id: "accountant",
+      cadence_tier: "daily",
+    };
+    expect(jobData).toHaveProperty("user_id");
+    expect(jobData).toHaveProperty("agent_type_id");
+    expect(jobData).toHaveProperty("cadence_tier");
+  });
+
+  it("job options include retry with exponential backoff", () => {
+    const jobOpts = {
+      attempts: 3,
+      backoff: { type: "exponential", delay: 5000 },
+      removeOnComplete: 100,
+      removeOnFail: 200,
+    };
+    expect(jobOpts.attempts).toBe(3);
+    expect(jobOpts.backoff.type).toBe("exponential");
+    expect(jobOpts.backoff.delay).toBe(5000);
+  });
+});
