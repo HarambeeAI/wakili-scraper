@@ -16,6 +16,7 @@ import {
   getThreadState,
 } from "./threads/manager.js";
 import type { AgentTypeId } from "./types/agent-types.js";
+import { verifyLogtoJWT, AuthedRequest } from "./middleware/auth.js";
 
 export const app = express();
 app.use(express.json());
@@ -45,30 +46,26 @@ app.get("/health", async (_req, res) => {
 
 // ── Supervisor Graph Invoke ───────────────────────────────────────────
 // POST /invoke
-// Body: { message: string, user_id: string, thread_id?: string, agent_type?: string }
+// Body: { message: string, thread_id?: string, agent_type?: string }
+// user_id derived from JWT sub claim (req.auth.userId)
 //
 // If thread_id provided: continues existing conversation using the stored checkpoint.
 // If not: creates a new thread for this user + agent combination and registers it.
 //
 // The supervisor graph routes the message to the appropriate specialist agent
 // (or answers directly as Chief of Staff) and persists state to PostgresSaver.
-app.post("/invoke", async (req, res) => {
+app.post("/invoke", verifyLogtoJWT, async (req: AuthedRequest, res) => {
   try {
-    const { message, user_id, thread_id, agent_type, is_proactive } =
-      req.body as {
-        message?: unknown;
-        user_id?: unknown;
-        thread_id?: unknown;
-        agent_type?: unknown;
-        is_proactive?: unknown;
-      };
+    const { message, thread_id, agent_type, is_proactive } = req.body as {
+      message?: unknown;
+      thread_id?: unknown;
+      agent_type?: unknown;
+      is_proactive?: unknown;
+    };
+    const user_id = req.auth!.userId;
 
     if (!message || typeof message !== "string") {
       res.status(400).json({ error: "message (string) is required" });
-      return;
-    }
-    if (!user_id || typeof user_id !== "string") {
-      res.status(400).json({ error: "user_id (string) is required" });
       return;
     }
 
@@ -131,7 +128,8 @@ app.post("/invoke", async (req, res) => {
 
 // ── Supervisor Graph SSE Streaming ────────────────────────────────────
 // POST /invoke/stream
-// Body: { message: string, user_id: string, thread_id?: string, agent_type?: string, business_context?: Record<string, unknown> }
+// Body: { message: string, thread_id?: string, agent_type?: string, business_context?: Record<string, unknown> }
+// user_id derived from JWT sub claim (req.auth.userId)
 //
 // Streams the agent response as Server-Sent Events (SSE).
 // Event types:
@@ -141,29 +139,25 @@ app.post("/invoke", async (req, res) => {
 //   pending_approvals — { type: "pending_approvals", approvals: PendingApproval[] }
 //   done             — { type: "done", metadata: ResponseMetadata | null, thread_id: string }
 //   error            — { type: "error", message: string }
-app.post("/invoke/stream", async (req, res) => {
-  const { message, user_id, thread_id, agent_type, business_context } =
-    req.body as {
-      message?: unknown;
-      user_id?: unknown;
-      thread_id?: unknown;
-      agent_type?: unknown;
-      business_context?: unknown;
-    };
+app.post("/invoke/stream", verifyLogtoJWT, async (req: AuthedRequest, res) => {
+  const { message, thread_id, agent_type, business_context } = req.body as {
+    message?: unknown;
+    thread_id?: unknown;
+    agent_type?: unknown;
+    business_context?: unknown;
+  };
+  const user_id = req.auth!.userId;
 
   if (!message || typeof message !== "string") {
     res.status(400).json({ error: "message (string) is required" });
     return;
   }
-  if (!user_id || typeof user_id !== "string") {
-    res.status(400).json({ error: "user_id (string) is required" });
-    return;
-  }
 
-  // Set SSE headers
+  // Set SSE headers (auth middleware already rejected invalid tokens before reaching here)
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
 
   const emit = (event: Record<string, unknown>) => {
     res.write(`data: ${JSON.stringify(event)}\n\n`);
@@ -342,7 +336,7 @@ app.post("/invoke/stream", async (req, res) => {
 // Resumes a graph that was paused by interrupt() waiting for human approval.
 // The Command({ resume: { approved, feedback } }) tells LangGraph to continue
 // execution from the interrupt point with the user's decision.
-app.post("/invoke/resume", async (req, res) => {
+app.post("/invoke/resume", verifyLogtoJWT, async (req: AuthedRequest, res) => {
   try {
     const { thread_id, approved, feedback } = req.body as {
       thread_id?: unknown;
@@ -397,17 +391,13 @@ app.post("/invoke/resume", async (req, res) => {
 // ── Thread Management ─────────────────────────────────────────────────
 
 // POST /threads — Create a new thread (without invoking)
-app.post("/threads", async (req, res) => {
+// user_id derived from JWT sub claim (req.auth.userId)
+app.post("/threads", verifyLogtoJWT, async (req: AuthedRequest, res) => {
   try {
-    const { user_id, agent_type } = req.body as {
-      user_id?: unknown;
+    const { agent_type } = req.body as {
       agent_type?: unknown;
     };
-
-    if (!user_id || typeof user_id !== "string") {
-      res.status(400).json({ error: "user_id (string) is required" });
-      return;
-    }
+    const user_id = req.auth!.userId;
 
     const agentTypeVal = (
       typeof agent_type === "string" ? agent_type : "supervisor"
@@ -430,9 +420,11 @@ app.post("/threads", async (req, res) => {
 });
 
 // GET /threads/:userId — List all threads for a user
-app.get("/threads/:userId", async (req, res) => {
+// Authorization: only returns threads for the authenticated user (JWT sub)
+app.get("/threads/:userId", verifyLogtoJWT, async (req: AuthedRequest, res) => {
   try {
-    const { userId } = req.params;
+    // Use authenticated user_id from JWT, ignoring URL param for authorization
+    const userId = req.auth!.userId;
     const agentType = req.query.agent_type as string | undefined;
 
     const threads = await listThreads(
@@ -449,26 +441,42 @@ app.get("/threads/:userId", async (req, res) => {
 });
 
 // GET /threads/:userId/:threadId — Get thread state (last checkpoint)
-app.get("/threads/:userId/:threadId", async (req, res) => {
-  try {
-    const { threadId } = req.params;
+// Authorization: verifies authenticated user matches the requested userId
+app.get(
+  "/threads/:userId/:threadId",
+  verifyLogtoJWT,
+  async (req: AuthedRequest, res) => {
+    try {
+      const { userId, threadId } = req.params;
+      const authUserId = req.auth!.userId;
 
-    const state = await getThreadState(threadId);
-    if (!state) {
-      res.status(404).json({ error: "Thread not found or has no checkpoint" });
-      return;
+      // Authorization check: user can only access their own threads
+      if (userId !== authUserId) {
+        res
+          .status(403)
+          .json({ error: "Forbidden: cannot access another user's threads" });
+        return;
+      }
+
+      const state = await getThreadState(threadId as string);
+      if (!state) {
+        res
+          .status(404)
+          .json({ error: "Thread not found or has no checkpoint" });
+        return;
+      }
+
+      res.json(state);
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
-
-    res.json(state);
-  } catch (error) {
-    res.status(500).json({
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
+  },
+);
 
 // ── Store endpoints (infrastructure validation) ───────────────────────
-app.post("/store", async (req, res) => {
+app.post("/store", verifyLogtoJWT, async (req: AuthedRequest, res) => {
   try {
     const { prefix, key, value } = req.body as {
       prefix?: unknown;
@@ -492,9 +500,9 @@ app.post("/store", async (req, res) => {
   }
 });
 
-app.get("/store/:prefix", async (req, res) => {
+app.get("/store/:prefix", verifyLogtoJWT, async (req: AuthedRequest, res) => {
   try {
-    const items = await searchStore(req.params.prefix);
+    const items = await searchStore(req.params.prefix as string);
     res.json({ items });
   } catch (error) {
     res.status(500).json({
@@ -503,20 +511,27 @@ app.get("/store/:prefix", async (req, res) => {
   }
 });
 
-app.get("/store/:prefix/:key", async (req, res) => {
-  try {
-    const item = await getStore(req.params.prefix, req.params.key);
-    if (!item) {
-      res.status(404).json({ error: "Not found" });
-      return;
+app.get(
+  "/store/:prefix/:key",
+  verifyLogtoJWT,
+  async (req: AuthedRequest, res) => {
+    try {
+      const item = await getStore(
+        req.params.prefix as string,
+        req.params.key as string,
+      );
+      if (!item) {
+        res.status(404).json({ error: "Not found" });
+        return;
+      }
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
-    res.json(item);
-  } catch (error) {
-    res.status(500).json({
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
+  },
+);
 
 // ── Start Server ──────────────────────────────────────────────────────
 // Only start listening when this module is run directly (not when imported for testing)
