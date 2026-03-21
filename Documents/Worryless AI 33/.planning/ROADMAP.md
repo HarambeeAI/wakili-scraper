@@ -85,11 +85,11 @@ Plans:
   3. The `langgraph` schema exists with `checkpoints`, `checkpoint_writes`, and `store` tables
   4. The `document_embeddings` table exists with pgvector column and the `vector` extension active
   5. The `profiles` table references `public.users` (not `auth.users`) and no `auth.*`, `pgmq.*`, `cron.*`, or `vault.*` references remain in any schema object
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 20-01: Author RAILWAY_MIGRATION.sql (strip Supabase extensions, replace auth.users FK with public.users)
-- [ ] 20-02: Apply migration to Railway Postgres and verify all schemas + seed data
+- [ ] 20-01-PLAN.md — Author RAILWAY_MIGRATION.sql (sanitize 36 Supabase migrations with 7 passes)
+- [ ] 20-02-PLAN.md — Apply migration to Railway Postgres and verify all schemas + seed data
 
 ### Phase 21: Auth Wiring
 **Goal**: Logto is the authoritative identity provider — it issues JWTs that both the API server and LangGraph server validate, and Google OAuth is configured for Personal Assistant integrations
