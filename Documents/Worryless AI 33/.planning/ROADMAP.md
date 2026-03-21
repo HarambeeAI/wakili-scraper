@@ -101,11 +101,11 @@ Plans:
   3. The LangGraph server rejects direct SSE connections without a valid Logto JWT with a 401 response
   4. The `sub` claim from the JWT is correctly extracted and passed as `user_id` in all database queries (no `auth.uid()` calls remain)
   5. Google OAuth redirect URIs are registered in Logto and a Personal Assistant user can complete the Google OAuth flow
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 21-01: Configure Logto email/password sign-in + Google OAuth, install @logto/react in frontend
-- [ ] 21-02: Implement jose JWKS middleware on API Server + LangGraph Server with user_id extraction
+- [ ] 21-01-PLAN.md — Install @logto/react, create LogtoConfig + useAuth hook + Callback page, wrap App.tsx with LogtoProvider
+- [ ] 21-02-PLAN.md — Install jose, create verifyLogtoJWT JWKS middleware, apply to all LangGraph server routes, replace body user_id with JWT sub
 
 ### Phase 22: API Server
 **Goal**: A Railway Express service hosts all 17 route equivalents of the former Supabase Edge Functions, using direct Gemini API (Gemini Imagen 3 for images), with every route protected by Logto JWT middleware and scoped to the requesting user
