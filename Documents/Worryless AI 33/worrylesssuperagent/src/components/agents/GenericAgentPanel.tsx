@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Bot, Settings2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { WorkspaceTabs } from "./workspace/WorkspaceTabs";
 import { HeartbeatConfigSection } from "./HeartbeatConfigSection";
 import { CadenceConfigSection } from "./CadenceConfigSection";
@@ -24,14 +24,8 @@ export function GenericAgentPanel({
   displayName,
   description,
 }: GenericAgentPanelProps) {
-  const [userId, setUserId] = useState<string | null>(null);
+  const { userId } = useAuth();
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
-    });
-  }, []);
 
   return (
     <>
