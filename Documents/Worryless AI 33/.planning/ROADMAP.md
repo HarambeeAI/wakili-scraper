@@ -124,7 +124,7 @@ Plans:
 - [ ] 22-02-PLAN.md — Implement core agent routes (chat-with-agent, orchestrator, spawn-agent-team, langgraph-proxy SSE)
 - [x] 22-03-PLAN.md — Implement content + image generation routes (generate-content, generate-image, generate-invoice-image) with Gemini Imagen 3
 - [x] 22-04-PLAN.md — Implement business data routes (crawl-business-website, parse-datasheet, generate-leads, generate-outreach, planning-agent, sync-gmail-calendar)
-- [ ] 22-05-PLAN.md — Implement utility routes (send-validation-email, send-test-email) + web-push VAPID notifications, verify full build
+- [x] 22-05-PLAN.md — Implement utility routes (send-validation-email, send-test-email) + web-push VAPID notifications, verify full build
 
 ### Phase 23: Scheduling Migration
 **Goal**: The LangGraph server runs the proactive cadence engine entirely through BullMQ + node-cron (no pg_cron, no pgmq), so scheduled agent runs, heartbeats, daily briefings, and push notifications survive process restarts
@@ -199,7 +199,7 @@ Plans:
 | 19. Infrastructure Provisioning | v2.1 | 0/3 | Complete    | 2026-03-21 |
 | 20. Database Migration | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 21. Auth Wiring | v2.1 | 2/2 | Complete    | 2026-03-21 |
-| 22. API Server | v2.1 | 3/5 | In Progress|  |
+| 22. API Server | v2.1 | 4/5 | In Progress|  |
 | 23. Scheduling Migration | v2.1 | 0/3 | Not started | - |
 | 24. Frontend Migration | v2.1 | 0/3 | Not started | - |
 | 25. Production Cutover | v2.1 | 0/1 | Not started | - |

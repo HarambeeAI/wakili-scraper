@@ -48,8 +48,8 @@
 - [x] **API-11**: `POST /api/parse-datasheet` route replacing `parse-datasheet` Edge Function
 - [x] **API-12**: `POST /api/planning-agent` route replacing `planning-agent` Edge Function
 - [x] **API-13**: `POST /api/sync-gmail-calendar` route replacing `sync-gmail-calendar` Edge Function
-- [ ] **API-14**: `POST /api/send-validation-email` route replacing `send-validation-email` Edge Function
-- [ ] **API-15**: `POST /api/send-test-email` route replacing `send-test-email` Edge Function
+- [x] **API-14**: `POST /api/send-validation-email` route replacing `send-validation-email` Edge Function
+- [x] **API-15**: `POST /api/send-test-email` route replacing `send-test-email` Edge Function
 - [ ] **API-16**: `POST /api/langgraph-proxy` route replacing `langgraph-proxy` Edge Function (SSE proxy with `X-Accel-Buffering: no`)
 - [ ] **API-17**: All LLM calls use direct Gemini API via OpenAI-compatible endpoint (`generativelanguage.googleapis.com/v1beta/openai/`) instead of Lovable AI Gateway
 
@@ -132,8 +132,8 @@
 | API-11 | Phase 22 | Complete |
 | API-12 | Phase 22 | Complete |
 | API-13 | Phase 22 | Complete |
-| API-14 | Phase 22 | Pending |
-| API-15 | Phase 22 | Pending |
+| API-14 | Phase 22 | Complete |
+| API-15 | Phase 22 | Complete |
 | API-16 | Phase 22 | Pending |
 | API-17 | Phase 22 | Pending |
 | SCHED-01 | Phase 23 | Pending |

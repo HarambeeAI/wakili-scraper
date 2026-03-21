@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 22-04-PLAN.md (business data routes)
-last_updated: "2026-03-21T09:59:09.308Z"
+stopped_at: Completed 22-05-PLAN.md (email routes, push subscriptions, full build verification)
+last_updated: "2026-03-21T10:03:00.560Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 22 (api-server) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Performance Metrics
 
@@ -62,6 +62,8 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 22]: Global app.use('/api', verifyLogtoJWT) guard instead of per-route auth middleware
 - [Phase 22]: Images returned as base64 data URIs from Imagen 3 (not hosted CDN URLs) - frontend img src compatible
 - [Phase 22]: Used getGeminiOpenAI() lazy init pattern aligned with parallel agent refactor
+- [Phase 22]: Lazy SDK initialization via getter functions prevents test crashes from missing env vars
+- [Phase 22]: Push subscription uses DELETE+INSERT instead of ON CONFLICT UPSERT to avoid unique constraint dependency
 
 ### Pending Todos
 
@@ -75,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:59:09.306Z
-Stopped at: Completed 22-04-PLAN.md (business data routes)
+Last session: 2026-03-21T10:03:00.558Z
+Stopped at: Completed 22-05-PLAN.md (email routes, push subscriptions, full build verification)
 Resume file: None
