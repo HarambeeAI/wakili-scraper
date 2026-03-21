@@ -16,9 +16,23 @@ app.use("/api", verifyLogtoJWT);
 
 // --- Route imports ---
 import { generateContent } from "./routes/generateContent.js";
+import { generateImage } from "./routes/generateImage.js";
+import { generateInvoiceImage } from "./routes/generateInvoiceImage.js";
+import { sendValidationEmail } from "./routes/sendValidationEmail.js";
+import { sendTestEmail } from "./routes/sendTestEmail.js";
+import {
+  createPushSubscription,
+  deletePushSubscription,
+} from "./routes/pushSubscriptions.js";
 
 // --- Route registrations (auth already applied via global /api middleware above) ---
 app.post("/api/generate-content", generateContent);
+app.post("/api/generate-image", generateImage);
+app.post("/api/generate-invoice-image", generateInvoiceImage);
+app.post("/api/send-validation-email", sendValidationEmail);
+app.post("/api/send-test-email", sendTestEmail);
+app.post("/api/push-subscriptions", createPushSubscription);
+app.delete("/api/push-subscriptions", deletePushSubscription);
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 if (process.env.NODE_ENV !== "test") {
