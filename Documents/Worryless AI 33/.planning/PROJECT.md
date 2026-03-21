@@ -71,7 +71,7 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 **Target features:**
 
 **Infrastructure Migration**
-- [ ] PostgreSQL provisioned on Railway with all 20+ migrations applied
+- [x] PostgreSQL provisioned on Railway with all 34 app tables + langgraph schema + pgvector applied (Phase 20, 2026-03-21)
 - [ ] Logto auth replacing Supabase Auth (email/password, JWT sessions)
 - [ ] pg_cron + pgmq scheduling replaced with Railway-compatible alternative (node-cron or BullMQ + Redis)
 
@@ -105,11 +105,13 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 ## Current State
 
 **Shipped:** v2.0 Agent Intelligence Layer (2026-03-20)
+**In progress:** v2.1 Railway Deployment — Phase 20 (Database Migration) complete (2026-03-21). Railway Postgres has all application schema applied and verified.
 
 **Architecture:**
 - Frontend: React 18 + TypeScript SPA (Vite) + Tailwind + shadcn/ui (~19,700 LOC)
 - LangGraph Server: Node.js/TypeScript on Railway (~16,700 LOC) with PostgresSaver, Store, pgvector
-- Backend: Supabase PostgreSQL + Edge Functions (Deno) as JWT proxy
+- Database: Railway PostgreSQL 18 with pgvector (34 app tables + langgraph schema, migrated from Supabase)
+- Backend: Supabase Edge Functions (Deno) as JWT proxy — migrating to Express on Railway
 - AI: Lovable AI Gateway (Gemini 3 Flash for text, Nano Banana 2 for images)
 - Scheduling: pg_cron + pgmq → full LangGraph graph execution
 - Browser: Playwright persistent contexts for Marketer social media ops
