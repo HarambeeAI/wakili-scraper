@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 23-01-PLAN.md (Playwright volume + BullMQ deps + Redis factory)
-last_updated: "2026-03-21T10:36:50.163Z"
+stopped_at: Completed 23-02-PLAN.md (cadence-dispatcher + cadence-worker + push-helper + unit tests)
+last_updated: "2026-03-21T10:47:46.669Z"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 23 (scheduling-migration) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -68,6 +68,9 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 22]: langgraphProxy uses app.use() for sub-path routing (Express 5 path-to-regexp v8 rejects /* wildcards)
 - [Phase 23]: createRedisConnection() is a factory not singleton: BullMQ requires separate IORedis instances for Queue vs Worker
 - [Phase 23]: TLS detection via rediss:// prefix: Railway Redis requires tls: {} or connections silently fail
+- [Phase 23]: getBullMQConnectionOptions() returns plain options not IORedis instance: avoids TS2322 type collision between top-level ioredis and BullMQ's bundled ioredis
+- [Phase 23]: heartbeat- thread prefix isolates proactive heartbeat threads from user chat threads in PostgresSaver
+- [Phase 23]: VAPID push helper uses lazy init with graceful no-op when keys absent
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T10:36:50.161Z
-Stopped at: Completed 23-01-PLAN.md (Playwright volume + BullMQ deps + Redis factory)
+Last session: 2026-03-21T10:47:46.666Z
+Stopped at: Completed 23-02-PLAN.md (cadence-dispatcher + cadence-worker + push-helper + unit tests)
 Resume file: None
