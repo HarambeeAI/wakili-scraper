@@ -24,6 +24,9 @@ import {
   createPushSubscription,
   deletePushSubscription,
 } from "./routes/pushSubscriptions.js";
+import { crawlWebsite } from "./routes/crawlWebsite.js";
+import { parseDatasheet } from "./routes/parseDatasheet.js";
+import { generateLeads } from "./routes/generateLeads.js";
 
 // --- Route registrations (auth already applied via global /api middleware above) ---
 app.post("/api/generate-content", generateContent);
@@ -33,6 +36,9 @@ app.post("/api/send-validation-email", sendValidationEmail);
 app.post("/api/send-test-email", sendTestEmail);
 app.post("/api/push-subscriptions", createPushSubscription);
 app.delete("/api/push-subscriptions", deletePushSubscription);
+app.post("/api/crawl-business-website", crawlWebsite);
+app.post("/api/parse-datasheet", parseDatasheet);
+app.post("/api/generate-leads", generateLeads);
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 if (process.env.NODE_ENV !== "test") {
