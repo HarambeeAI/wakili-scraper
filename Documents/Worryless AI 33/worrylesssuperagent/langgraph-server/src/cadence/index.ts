@@ -18,3 +18,8 @@ export {
   getEventPrompt,
 } from "./event-detector.js";
 export type { EventType, EventPromptConfig } from "./event-detector.js";
+
+export { startCadenceScheduler, QUEUE_NAME } from "./cadence-dispatcher.js";
+export { startHeartbeatWorker } from "./cadence-worker.js";
+export { sendPushNotification } from "./push-helper.js";
+export { createRedisConnection } from "./redis.js";

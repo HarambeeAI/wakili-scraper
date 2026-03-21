@@ -1,5 +1,7 @@
 import express from "express";
 import { Command } from "@langchain/langgraph";
+import { startCadenceScheduler } from "./cadence/cadence-dispatcher.js";
+import { startHeartbeatWorker } from "./cadence/cadence-worker.js";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { getCheckpointer } from "./persistence/checkpointer.js";
 import {
@@ -540,4 +542,7 @@ if (process.env.NODE_ENV !== "test") {
     console.log(`[langgraph-server] Running on port ${PORT}`);
     console.log(`[langgraph-server] Health: http://localhost:${PORT}/health`);
   });
+  // Start BullMQ scheduling (replaces pg_cron + pgmq)
+  startCadenceScheduler();
+  startHeartbeatWorker();
 }
