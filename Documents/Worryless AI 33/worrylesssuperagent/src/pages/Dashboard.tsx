@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { useLogto } from "@logto/react";
+import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
@@ -42,9 +43,16 @@ interface UserAgent {
   } | null;
 }
 
+interface Profile {
+  onboarding_completed: boolean;
+  email?: string | null;
+}
+
 const Dashboard = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { isAuthenticated } = useLogto();
+  const { userId, token, signOut } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>("overview");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
@@ -52,72 +60,49 @@ const Dashboard = () => {
   const [showPushOptIn, setShowPushOptIn] = useState(false);
   const navigate = useNavigate();
 
-  const fetchUserAgents = async (currentUser: User) => {
-    const { data } = await (supabase as any)
-      .from("user_agents")
-      .select(
-        "agent_type_id, available_agent_types(id, display_name, description)",
-      )
-      .eq("user_id", currentUser.id)
-      .eq("is_active", true);
-    setUserAgents((data as UserAgent[]) || []);
-  };
-
+  // Auth guard — redirect to /auth if not authenticated
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+    if (!isAuthenticated) {
+      navigate("/auth");
+    } else {
       setLoading(false);
-      if (!session) {
-        navigate("/auth");
-      }
-    });
+    }
+  }, [isAuthenticated, navigate]);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-      if (!session) {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+  const fetchUserAgents = async () => {
+    if (!token) return;
+    try {
+      const data = await api.get<UserAgent[]>("/api/user-agents", { token });
+      setUserAgents(data || []);
+    } catch (error) {
+      console.error("Error fetching user agents:", error);
+    }
+  };
 
   // Check onboarding status
   useEffect(() => {
     const checkOnboarding = async () => {
-      if (!user) return;
-
+      if (!userId || !token) return;
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("onboarding_completed")
-          .eq("user_id", user.id)
-          .single();
-
-        if (error) {
-          console.error("Error checking onboarding:", error);
-          setShowOnboarding(true);
-        } else {
-          setShowOnboarding(!data?.onboarding_completed);
-        }
+        const data = await api.get<Profile>("/api/profiles/me", { token });
+        setShowOnboarding(!data?.onboarding_completed);
+        if (data?.email) setUserEmail(data.email);
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error checking onboarding:", error);
+        setShowOnboarding(true);
       } finally {
         setCheckingOnboarding(false);
       }
     };
 
-    if (user) {
+    if (userId && token) {
       checkOnboarding();
     }
-  }, [user]);
+  }, [userId, token]);
 
   // Show push opt-in banner for existing users who never saw the opt-in step
   useEffect(() => {
-    if (!user || showOnboarding || checkingOnboarding) return;
+    if (!userId || showOnboarding || checkingOnboarding) return;
     if (!("PushManager" in window)) return;
     if (Notification.permission === "denied") return;
     if (localStorage.getItem("push_opt_in_shown")) return;
@@ -129,14 +114,14 @@ const Dashboard = () => {
         else localStorage.setItem("push_opt_in_shown", "1");
       })
       .catch(() => {});
-  }, [user, showOnboarding, checkingOnboarding]);
+  }, [userId, showOnboarding, checkingOnboarding]);
 
-  // Fetch user's active agents whenever user changes
+  // Fetch user's active agents whenever userId/token changes
   useEffect(() => {
-    if (user) {
-      fetchUserAgents(user);
+    if (userId && token) {
+      fetchUserAgents();
     }
-  }, [user]);
+  }, [userId, token]);
 
   if (loading || checkingOnboarding) {
     return (
@@ -146,16 +131,16 @@ const Dashboard = () => {
     );
   }
 
-  if (!user) return null;
+  if (!isAuthenticated) return null;
 
   if (showOnboarding) {
     return (
       <ConversationalOnboarding
-        userId={user.id}
-        userEmail={user.email || ""}
+        userId={userId ?? ""}
+        userEmail={userEmail || ""}
         onComplete={() => {
           setShowOnboarding(false);
-          if (user) fetchUserAgents(user);
+          fetchUserAgents();
         }}
       />
     );
@@ -166,9 +151,9 @@ const Dashboard = () => {
       case "overview":
         return (
           <>
-            {showPushOptIn && user && (
+            {showPushOptIn && userId && (
               <PushOptInBanner
-                userId={user.id}
+                userId={userId}
                 onDismiss={() => {
                   localStorage.setItem("push_opt_in_shown", "1");
                   setShowPushOptIn(false);
@@ -179,19 +164,19 @@ const Dashboard = () => {
           </>
         );
       case "team":
-        return <TeamView userId={user?.id} onNavigate={setActiveView} />;
+        return <TeamView userId={userId ?? undefined} onNavigate={setActiveView} />;
       case "accountant":
-        return <AgentChatView agentType="accountant" userId={user!.id} />;
+        return <AgentChatView agentType="accountant" userId={userId ?? ""} />;
       case "marketer":
-        return <AgentChatView agentType="marketer" userId={user!.id} />;
+        return <AgentChatView agentType="marketer" userId={userId ?? ""} />;
       case "sales":
-        return <AgentChatView agentType="sales_rep" userId={user!.id} />;
+        return <AgentChatView agentType="sales_rep" userId={userId ?? ""} />;
       case "assistant":
         return (
-          <AgentChatView agentType="personal_assistant" userId={user!.id} />
+          <AgentChatView agentType="personal_assistant" userId={userId ?? ""} />
         );
       case "chat":
-        return <AgentChatView agentType="chief_of_staff" userId={user!.id} />;
+        return <AgentChatView agentType="chief_of_staff" userId={userId ?? ""} />;
       case "settings":
         return <SettingsPage />;
       case "artifacts":
@@ -199,14 +184,14 @@ const Dashboard = () => {
       case "marketplace":
         return (
           <AgentMarketplace
-            userId={user.id}
-            onAgentChange={() => fetchUserAgents(user)}
+            userId={userId ?? ""}
+            onAgentChange={() => fetchUserAgents()}
           />
         );
       default:
         if (typeof activeView === "string" && activeView.startsWith("agent:")) {
           const agentTypeId = activeView.replace("agent:", "");
-          return <AgentChatView agentType={agentTypeId} userId={user!.id} />;
+          return <AgentChatView agentType={agentTypeId} userId={userId ?? ""} />;
         }
         return <DashboardOverview onNavigate={setActiveView} />;
     }
@@ -221,7 +206,7 @@ const Dashboard = () => {
           userAgents={userAgents}
         />
         <SidebarInset className="flex-1">
-          <DashboardHeader user={user} onNavigate={setActiveView} />
+          <DashboardHeader userId={userId} userEmail={userEmail} onNavigate={setActiveView} />
           <main className="flex-1 p-6">{renderContent()}</main>
         </SidebarInset>
       </div>
