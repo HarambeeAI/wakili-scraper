@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 20-01-PLAN.md (RAILWAY_MIGRATION.sql authored)
-last_updated: "2026-03-21T08:47:10.947Z"
+stopped_at: Completed 20-02-PLAN.md (migration applied and verified)
+last_updated: "2026-03-21T08:53:15.901Z"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -55,6 +55,7 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - `jose` JWKS middleware on API server (stateless, no per-request Logto roundtrip)
 - BullMQ TLS required for Railway Redis (`tls: {}` in IORedis options) — silent failure without it
 - [Phase 20]: Replaced all auth.users FK references with public.users for Logto; dropped all RLS for API-layer enforcement; replaced pgmq with RAISE NOTICE stubs for BullMQ
+- [Phase 20]: Table count is 34 (not 35) — 33 app tables + public.users; plan had off-by-one in expected count
 
 ### Pending Todos
 
@@ -68,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T08:47:10.945Z
-Stopped at: Completed 20-01-PLAN.md (RAILWAY_MIGRATION.sql authored)
+Last session: 2026-03-21T08:53:15.899Z
+Stopped at: Completed 20-02-PLAN.md (migration applied and verified)
 Resume file: None

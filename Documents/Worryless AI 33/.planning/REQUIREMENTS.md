@@ -19,7 +19,7 @@
 ### Database Migration (DB)
 
 - [x] **DB-01**: All 20+ Supabase migrations sanitized into RAILWAY_MIGRATION.sql (strip pg_cron, pgmq, pg_net, auth.users FK references, RLS policies, Supabase vault references)
-- [ ] **DB-02**: Sanitized migrations applied to Railway PostgreSQL with all tables, indexes, and seed data created
+- [x] **DB-02**: Sanitized migrations applied to Railway PostgreSQL with all tables, indexes, and seed data created
 - [x] **DB-03**: `langgraph` schema created with checkpoints, checkpoint_writes, store tables
 - [x] **DB-04**: pgvector extension enabled with document_embeddings table
 - [x] **DB-05**: `profiles` table created with `auth.users` FK replaced by standalone `users` table managed by Logto
@@ -109,7 +109,7 @@
 | RAIL-07 | Phase 19 | Pending |
 | RAIL-08 | Phase 25 | Pending |
 | DB-01 | Phase 20 | Complete |
-| DB-02 | Phase 20 | Pending |
+| DB-02 | Phase 20 | Complete |
 | DB-03 | Phase 20 | Complete |
 | DB-04 | Phase 20 | Complete |
 | DB-05 | Phase 20 | Complete |
