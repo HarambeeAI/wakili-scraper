@@ -77,9 +77,9 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 - [ ] pg_cron + pgmq scheduling replaced with Railway-compatible alternative (node-cron or BullMQ + Redis)
 
 **API Layer Migration**
-- [ ] 23 Supabase Edge Functions converted to Express routes on Railway
-- [ ] RLS replaced with Express middleware authorization (user_id from JWT)
-- [ ] Direct Gemini API calls replacing Lovable AI Gateway
+- [x] 23 Supabase Edge Functions converted to Express routes on Railway (Phase 22, 2026-03-21)
+- [x] RLS replaced with Express middleware authorization (user_id from JWT) (Phase 22, 2026-03-21)
+- [x] Direct Gemini API calls replacing Lovable AI Gateway (Phase 22, 2026-03-21)
 
 **Service Deployment**
 - [ ] LangGraph Server deployed on Railway (Docker, Playwright Chromium)
@@ -106,7 +106,7 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 ## Current State
 
 **Shipped:** v2.0 Agent Intelligence Layer (2026-03-20)
-**In progress:** v2.1 Railway Deployment — Phase 21 (Auth Wiring) complete (2026-03-21). Logto frontend SDK (@logto/react, useAuth hook, LogtoProvider) and backend JWT middleware (jose JWKS verification on all LangGraph routes) are wired. Railway Postgres has all application schema applied.
+**In progress:** v2.1 Railway Deployment — Phase 22 (API Server) complete (2026-03-21). All 23 Supabase Edge Functions ported to Express routes: agent chat, orchestrator, spawn-team, langgraph-proxy SSE, content/image generation (direct Gemini API), business data tools, email, push subscriptions. Lazy SDK init pattern established. Docker + railway.toml ready for deployment.
 
 **Architecture:**
 - Frontend: React 18 + TypeScript SPA (Vite) + Tailwind + shadcn/ui (~19,700 LOC)
@@ -161,4 +161,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | interrupt() for HITL (not custom approval flow) | LangGraph native pattern; checkpointed state survives restarts | ✓ Good |
 
 ---
-*Last updated: 2026-03-21 after v2.1 milestone started — Full Railway deployment: migrate off Supabase, self-hosted auth (Logto), direct Gemini API, all services on Railway.*
+*Last updated: 2026-03-21 after Phase 22 (API Server) complete — All Edge Functions ported to Express, direct Gemini API, Docker-ready for Railway.*
