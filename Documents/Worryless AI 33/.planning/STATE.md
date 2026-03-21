@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 22-01-PLAN.md (API server scaffold)
-last_updated: "2026-03-21T09:51:46.752Z"
+stopped_at: Completed 22-03-PLAN.md (content/image generation routes)
+last_updated: "2026-03-21T09:56:35.395Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 22 (api-server) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 21]: jose JWKS middleware on LangGraph server: stateless JWT validation via createRemoteJWKSet + jwtVerify, user_id from sub claim
 - [Phase 22]: Lazy JWKS initialization in auth middleware to avoid crash in test environment
 - [Phase 22]: Global app.use('/api', verifyLogtoJWT) guard instead of per-route auth middleware
+- [Phase 22]: Images returned as base64 data URIs from Imagen 3 (not hosted CDN URLs) - frontend img src compatible
 
 ### Pending Todos
 
@@ -73,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:51:46.749Z
-Stopped at: Completed 22-01-PLAN.md (API server scaffold)
+Last session: 2026-03-21T09:56:35.393Z
+Stopped at: Completed 22-03-PLAN.md (content/image generation routes)
 Resume file: None

@@ -39,9 +39,9 @@
 - [ ] **API-02**: `POST /api/chat-with-agent` route replacing `chat-with-agent` Edge Function
 - [ ] **API-03**: `POST /api/orchestrator` route replacing `orchestrator` Edge Function
 - [ ] **API-04**: `POST /api/spawn-agent-team` route replacing `spawn-agent-team` Edge Function
-- [ ] **API-05**: `POST /api/generate-content` route replacing `generate-content` Edge Function
-- [ ] **API-06**: `POST /api/generate-image` route replacing `generate-image` Edge Function (using Gemini Imagen 3)
-- [ ] **API-07**: `POST /api/generate-invoice-image` route replacing `generate-invoice-image` Edge Function (using Gemini Imagen 3)
+- [x] **API-05**: `POST /api/generate-content` route replacing `generate-content` Edge Function
+- [x] **API-06**: `POST /api/generate-image` route replacing `generate-image` Edge Function (using Gemini Imagen 3)
+- [x] **API-07**: `POST /api/generate-invoice-image` route replacing `generate-invoice-image` Edge Function (using Gemini Imagen 3)
 - [ ] **API-08**: `POST /api/generate-leads` route replacing `generate-leads` Edge Function
 - [ ] **API-09**: `POST /api/generate-outreach` route replacing `generate-outreach` Edge Function
 - [ ] **API-10**: `POST /api/crawl-business-website` route replacing `crawl-business-website` Edge Function
@@ -123,9 +123,9 @@
 | API-02 | Phase 22 | Pending |
 | API-03 | Phase 22 | Pending |
 | API-04 | Phase 22 | Pending |
-| API-05 | Phase 22 | Pending |
-| API-06 | Phase 22 | Pending |
-| API-07 | Phase 22 | Pending |
+| API-05 | Phase 22 | Complete |
+| API-06 | Phase 22 | Complete |
+| API-07 | Phase 22 | Complete |
 | API-08 | Phase 22 | Pending |
 | API-09 | Phase 22 | Pending |
 | API-10 | Phase 22 | Pending |
