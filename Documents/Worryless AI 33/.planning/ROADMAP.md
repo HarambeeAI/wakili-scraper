@@ -139,7 +139,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Dockerfile + railway.toml for Playwright volume, install BullMQ/ioredis/node-cron deps, create Redis connection factory
+- [x] 23-01-PLAN.md — Dockerfile + railway.toml for Playwright volume, install BullMQ/ioredis/node-cron deps, create Redis connection factory
 - [ ] 23-02-PLAN.md — Implement cadence-dispatcher (node-cron tick -> BullMQ enqueue), cadence-worker (BullMQ -> graph.invoke()), push-helper, wire into index.ts
 - [ ] 23-03-PLAN.md — Verify get_due_cadence_agents() SQL function, implement BullMQ repeatable jobs for daily briefing + morning digest
 
@@ -200,7 +200,7 @@ Plans:
 | 20. Database Migration | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 21. Auth Wiring | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 22. API Server | v2.1 | 5/5 | Complete    | 2026-03-21 |
-| 23. Scheduling Migration | v2.1 | 0/3 | Not started | - |
+| 23. Scheduling Migration | v2.1 | 1/3 | In Progress|  |
 | 24. Frontend Migration | v2.1 | 0/3 | Not started | - |
 | 25. Production Cutover | v2.1 | 0/1 | Not started | - |
 

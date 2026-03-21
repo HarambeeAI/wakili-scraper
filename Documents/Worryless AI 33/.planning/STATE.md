@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 22-05-PLAN.md (email routes, push subscriptions, full build verification)
-last_updated: "2026-03-21T10:04:51.940Z"
+stopped_at: Completed 23-01-PLAN.md (Playwright volume + BullMQ deps + Redis factory)
+last_updated: "2026-03-21T10:36:50.163Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 15
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 22 — api-server
+**Current focus:** Phase 23 — scheduling-migration
 
 ## Current Position
 
-Phase: 23
-Plan: Not started
+Phase: 23 (scheduling-migration) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -66,6 +66,8 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 22]: Push subscription uses DELETE+INSERT instead of ON CONFLICT UPSERT to avoid unique constraint dependency
 - [Phase 22]: Orchestrator uses direct geminiOpenAI calls instead of fetching separate edge functions
 - [Phase 22]: langgraphProxy uses app.use() for sub-path routing (Express 5 path-to-regexp v8 rejects /* wildcards)
+- [Phase 23]: createRedisConnection() is a factory not singleton: BullMQ requires separate IORedis instances for Queue vs Worker
+- [Phase 23]: TLS detection via rediss:// prefix: Railway Redis requires tls: {} or connections silently fail
 
 ### Pending Todos
 
@@ -79,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T10:03:00.558Z
-Stopped at: Completed 22-05-PLAN.md (email routes, push subscriptions, full build verification)
+Last session: 2026-03-21T10:36:50.161Z
+Stopped at: Completed 23-01-PLAN.md (Playwright volume + BullMQ deps + Redis factory)
 Resume file: None

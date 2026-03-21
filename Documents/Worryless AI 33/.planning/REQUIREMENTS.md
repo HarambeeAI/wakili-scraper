@@ -10,7 +10,7 @@
 - [ ] **RAIL-01**: PostgreSQL service provisioned on Railway with pgvector extension enabled
 - [ ] **RAIL-02**: Redis service provisioned on Railway for BullMQ job queue
 - [ ] **RAIL-03**: Logto Auth service deployed on Railway with dedicated PostgreSQL for identity data
-- [ ] **RAIL-04**: LangGraph Server deployed on Railway via Docker with Playwright Chromium and persistent volume at `/playwright-data`
+- [x] **RAIL-04**: LangGraph Server deployed on Railway via Docker with Playwright Chromium and persistent volume at `/playwright-data`
 - [x] **RAIL-05**: API Server (Express) deployed on Railway replacing all Supabase Edge Functions
 - [ ] **RAIL-06**: Frontend deployed on Railway as static Nginx container serving Vite build
 - [ ] **RAIL-07**: All services connected via Railway private networking (`service.railway.internal:PORT`)
@@ -103,7 +103,7 @@
 | RAIL-01 | Phase 19 | Pending |
 | RAIL-02 | Phase 19 | Pending |
 | RAIL-03 | Phase 19 | Pending |
-| RAIL-04 | Phase 23 | Pending |
+| RAIL-04 | Phase 23 | Complete |
 | RAIL-05 | Phase 22 | Complete |
 | RAIL-06 | Phase 24 | Pending |
 | RAIL-07 | Phase 19 | Pending |
