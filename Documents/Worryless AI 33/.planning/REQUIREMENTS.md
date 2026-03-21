@@ -100,63 +100,63 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RAIL-01 | TBD | Pending |
-| RAIL-02 | TBD | Pending |
-| RAIL-03 | TBD | Pending |
-| RAIL-04 | TBD | Pending |
-| RAIL-05 | TBD | Pending |
-| RAIL-06 | TBD | Pending |
-| RAIL-07 | TBD | Pending |
-| RAIL-08 | TBD | Pending |
-| DB-01 | TBD | Pending |
-| DB-02 | TBD | Pending |
-| DB-03 | TBD | Pending |
-| DB-04 | TBD | Pending |
-| DB-05 | TBD | Pending |
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| AUTH-05 | TBD | Pending |
-| AUTH-06 | TBD | Pending |
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| API-03 | TBD | Pending |
-| API-04 | TBD | Pending |
-| API-05 | TBD | Pending |
-| API-06 | TBD | Pending |
-| API-07 | TBD | Pending |
-| API-08 | TBD | Pending |
-| API-09 | TBD | Pending |
-| API-10 | TBD | Pending |
-| API-11 | TBD | Pending |
-| API-12 | TBD | Pending |
-| API-13 | TBD | Pending |
-| API-14 | TBD | Pending |
-| API-15 | TBD | Pending |
-| API-16 | TBD | Pending |
-| API-17 | TBD | Pending |
-| SCHED-01 | TBD | Pending |
-| SCHED-02 | TBD | Pending |
-| SCHED-03 | TBD | Pending |
-| SCHED-04 | TBD | Pending |
-| SCHED-05 | TBD | Pending |
-| FE-01 | TBD | Pending |
-| FE-02 | TBD | Pending |
-| FE-03 | TBD | Pending |
-| FE-04 | TBD | Pending |
-| FE-05 | TBD | Pending |
-| FE-06 | TBD | Pending |
-| ENV-01 | TBD | Pending |
-| ENV-02 | TBD | Pending |
-| ENV-03 | TBD | Pending |
-| ENV-04 | TBD | Pending |
+| RAIL-01 | Phase 19 | Pending |
+| RAIL-02 | Phase 19 | Pending |
+| RAIL-03 | Phase 19 | Pending |
+| RAIL-04 | Phase 23 | Pending |
+| RAIL-05 | Phase 22 | Pending |
+| RAIL-06 | Phase 24 | Pending |
+| RAIL-07 | Phase 19 | Pending |
+| RAIL-08 | Phase 25 | Pending |
+| DB-01 | Phase 20 | Pending |
+| DB-02 | Phase 20 | Pending |
+| DB-03 | Phase 20 | Pending |
+| DB-04 | Phase 20 | Pending |
+| DB-05 | Phase 20 | Pending |
+| AUTH-01 | Phase 21 | Pending |
+| AUTH-02 | Phase 21 | Pending |
+| AUTH-03 | Phase 21 | Pending |
+| AUTH-04 | Phase 21 | Pending |
+| AUTH-05 | Phase 21 | Pending |
+| AUTH-06 | Phase 21 | Pending |
+| API-01 | Phase 22 | Pending |
+| API-02 | Phase 22 | Pending |
+| API-03 | Phase 22 | Pending |
+| API-04 | Phase 22 | Pending |
+| API-05 | Phase 22 | Pending |
+| API-06 | Phase 22 | Pending |
+| API-07 | Phase 22 | Pending |
+| API-08 | Phase 22 | Pending |
+| API-09 | Phase 22 | Pending |
+| API-10 | Phase 22 | Pending |
+| API-11 | Phase 22 | Pending |
+| API-12 | Phase 22 | Pending |
+| API-13 | Phase 22 | Pending |
+| API-14 | Phase 22 | Pending |
+| API-15 | Phase 22 | Pending |
+| API-16 | Phase 22 | Pending |
+| API-17 | Phase 22 | Pending |
+| SCHED-01 | Phase 23 | Pending |
+| SCHED-02 | Phase 23 | Pending |
+| SCHED-03 | Phase 23 | Pending |
+| SCHED-04 | Phase 23 | Pending |
+| SCHED-05 | Phase 22 | Pending |
+| FE-01 | Phase 24 | Pending |
+| FE-02 | Phase 24 | Pending |
+| FE-03 | Phase 24 | Pending |
+| FE-04 | Phase 24 | Pending |
+| FE-05 | Phase 24 | Pending |
+| FE-06 | Phase 24 | Pending |
+| ENV-01 | Phase 19 | Pending |
+| ENV-02 | Phase 19 | Pending |
+| ENV-03 | Phase 19 | Pending |
+| ENV-04 | Phase 19 | Pending |
 
 **Coverage:**
-- v2.1 requirements: 48 total
-- Mapped to phases: 0
-- Unmapped: 48
+- v2.1 requirements: 51 total (note: original count of 48 was a document error — actual count is 51)
+- Mapped to phases: 51
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 — traceability mapped to phases 19-25*

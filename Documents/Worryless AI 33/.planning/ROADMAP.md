@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 Proactive Multi-Agent Foundation** — Phases 1-9 (shipped 2026-03-17)
 - ✅ **v2.0 Agent Intelligence Layer** — Phases 10-18 (shipped 2026-03-20)
+- 🚧 **v2.1 Railway Deployment** — Phases 19-25 (in progress)
 
 ## Phases
 
@@ -41,6 +42,138 @@ See: `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
 </details>
 
+### 🚧 v2.1 Railway Deployment (In Progress)
+
+**Milestone Goal:** Migrate the entire Worryless AI platform off Supabase onto Railway — self-hosted PostgreSQL, self-hosted auth (Logto), Edge Functions converted to Express API routes, direct Gemini API replacing Lovable gateway, and full production deployment.
+
+#### Phases
+
+- [ ] **Phase 19: Infrastructure Provisioning** - Railway Postgres, Redis, Logto, and private networking live
+- [ ] **Phase 20: Database Migration** - All 20+ sanitized migrations applied to Railway Postgres
+- [ ] **Phase 21: Auth Wiring** - Logto issuing JWTs, JWT middleware on API and LangGraph servers
+- [ ] **Phase 22: API Server** - 17 Express routes replacing all Supabase Edge Functions
+- [ ] **Phase 23: Scheduling Migration** - BullMQ + node-cron replacing pg_cron + pgmq in LangGraph server
+- [ ] **Phase 24: Frontend Migration** - Supabase client removed, Logto auth + Railway API wired in
+- [ ] **Phase 25: Production Cutover** - Domains assigned, env vars finalized, smoke test passes
+
+## Phase Details
+
+### Phase 19: Infrastructure Provisioning
+**Goal**: All Railway services (Postgres, Redis, Logto, private networking) are live and reachable before any application code is written
+**Depends on**: Nothing (first phase of v2.1)
+**Requirements**: RAIL-01, RAIL-02, RAIL-03, RAIL-07, ENV-01, ENV-02, ENV-03, ENV-04
+**Success Criteria** (what must be TRUE):
+  1. Railway PostgreSQL service is running with pgvector extension confirmed via `SELECT * FROM pg_extension WHERE extname = 'vector'`
+  2. Railway Redis service is running and reachable from the project's internal network
+  3. Logto service is deployed on Railway, the admin console is accessible, and email/password sign-in method is enabled
+  4. All services resolve each other via Railway private networking (`*.railway.internal` hostnames) without exposing internal ports publicly
+  5. All external API keys (GEMINI, FIRECRAWL, APIFY, RESEND, GOOGLE_CLIENT_ID/SECRET) and VAPID keys are set as Railway service variables
+**Plans**: TBD
+
+Plans:
+- [ ] 19-01: Provision Railway Postgres (pgvector 18 trixie template) + Redis services
+- [ ] 19-02: Deploy Logto on Railway (Docker `logto/logto:latest`) with dedicated schema on shared Postgres
+- [ ] 19-03: Configure Railway reference variables, private networking, and all external API keys
+
+### Phase 20: Database Migration
+**Goal**: All application schema is applied to Railway Postgres with Supabase-specific extensions stripped, so every table, index, and seed row exists and is queryable
+**Depends on**: Phase 19
+**Requirements**: DB-01, DB-02, DB-03, DB-04, DB-05
+**Success Criteria** (what must be TRUE):
+  1. `RAILWAY_MIGRATION.sql` applies cleanly to a fresh Railway Postgres instance with zero errors
+  2. All 20+ application tables exist in the `public` schema with correct columns, indexes, and constraints
+  3. The `langgraph` schema exists with `checkpoints`, `checkpoint_writes`, and `store` tables
+  4. The `document_embeddings` table exists with pgvector column and the `vector` extension active
+  5. The `profiles` table references `public.users` (not `auth.users`) and no `auth.*`, `pgmq.*`, `cron.*`, or `vault.*` references remain in any schema object
+**Plans**: TBD
+
+Plans:
+- [ ] 20-01: Author RAILWAY_MIGRATION.sql (strip Supabase extensions, replace auth.users FK with public.users)
+- [ ] 20-02: Apply migration to Railway Postgres and verify all schemas + seed data
+
+### Phase 21: Auth Wiring
+**Goal**: Logto is the authoritative identity provider — it issues JWTs that both the API server and LangGraph server validate, and Google OAuth is configured for Personal Assistant integrations
+**Depends on**: Phase 19 (Logto deployed), Phase 20 (users table exists)
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06
+**Success Criteria** (what must be TRUE):
+  1. A user can sign in with email/password via Logto and receive a JWT with a `sub` claim
+  2. The API server rejects requests without a valid Logto JWT with a 401 response
+  3. The LangGraph server rejects direct SSE connections without a valid Logto JWT with a 401 response
+  4. The `sub` claim from the JWT is correctly extracted and passed as `user_id` in all database queries (no `auth.uid()` calls remain)
+  5. Google OAuth redirect URIs are registered in Logto and a Personal Assistant user can complete the Google OAuth flow
+**Plans**: TBD
+
+Plans:
+- [ ] 21-01: Configure Logto email/password sign-in + Google OAuth, install @logto/react in frontend
+- [ ] 21-02: Implement jose JWKS middleware on API Server + LangGraph Server with user_id extraction
+
+### Phase 22: API Server
+**Goal**: A Railway Express service hosts all 17 route equivalents of the former Supabase Edge Functions, using direct Gemini API (Gemini Imagen 3 for images), with every route protected by Logto JWT middleware and scoped to the requesting user
+**Depends on**: Phase 20 (schema exists), Phase 21 (Logto JWKS available)
+**Requirements**: RAIL-05, API-01, API-02, API-03, API-04, API-05, API-06, API-07, API-08, API-09, API-10, API-11, API-12, API-13, API-14, API-15, API-16, API-17
+**Success Criteria** (what must be TRUE):
+  1. The Express API server is deployed on Railway and responds to `GET /health` with 200
+  2. A valid JWT produces a 200 from at least one data-returning route (e.g., `POST /api/spawn-agent-team`); an invalid JWT produces a 401 on all routes
+  3. `POST /api/generate-content` returns LLM-generated text using direct Gemini API (no Lovable gateway)
+  4. `POST /api/generate-image` and `POST /api/generate-invoice-image` return images generated by Gemini Imagen 3
+  5. `GET /api/langgraph-proxy` (SSE) streams chunks in real time to the client — no buffering delay — with `X-Accel-Buffering: no` confirmed active
+**Plans**: TBD
+
+Plans:
+- [ ] 22-01: Scaffold Express API server with CORS, JSON, Logto JWT middleware, pg pool, and health check
+- [ ] 22-02: Implement core agent routes (chat-with-agent, orchestrator, spawn-agent-team, langgraph-proxy SSE)
+- [ ] 22-03: Implement content + image generation routes (generate-content, generate-image, generate-invoice-image) with Gemini Imagen 3
+- [ ] 22-04: Implement business data routes (crawl-business-website, parse-datasheet, generate-leads, generate-outreach, planning-agent, sync-gmail-calendar)
+- [ ] 22-05: Implement utility routes (send-validation-email, send-test-email) + web-push VAPID notifications, deploy to Railway
+
+### Phase 23: Scheduling Migration
+**Goal**: The LangGraph server runs the proactive cadence engine entirely through BullMQ + node-cron (no pg_cron, no pgmq), so scheduled agent runs, heartbeats, daily briefings, and push notifications survive process restarts
+**Depends on**: Phase 19 (Redis live), Phase 20 (schema + get_due_cadence_agents function), Phase 22 (can run in parallel with Phase 22)
+**Requirements**: RAIL-04, SCHED-01, SCHED-02, SCHED-03, SCHED-04, SCHED-05
+**Success Criteria** (what must be TRUE):
+  1. The LangGraph server is deployed on Railway via Docker with Playwright Chromium installed and the persistent volume mounted at `/playwright-data`
+  2. A node-cron tick fires every 5 minutes and enqueues due agents to BullMQ — confirmed via queue depth in Redis
+  3. A BullMQ worker processes a heartbeat job by calling `graph.invoke()` and completing without error
+  4. Daily briefing and morning digest jobs are registered as BullMQ repeatable jobs and appear in the queue on schedule
+  5. The `get_due_cadence_agents()` SQL function executes on Railway Postgres without referencing pg_cron or pgmq
+**Plans**: TBD
+
+Plans:
+- [ ] 23-01: Update LangGraph server Dockerfile for Playwright + volume, update DATABASE_URL + GEMINI_API_KEY env vars
+- [ ] 23-02: Implement cadence/dispatcher.ts (node-cron tick → BullMQ enqueue) + cadence/worker.ts (BullMQ → graph.invoke())
+- [ ] 23-03: Adapt get_due_cadence_agents() SQL function, convert daily briefing + digest to BullMQ repeatable jobs
+
+### Phase 24: Frontend Migration
+**Goal**: The frontend runs entirely on Railway with no Supabase dependency — Logto handles auth, all data fetching calls the Express API server, and the Vite build is served by Nginx
+**Depends on**: Phase 21 (Logto auth), Phase 22 (API Server live)
+**Requirements**: RAIL-06, FE-01, FE-02, FE-03, FE-04, FE-05, FE-06
+**Success Criteria** (what must be TRUE):
+  1. `@supabase/supabase-js` does not appear in the frontend bundle or `package.json`
+  2. A new user can open the Railway frontend URL, register via Logto, complete onboarding, and reach the dashboard without any Supabase calls in the network tab
+  3. An authenticated user's agent chat sends SSE requests to the Railway LangGraph server URL and receives streaming responses
+  4. The environment variables `VITE_API_URL`, `VITE_LANGGRAPH_URL`, and `VITE_LOGTO_*` are set to Railway endpoints and the app builds cleanly with them
+  5. The Vite build is packaged into a Nginx Docker container and deployed as a Railway service serving the SPA
+**Plans**: TBD
+
+Plans:
+- [ ] 24-01: Remove @supabase/supabase-js, install @logto/react, wire LogtoProvider + sign-in/callback/sign-out routes
+- [ ] 24-02: Rewire all data-fetching hooks (useTeamData, useAgentWorkspace, useNotifications, usePushSubscription, etc.) to call /api/* with Bearer token
+- [ ] 24-03: Update useAgentChat SSE hook to Railway LangGraph URL, set all VITE_ env vars, build Nginx Docker container, deploy to Railway
+
+### Phase 25: Production Cutover
+**Goal**: All Railway services have their public domains assigned, the platform is accessible end-to-end via Railway-generated URLs, and a full smoke test confirms every critical user flow works
+**Depends on**: Phase 22, Phase 23, Phase 24
+**Requirements**: RAIL-08
+**Success Criteria** (what must be TRUE):
+  1. Railway-generated domains are assigned to the Frontend, API Server, and LangGraph Server services
+  2. A first-time user can register, complete onboarding, activate an agent team, and send a message to the Chief of Staff from the public Railway frontend URL
+  3. A scheduled agent heartbeat fires, processes, and surface an insight in the dashboard without manual intervention
+  4. Image generation (via Gemini Imagen 3) and email sending (via Resend) both complete successfully from the production environment
+**Plans**: TBD
+
+Plans:
+- [ ] 25-01: Assign Railway domains to all public services, set CORS origins to production frontend domain, run full smoke test checklist
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -63,8 +196,16 @@ See: `.planning/milestones/v2.0-ROADMAP.md` for full details.
 | 16. Proactive Cadence Engine | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 17. Generative UI + Onboarding | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 18. Agent-to-UI Data Pipeline Fix | v2.0 | 4/4 | Complete | 2026-03-20 |
+| 19. Infrastructure Provisioning | v2.1 | 0/3 | Not started | - |
+| 20. Database Migration | v2.1 | 0/2 | Not started | - |
+| 21. Auth Wiring | v2.1 | 0/2 | Not started | - |
+| 22. API Server | v2.1 | 0/5 | Not started | - |
+| 23. Scheduling Migration | v2.1 | 0/3 | Not started | - |
+| 24. Frontend Migration | v2.1 | 0/3 | Not started | - |
+| 25. Production Cutover | v2.1 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-12*
 *Milestone v1.0: Proactive Multi-Agent Foundation — shipped 2026-03-17*
 *Milestone v2.0: Agent Intelligence Layer — shipped 2026-03-20*
+*Milestone v2.1: Railway Deployment — roadmap created 2026-03-21*
