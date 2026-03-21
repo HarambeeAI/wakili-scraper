@@ -1,19 +1,17 @@
 # Project Research Summary
 
-**Project:** Worryless AI — Multi-Agent Business Automation Platform
-**Domain:** Proactive multi-agent SaaS — agent team management, heartbeat scheduling, MD workspace editing
-**Researched:** 2026-03-12
-**Confidence:** HIGH (all four research areas resolved with official sources or verified codebase-grounded analysis)
-
----
+**Project:** Worryless AI v2.1 — Railway Deployment Migration
+**Domain:** Infrastructure migration — Supabase to self-hosted Railway (multi-agent SaaS platform)
+**Researched:** 2026-03-21
+**Confidence:** HIGH
 
 ## Executive Summary
 
-Worryless AI is building a proactive AI team management layer on top of an existing Supabase + React SPA. The core challenge is not UI novelty but infrastructure correctness: a heartbeat system that fans out across up to 12 agents per user must be built queue-first or it will time out, generate runaway LLM costs, and deliver a broken experience before it ever gets used. Research is unambiguous — the dispatcher+pgmq queue architecture is the only viable approach for Supabase's pg_cron constraints, and it must be built this way from day one rather than retrofitted later.
+Worryless AI v2.1 is a full-platform infrastructure migration — not a feature milestone. The product (a multi-agent AI SaaS with proactive scheduling, LangGraph graph execution, and streaming chat) already exists and runs on Supabase. The goal is to replicate every capability on a self-hosted Railway stack: Logto replaces Supabase Auth, a new Express API server replaces 21 Supabase Edge Functions (Deno), BullMQ + Redis replaces pg_cron + pgmq, and Railway PostgreSQL replaces Supabase's managed database. The LangGraph server is already on Railway and requires only minor changes. The frontend needs its Supabase client dependency stripped and rewired to Logto and the new Express API.
 
-The product's value depends on making AI agents feel like employees rather than software. Research across Lindy AI, AutoGen Studio, and agentic UX literature identifies a consistent set of table-stakes patterns: role-framed agent cards with activity timestamps, streaming status labels during processing, a morning briefing digest from the Chief of Staff, and HEARTBEAT_OK suppression that ensures agents only surface genuine signals. The differentiating UX moment is the post-onboarding team activation animation — a low-effort, high-emotional-impact step that sets the mental model for everything that follows. None of these patterns require new infrastructure beyond what is already decided.
+The recommended build order is strictly dependency-driven: infrastructure first (Railway Postgres, Redis, Logto), then database migration (sanitized SQL migrations with Supabase-specific extensions stripped), then the Express API server (21 routes + auth middleware), then LangGraph server cadence additions (BullMQ dispatcher + worker), then frontend rewiring. This order is non-negotiable — every subsequent layer depends on the one before it. No end-to-end testing is possible until Logto issues JWTs, Postgres has all schemas applied, and the Express API server is returning 200s.
 
-The three risks that can kill the milestone are: (1) heartbeat runaway from a broken suppression check creating notification spam and budget bleed overnight; (2) the onboarding team selector step killing conversion if implemented as a heavy decision grid rather than a pre-checked, single-click accept flow; and (3) users silently degrading agent quality by editing SOPs.md in ways that break the heartbeat checklist format with no recovery path. All three have clear mitigations that must ship with their respective features, not as follow-up work.
+The highest-risk elements are (1) auth user UUID preservation during migration from Supabase to Logto — a mismatch orphans every row of user data in all 20+ tables — and (2) the API surface conversion volume (21 functions spanning 6 categories) combined with two silent failure modes: Deno-specific globals that compile as valid TypeScript but crash at Node.js runtime, and SSE streaming that requires explicit `X-Accel-Buffering: no` headers to prevent Railway's nginx from buffering agent response chunks. Both must be caught in staging before any production cutover.
 
 ---
 
@@ -21,16 +19,24 @@ The three risks that can kill the milestone are: (1) heartbeat runaway from a br
 
 ### Recommended Stack
 
-The existing React + Supabase + Deno Edge Functions stack is fully capable of delivering this milestone without adding any new backend services. Four specific additions are required: (1) Supabase Queues (pgmq extension, GA late 2024) for the heartbeat fan-out; (2) native Web Push API with VAPID via `@negrel/webpush` (JSR) for browser push notifications — no Firebase, no OneSignal; (3) CodeMirror 6 via `@uiw/react-codemirror` for the workspace editor — not Monaco, which reads as an IDE to non-technical users; and (4) `EdgeRuntime.waitUntil()` (released 2024) to decouple the heartbeat runner's HTTP acknowledgment from its background LLM processing.
-
-Resend is already integrated and requires no changes beyond adding a heartbeat alert email template. AI streaming uses `fetch()` directly on the frontend — `supabase.functions.invoke()` buffers the full response and cannot stream, a documented limitation (functions-js #67). Markdown workspace content is stored as plain `text` columns with generated `tsvector` + GIN index for full-text search; JSONB would add overhead with zero structural benefit for unstructured prose.
+The v2.1 stack minimizes net-new packages. The LangGraph server already has `express ^4.21.0`, `@google/genai ^1.46.0`, `pg ^8.13.0`, and `@langchain/langgraph ^1.2.3` installed. New packages are limited to `jose ^6.2.2` (JWT verification via Logto JWKS) and `web-push ^3.6.5` on the Express API server, and `@logto/react ^4.0.13` on the frontend. Logto itself is deployed as a Docker service (`logto/logto:latest`) with no npm footprint. BullMQ + Redis replaces the pg_cron + pgmq scheduling pattern with a single Redis service that Railway offers natively.
 
 **Core technologies:**
-- **Supabase Queues (pgmq):** heartbeat job queue — the only architecture that keeps dispatcher + runner within edge function timeout limits
-- **`@negrel/webpush` (JSR):** VAPID push from Deno edge functions — zero-dependency, no Google account required
-- **`@uiw/react-codemirror` + `@codemirror/lang-markdown`:** workspace file editor — ~50KB, mobile-friendly, document-editor feel for non-technical users
-- **`EdgeRuntime.waitUntil()`:** background LLM processing after cron HTTP acknowledgment — prevents 150s timeout from killing in-flight heartbeat runs
-- **Broadcast from Database (Supabase Realtime, 2024):** trigger-based in-app notification bell — no polling, no edge function needed for in-tab updates
+
+- **Railway PostgreSQL (pgvector 18 trixie template):** App data store + LangGraph checkpoints/store — pgvector pre-installed, pg_cron and pgmq extensions replaced by BullMQ
+- **Logto (Docker, self-hosted):** OIDC/OAuth 2.1 identity provider replacing Supabase Auth — one-click Railway template, PostgreSQL-backed, issues standard JWTs, shares the Railway Postgres instance via a dedicated `logto` schema
+- **Express API server (new Railway service):** Replaces all 21 Supabase Edge Functions — stateless, JWT-validated via `jose` + Logto JWKS, connects directly to Railway Postgres with `pg`, never uses Supabase client SDK
+- **BullMQ + Railway Redis:** Persistent job queue replacing pgmq — survives process restarts, cron scheduling via `node-cron` dispatcher in the LangGraph server process replaces pg_cron
+- **`jose ^6.2.2`:** JWKS-based JWT verification in Express — 20-line middleware, no session state, no per-request Logto roundtrip
+- **`@google/genai ^1.46.0` (already installed):** Direct Gemini API access — removes Lovable AI Gateway dependency, eliminates 10-50ms proxy overhead; use the OpenAI-compatible endpoint (`/v1beta/openai/chat/completions`) to preserve response format without rewriting parsers
+- **`@logto/react ^4.0.13`:** React SPA auth SDK — replaces all `supabase.auth.*` calls with OIDC authorization code flow
+- **`web-push ^3.6.5`:** VAPID push notifications in Express — replaces Deno JSR `@negrel/webpush` used in Edge Functions
+
+**What NOT to add:**
+- BullMQ workers belong in the LangGraph server process (not the API server) — workers call `graph.invoke()` directly
+- `@supabase/supabase-js` must not appear in the Express API server — it cannot connect to Railway's vanilla Postgres
+- `@google/generative-ai` is deprecated (August 2025) — `@google/genai` is already installed and is the correct package
+- `@logto/node` / `@logto/express` are session-based SDKs for SSR apps, not for stateless JWT APIs
 
 **Details:** `.planning/research/STACK.md`
 
@@ -38,34 +44,37 @@ Resend is already integrated and requires no changes beyond adding a heartbeat a
 
 ### Expected Features
 
-Research across Lindy AI, AutoGen Studio, Relevance AI, and agentic UX literature (Smashing Magazine Feb 2026) produced a clear split between what non-technical entrepreneurs expect on day one and what delivers the "wow" moment.
+This milestone has no new user-facing features. The scope is infrastructure parity — every existing Worryless AI capability must work identically on the Railway stack before v2.1 is live.
 
-**Must have (table stakes) — missing these makes the product feel incomplete:**
-- Agent recommendation with per-agent reasoning card tied to onboarding answers — blank lists feel arbitrary
-- Pre-checked team acceptance with a single "Activate My Team" CTA — opt-out, not opt-in
-- Streaming status labels during agent work ("Reviewing your invoices...") — static spinners feel broken
-- Last active timestamp + pulsing activity indicator per agent in Team view
-- Morning briefing digest from Chief of Staff synthesizing overnight agent findings
-- CodeMirror markdown editor with auto-save (debounced 2s) — plain textarea signals amateurism
-- MEMORY.md "learned X things" counter in agent card — makes agents feel alive and growing
-- Intent preview before any high-risk agent action — prevents the surprise outputs that permanently break trust
+**Must replicate (table stakes — missing = platform non-functional):**
 
-**Should have (differentiators that create the "wow" moment):**
-- Team activation animation after onboarding ("Your team is getting briefed on [Business Name]") — 2-3 seconds, enormous emotional payoff for minimal engineering
-- Heartbeat notifications in the agent's own voice — "Your Marketing Manager flagged..." not "Worryless AI alerts you..."
-- Severity-tiered notifications (Urgent / Heads-up / Digest) — only Urgent triggers push or email; the rest surface in-app
+- Railway Postgres with pgvector provisioned, all 20+ migrations applied (with `auth.*`, `vault.*`, `pgmq.*`, `cron.*`, `pg_net.*` references stripped)
+- Logto deployed on Railway, issuing JWTs with preserved user UUIDs matching existing `user_id` foreign keys across all tables
+- Express JWT middleware validating Logto tokens — all `/api/*` routes protected
+- BullMQ + Redis deployed — heartbeat dispatcher and proactive-runner functional
+- All 21 Edge Functions converted: 13 HTTP routes + 6 BullMQ workers/scheduled jobs + 2 utility routes
+- Direct Gemini SDK replacing Lovable AI Gateway — all LLM calls functional with preserved OpenAI-compatible response format
+- Image generation model replacement (Gemini Imagen 3 or Stability AI) — Nano Banana 2 does not exist outside Lovable
+- LangGraph server DATABASE_URL updated to Railway Postgres — chat persistence and agent memory intact
+- Frontend `@supabase/supabase-js` removed, all hooks rewired to call `/api/*` via `@logto/react`-injected tokens
+- Google OAuth redirect URIs updated to Logto in Google Cloud Console
 
-**Defer to v2+:**
-- Per-agent autonomy dial (Suggest / Confirm / Autopilot) — validator system already handles tiers 1 and 2; tier 3 Autopilot is a separate trust milestone
-- Collapsible "How I got here" reasoning trail — high value but adds per-response complexity
-- Per-agent notification preferences — build the delivery system first; preferences are a refinement
-- Custom freeform agent creation — fixed 12-type catalog is sufficient for v1
+**Differentiators (post-migration improvements, not required for v2.1 launch):**
 
-**Anti-features to explicitly avoid:**
-- Blank "create your agent" form (cognitive overload)
-- Push notification on every heartbeat tick — HEARTBEAT_OK runs are always silent
-- Full Monaco editor for workspace files (wrong mental model for entrepreneurs)
-- Lateral agent spawning (agents creating agents)
+- BullMQ dashboard (Bull Board) for job monitoring
+- Railway private networking between API server and LangGraph server
+- Logto OIDC provider capabilities for future MCP server auth
+- Logto custom JWT claims (`user_id`, `plan` embedded in token to eliminate DB lookup per request)
+- RBAC roles for future plan tiers
+
+**One external decision required before image routes can ship:** Nano Banana 2 is Lovable-proprietary. Option A: Gemini Imagen 3 (same vendor, simpler key management). Option B: Stability AI (more options, additional vendor). This decision blocks `generate-image` and `generate-invoice-image` routes and must be made before Phase 3 begins.
+
+**Defer to v2.1.x post-launch:**
+
+- New agent capabilities of any kind
+- New tool integrations
+- Performance optimization beyond parity
+- Bull Board dashboard, Railway private networking, Logto RBAC
 
 **Details:** `.planning/research/FEATURES.md`
 
@@ -73,21 +82,23 @@ Research across Lindy AI, AutoGen Studio, Relevance AI, and agentic UX literatur
 
 ### Architecture Approach
 
-The architecture is a 4-table schema built around two runtime paths: an activation path (user spawns an agent → trigger auto-populates workspace) and a heartbeat path (cron → dispatcher → pgmq queue → runner → LLM → conditional notification). These two paths share the same schema but are otherwise independent, which allows Phase 2 (spawner + onboarding) and Phase 3 (workspace editor) to be built in parallel after Phase 1 (schema) is complete.
-
-The OrgChartView is a fixed two-level CSS Flexbox layout, not a third-party org chart library. The AgentWorkspaceEditor is a shadcn/ui Sheet (slide-in panel), not a new ActiveView navigation entry — this avoids adding 12 workspace routes to the Dashboard's view union. The Agent Spawner runs entirely server-side as an edge function; the Lovable API key must not reach the browser.
+The target architecture is 6 Railway services in a single project communicating over Railway's private Wireguard network (`.railway.internal` hostnames). The API server is intentionally kept separate from the LangGraph server — LangGraph runs long-lived SSE connections and Playwright (1GB+ image), while the API server runs short CRUD requests. Merging them creates conflicting scaling profiles and forces Playwright re-installation on every API change. BullMQ workers live in the LangGraph server process (not the API server) because they call `graph.invoke()` directly, avoiding an internal HTTP round-trip per scheduled agent run.
 
 **Major components:**
-1. **`available_agent_types` table** — static seed-only catalog of 12 types + Chief of Staff; stores all 6 default MD templates per type; source of truth for workspace initialization
-2. **`user_agents` table** — tracks which agents each user has activated; holds heartbeat config (interval, active hours, enabled); `next_heartbeat_at` drives dispatcher query
-3. **`agent_workspaces` table** — one row per (user, agent, file_type); 6 rows per activated agent; `UNIQUE(user_id, agent_type_id, file_type)`; auto-populated by Postgres trigger on `user_agents` insert
-4. **`agent_heartbeat_log` table** — sparse, surfaced and error outcomes only; suppresses OK writes; indexed on `(user_id, agent_type_id, run_at DESC)`
-5. **`heartbeat-dispatcher` edge function** — cron-invoked every 5 min; queries `user_agents WHERE next_heartbeat_at <= now()`; enqueues to pgmq; updates `next_heartbeat_at` immediately to prevent double-dispatch
-6. **`heartbeat-runner` edge function** — cron-invoked every 1 min; reads 5 messages from pgmq per invocation; runs LLM call per message; deletes on success; lets visibility timeout retry on failure
-7. **`agent-spawner` edge function** — called once at end of onboarding; assembles business context + catalog; calls LLM in JSON mode; inserts `user_agents` rows with `is_active = false` until user accepts
-8. **`AgentTeamSelectorStep` component** — step 12 of `ConversationalOnboarding`; pre-checked checkboxes; single "Accept Suggested Team" CTA; sets `onboarding_completed = true` only on accept
-9. **`AgentWorkspaceEditor` Sheet** — file tab bar for 5 editable files; MEMORY.md read-only pane; HeartbeatConfig inline; `Reset to defaults` button per file
-10. **`OrgChartView` component** — CSS Flexbox two-level hierarchy; `HeartbeatStatusIndicator` (compact) per agent card; no third-party library
+
+1. **`frontend` (Nginx serving Vite SPA)** — static, no server-side logic; all API calls via `Authorization: Bearer` to api-server; NEW service
+2. **`api-server` (new Express/Node.js service)** — 21 former Edge Functions as routes, `jose` JWT middleware, `pg` pool for DB queries, `web-push` for push notifications; NEW service, does not exist yet
+3. **`langgraph-server` (existing Railway service, extended)** — adds `node-cron` dispatcher + BullMQ worker for cadence (two new files: `cadence/dispatcher.ts`, `cadence/worker.ts`); minimal env var changes
+4. **`postgres` (Railway managed PostgreSQL)** — single DB instance, three schemas: `public` (app data), `langgraph` (checkpoints/store), `logto` (Logto identity); NEW service
+5. **`redis` (Railway managed Redis)** — BullMQ queue backing only; two queues: `heartbeat_jobs` and `digest_jobs`; NEW service
+6. **`logto` (Docker: `logto/logto:latest`)** — OIDC provider; browser authenticates here, api-server verifies JWKS locally with zero per-request Logto calls; NEW service
+
+**Key patterns:**
+
+- **JWT-stateless auth:** JWKS cached at api-server startup; `sub` claim = user ID; replaces RLS with `WHERE user_id = $1` in every query
+- **SSE proxy:** `http-proxy-middleware` from api-server to langgraph-server with `X-Accel-Buffering: no` to prevent Railway nginx buffering
+- **Cadence:** `node-cron` tick (every 5 min) in LangGraph server process → BullMQ enqueue to Redis → BullMQ worker calls `graph.invoke()` — mirrors old pg_cron → pgmq pattern with persistence through restarts
+- **Railway reference variables:** `${{Postgres.DATABASE_URL}}` injects connection strings across services automatically
 
 **Details:** `.planning/research/ARCHITECTURE.md`
 
@@ -95,17 +106,21 @@ The OrgChartView is a fixed two-level CSS Flexbox layout, not a third-party org 
 
 ### Critical Pitfalls
 
-Five pitfalls with production-breaking consequences identified from codebase analysis and external research:
+1. **Auth UUID orphan on user migration** — Supabase and Logto both use UUIDs but generate different values. Every `user_id` FK in 20+ tables becomes a dangling reference if users are re-registered in Logto with new IDs. Prevention: export Supabase `auth.users` UUIDs and import into Logto Management API with explicit `id` field preserved. Verify with a join query before any production cutover.
 
-1. **Heartbeat runaway burns budget overnight** — If suppression logic fails (e.g., JSON parse error causes HEARTBEAT_OK check to evaluate false), every quiet agent tick becomes a billable LLM call and a false notification. Prevention: use structured output (`response_format: json_object`) for heartbeat responses; enforce per-user daily call budgets at the dispatcher level; cap agents per dispatcher run at 50. Ship suppression correctness verification before enabling push notifications.
+2. **Supabase password hashes silently rejected by Logto** — Logto defaults to Argon2 on import; bcrypt hashes from Supabase are rejected unless `passwordAlgorithm: "Bcrypt"` is set in the import payload. Result: all migrated users cannot log in. Prevention: always include `passwordAlgorithm: "Bcrypt"` in the import POST; smoke-test with a seed user before bulk migration.
 
-2. **Edge function timeout kills dispatcher mid-fan-out** — A sequential loop inside the dispatcher will time out at Supabase's 150s free plan limit. A single cron tick cannot process 500 users × 4 agents sequentially. Prevention: queue-based architecture is non-negotiable from day one. The dispatcher only enqueues; it never runs LLM calls. The runner processes 5 messages max per invocation within timeout.
+3. **pgmq and pg_cron unavailable on Railway Postgres** — Railway's managed Postgres does not include either extension. Migrations will fail or silently no-op. Prevention: strip all `pgmq.*` and `cron.*` SQL from the Railway migration file; replace with BullMQ + node-cron before running any DB migrations.
 
-3. **Agent Spawner recommends wrong agents for niche businesses** — Gemini Flash has weak coverage for non-mainstream business types, and businesses with sparse/no websites (common in the East African target market) leave the spawner with thin context. Prevention: build the checkbox-with-reasons UI as the safety net; limit default team to 4-5 agents; store raw spawner output and user's final selection for analysis.
+4. **Gemini direct API uses different response format than Lovable gateway** — The gateway returns OpenAI-format (`choices[0].message.content`); native Gemini returns `candidates[0].content.parts[0].text`. Using the OpenAI-compatible Gemini endpoint (`/v1beta/openai/chat/completions`) preserves format with zero parser changes — only the base URL and API key header need to change.
 
-4. **Users break agents by editing SOPs badly with no recovery path** — Non-technical users editing HEARTBEAT.md can overwrite the checklist format that the runner depends on; editing SOPs.md with conflicting instructions silently degrades output; pasted content may contain inadvertent prompt injection. Prevention: validate HEARTBEAT.md format on save (must parse as a checklist); provide a "Reset to defaults" button per file (immutable templates in `available_agent_types`); sanitize user-edited content before injecting into system prompts. These must ship with the editor, not as follow-up.
+5. **SSE streaming buffered by Railway nginx** — Without `X-Accel-Buffering: no`, `res.flushHeaders()`, and `Cache-Control: no-cache` on every SSE route, Railway's nginx buffers all chunks and delivers them at once. The frontend spinner runs indefinitely then all text appears at once. Critical for the `langgraph-proxy` route.
 
-5. **Agent Team Selector step kills onboarding conversion** — Asking a fatigued user to make decisions at step 12 of an 11-step flow is risky. Each additional form step reduces completion by 5-7%. Prevention: make the selector a visually dominant "Accept Suggested Team" single-click path; limit display to 4-5 pre-checked agents; show the full 12-agent catalog only via the post-onboarding Agent Marketplace. Instrument per-step drop-off analytics before shipping.
+6. **Deno globals crash Node.js at runtime** — `Deno.env.get()`, `jsr:` imports, `https://esm.sh/` URL imports, and `serve()` are valid TypeScript but throw `ReferenceError` at Node.js runtime. Compilation succeeds; errors surface only in production. Prevention: audit all 21 functions with a systematic replacement checklist before deployment.
+
+7. **`auth.users` FK references block Railway Postgres migrations** — 15+ tables reference `REFERENCES auth.users(id)`. Supabase's `auth` schema does not exist on vanilla Postgres. Prevention: create `RAILWAY_MIGRATION.sql` replacing all `auth.users` references with `public.users` before running any migration.
+
+8. **RLS removal creates cross-user data exposure** — Removing Supabase RLS eliminates the database-level safety net. Any Express route missing `WHERE user_id = $1` silently returns all users' data. Prevention: two-user cross-access test for every converted route in staging; consider enabling standard PostgreSQL RLS on Railway as a fallback enforcement layer.
 
 **Details:** `.planning/research/PITFALLS.md`
 
@@ -113,102 +128,107 @@ Five pitfalls with production-breaking consequences identified from codebase ana
 
 ## Implications for Roadmap
 
-Research resolves a clear 5-phase build order. The critical dependency chain is: schema first, then spawner + workspace editor in parallel, then heartbeat system, then org view + notifications. Phases 2 and 3 can run concurrently after Phase 1.
+Based on combined research, the dependency graph is strict. The following 5-phase structure mirrors the build order established in ARCHITECTURE.md and validated by the pitfall-to-phase mapping in PITFALLS.md. No phase can be fully tested until its prerequisites are complete.
 
-### Phase 1: Database Foundation
+### Phase 1: Infrastructure Foundation + Auth Migration
 
-**Rationale:** Every other component — spawner, workspace editor, heartbeat system, org view — depends on the 4-table schema and its triggers. Nothing else can start in earnest until these tables exist and are correctly wired. This is the shortest phase with the highest blocking factor.
+**Rationale:** Every other service depends on Postgres (schema), Redis (BullMQ queues), and Logto (JWT issuance). Auth UUID preservation is the single highest-risk operation in the entire migration — a mismatch at this stage requires re-keying every FK in 20+ tables under time pressure. It must be resolved first, not last.
 
-**Delivers:** `available_agent_types` seeded with 12 agent types + Chief of Staff (including all 6 default MD templates per type); `user_agents` table with heartbeat config columns; `agent_workspaces` table with Postgres trigger that auto-populates 6 workspace rows on agent activation; `agent_heartbeat_log` table; updated `supabase/types.ts`; RLS policies on all new tables; `user_push_subscriptions` table for VAPID storage.
+**Delivers:** Railway Postgres provisioned (pgvector 18 trixie template), Redis provisioned, Logto deployed and issuing JWTs, all existing Supabase users migrated with UUID and bcrypt hash preservation, smoke-test confirming login with original password, Google OAuth redirect URIs updated to Logto.
 
-**Features from FEATURES.md:** Prerequisite for all features — no direct user-facing deliverable.
+**Addresses (FEATURES.md):** Railway Postgres + pgvector, Logto auth deployed, Google OAuth redirect URIs.
 
-**Pitfall avoidance:** Unique constraints on `(user_id, agent_type_id)` in `user_agents` and `(user_id, agent_type_id, file_type)` in `agent_workspaces` prevent the double-init duplicate spawning pitfall (Pitfall 11) at the database level before any application code is written.
+**Avoids (PITFALLS.md):** UUID orphan (Pitfall 1), password hash incompatibility (Pitfall 2), JWT format mismatch (Pitfall 3).
 
----
-
-### Phase 2: Agent Spawner and Onboarding Tail
-
-**Rationale:** The onboarding flow modification is the entry point for all new users. It must come before the marketplace or workspace editor is useful, since users need at least one activated agent to see those panels. The Agent Team Selector is the higher-risk component (Pitfall 5 — conversion drop) and requires careful implementation of the pre-checked, single-click accept path.
-
-**Delivers:** `agent-spawner` edge function (JSON-mode LLM call with fixed catalog in system prompt; returns ranked recommendations with `why` and `first_week_value` copy); `AgentTeamSelectorStep` component (pre-checked checkboxes, single CTA, `is_active = false` until accepted); `ConversationalOnboarding.tsx` step 12 addition; team activation animation ("briefing your team" loading state with agent avatars); migration to backfill `user_agents` rows for existing users with the 4 default agents.
-
-**Stack from STACK.md:** Lovable AI Gateway with `response_format: json_object`; Supabase `functions.invoke` for spawner call; existing onboarding component extended.
-
-**Pitfall avoidance:** Pre-checked checkboxes with bypass path (Pitfall 5); confidence threshold on spawner output to limit default team to 4-5 agents (Pitfall 3); idempotent spawner with upsert logic (Pitfall 11); store raw spawner output in `user_agents` for recommendation quality analysis (Pitfall 3 detection).
-
-**Research flag:** STANDARD PATTERNS — Agent recommendation via JSON-mode LLM call is well-documented; onboarding flow modification is bounded to one component. No additional research phase needed.
+**Research flag:** Standard patterns — Logto has an official Railway template and documented user migration API. Postgres provisioning on Railway is well-documented. One task needing care: writing the user migration script against a staging Logto instance with seed data before touching production.
 
 ---
 
-### Phase 3: Agent MD Workspace Editor and Marketplace
+### Phase 2: Database Migration (Sanitized SQL Migrations)
 
-**Rationale:** Can start in parallel with Phase 2 after Phase 1 completes — requires only the schema. The workspace editor gives value to users who already have agents (existing users and new users who completed Phase 2). The marketplace lets users activate additional agents post-onboarding.
+**Rationale:** Postgres must exist before migrations can run (Phase 1 dependency). pgmq and pg_cron SQL must be stripped before any migration file touches Railway Postgres — if attempted verbatim, they fail at the extension-missing error and block the entire schema. The `auth.users` FK problem must also be resolved here before any application code can connect to the schema.
 
-**Delivers:** `AgentWorkspaceEditor` Sheet component (CodeMirror 6 tabs for IDENTITY, SOUL, SOPs, HEARTBEAT, TOOLS; MEMORY.md read-only pane with "learned X things" counter; debounced 2s auto-save; Reset to defaults button per file; HeartbeatConfig inline section); `AgentMarketplace` component (catalog grid with active badges, Activate CTA); `HeartbeatStatusIndicator` component (reused in OrgChartView later); Dashboard sidebar entries for Team and Marketplace views.
+**Delivers:** A `RAILWAY_MIGRATION.sql` file that applies all 20+ existing migrations to Railway Postgres with `auth.users` references replaced by `public.users`, pgmq/pg_cron/pg_net/vault SQL stripped, pgvector extension enabled, and the LangGraph schema intact.
 
-**Stack from STACK.md:** `@uiw/react-codemirror` + `@codemirror/lang-markdown` (lazy-loaded to avoid bundle impact); `react-markdown` + `remark-gfm` (already in codebase) for preview tab; debounced Supabase UPDATE for auto-save.
+**Addresses (FEATURES.md):** All 20+ SQL migrations applied, schema matches v2.0.
 
-**Features from FEATURES.md:** CodeMirror markdown editor with auto-save (table stakes); MEMORY.md counter (differentiator); Reset to defaults (critical for Pitfall 4 recovery path).
+**Avoids (PITFALLS.md):** `auth.users` FK failures (Pitfall 7), pgmq unavailable (Pitfall 3), pg_cron unavailable (Pitfall 3).
 
-**Pitfall avoidance:** HEARTBEAT.md format validation on save — must parse as a checklist before write is accepted (Pitfall 4); content sanitization layer before prompt injection (Pitfall 4); Reset to defaults available from day one (Pitfall 4); MEMORY.md rendered read-only with no CodeMirror instance (Pitfall 4).
+**Uses (STACK.md):** Railway pgvector 18 trixie template, `pg` direct connection.
 
-**Research flag:** STANDARD PATTERNS for CodeMirror integration. NEEDS RESEARCH for the HEARTBEAT.md format validation logic — the checklist grammar must be defined before building the validator.
-
----
-
-### Phase 4: Heartbeat System
-
-**Rationale:** Depends on Phase 1 (schema) and Phase 3 (HEARTBEAT.md content must be editable before the system reads it). This is the highest-risk phase technically — the queue architecture must be correct from day one. Suppression correctness must be verified before push notifications are enabled.
-
-**Delivers:** pgmq `heartbeat_jobs` queue (enabled via Supabase Dashboard); `heartbeat-dispatcher` edge function (queries `user_agents WHERE next_heartbeat_at <= now() LIMIT 50`; enqueues to pgmq; updates `next_heartbeat_at` immediately); `heartbeat-runner` edge function (reads 5 messages per invocation; assembles HEARTBEAT.md + SOPs.md + MEMORY.md context; calls Lovable Gateway; HEARTBEAT_OK → delete message, no DB write; surfaced → insert `agent_heartbeat_log`, trigger notification path); `pg_cron` jobs (dispatcher every 5 min; runner every 1 min); `EdgeRuntime.waitUntil()` wrapping LLM processing; business-hours enforcement using user timezone in dispatcher query; per-user daily call budget guard at dispatcher level.
-
-**Stack from STACK.md:** pgmq via `supabase.schema('pgmq_public').rpc()`; `EdgeRuntime.waitUntil()` for background processing; structured output (`response_format: json_object`) for HEARTBEAT_OK detection; Supabase Vault for storing project URL and anon key used by cron SQL.
-
-**Pitfall avoidance:** Queue architecture prevents timeout (Pitfall 2); structured output prevents suppression bypass (Pitfall 1); LIMIT 50 cap prevents burst (Pitfall 1); optimistic locking on pgmq messages prevents duplicate processing (Pitfall 8); user timezone in dispatcher query prevents 3am heartbeats (Pitfall 10); daily budget guard prevents overnight runaway (Pitfall 1).
-
-**Research flag:** NEEDS RESEARCH for per-user daily call budget enforcement strategy — decide whether to use a counter column on `user_agents`, a Redis-style increment in pgmq, or a daily aggregate query. Verify `EdgeRuntime.waitUntil()` interaction with pg_cron HTTP response timing on paid vs free plan. Standard patterns apply to the queue consumption and dispatcher architecture itself.
+**Research flag:** Standard patterns — known exactly which SQL clauses to strip, well-documented. No additional research needed.
 
 ---
 
-### Phase 5: Org View, Notifications, and Realtime
+### Phase 3: Express API Server (21 Edge Function Conversions)
 
-**Rationale:** Depends on Phase 4 for live heartbeat data. The OrgChartView is the product's primary "team is alive" surface — it needs real `last_heartbeat_at` timestamps and `agent_heartbeat_log` entries to be meaningful. Notification delivery (push and email) is gated on suppression correctness from Phase 4 being verified first.
+**Rationale:** Requires Postgres schema (Phase 2) and Logto JWKS endpoint (Phase 1). This is the highest-volume phase (21 function conversions) and highest-complexity due to architectural type changes (6 scheduling functions shift from HTTP to BullMQ workers). Must be built before the frontend can be rewired. The image model decision must be made before this phase begins.
 
-**Delivers:** `OrgChartView` component (Chief of Staff centered at top; CSS Flexbox specialist grid; `HeartbeatStatusIndicator` compact per card; last active timestamp; pulsing green dot for agents active in last 4 hours; no third-party org chart library); morning briefing digest via Chief of Staff (separate `morning-briefing` edge function invoked once per day per user; synthesizes all `agent_heartbeat_log` entries from previous 24h; routes through existing Chief of Staff orchestrator); VAPID push notification delivery for Urgent-severity heartbeat findings (`send-push-notification` edge function; frontend service worker; VAPID key generation and storage); Resend email alert template for Urgent findings; Supabase Realtime Broadcast from Database trigger on `notifications` table insert for in-app notification bell; severity tier classification (Urgent / Heads-up / Digest) in heartbeat runner output parsing.
+**Delivers:** New `api-server` Railway service with: `jose` JWT middleware, `pg` pool, all 13 HTTP routes (chat, orchestrate, langgraph-proxy, agents/spawn, business/crawl, parse-datasheet, generate/content, generate/image, generate/invoice-image, leads, outreach, planning, integrations, email), BullMQ + Redis queues and workers (heartbeat dispatcher, heartbeat runner, proactive runner, daily briefing, morning digest), direct Gemini SDK via OpenAI-compat endpoint replacing Lovable gateway, `web-push` VAPID push notifications, health check endpoint.
 
-**Stack from STACK.md:** `@negrel/webpush` (JSR) for VAPID in Deno; `public/sw.js` service worker; Supabase Realtime Broadcast from Database (trigger-based, released 2024); Resend `resend@2.0.0` (already integrated); `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` Supabase secrets.
+**Addresses (FEATURES.md):** All 21 Edge Functions converted, BullMQ + Redis cadence engine functional, direct Gemini SDK, VAPID keys, health check endpoints.
 
-**Features from FEATURES.md:** Morning briefing digest (table stakes); pulsing last-active indicator (table stakes); heartbeat notifications in agent's own voice (differentiator); severity-tiered notifications (differentiator); streaming status labels during agent processing.
+**Avoids (PITFALLS.md):** Deno → Node.js API differences (Pitfall 6), Gemini response format (Pitfall 4), SSE buffering (Pitfall 5), RLS data leak (Pitfall 8), JWT validation (Pitfall 3).
 
-**Pitfall avoidance:** Severity tiering ensures only Urgent findings trigger push/email — HEARTBEAT_OK and Heads-up are always silent (Pitfall 1 + notification fatigue); Realtime Broadcast from Database keeps in-app bell real-time without polling overhead.
+**Uses (STACK.md):** `express ^4.21.0`, `pg ^8.13.0`, `jose ^6.2.2`, `web-push ^3.6.5`, `@google/genai ^1.46.0`, BullMQ, node-cron.
 
-**Research flag:** NEEDS RESEARCH for morning briefing timing and per-user timezone scheduling — the `morning-briefing` cron must run once per user at their local morning, which requires a different cron strategy than the heartbeat dispatcher (pg_cron runs UTC; may need to segment users by timezone bucket). STANDARD PATTERNS for VAPID push from Deno and Realtime Broadcast trigger.
+**Research flag:** Needs careful execution — the 6 scheduling functions change architectural type (HTTP → background worker); the SSE proxy pattern requires exact header configuration; the Gemini OpenAI-compat endpoint must be used (not the native endpoint). Run the "Looks Done But Isn't" checklist from PITFALLS.md against every converted function. The BullMQ Redis TLS (`tls: {}` in IORedis connection) must not be missed — BullMQ silently fails to connect without it on Railway.
+
+---
+
+### Phase 4: LangGraph Server Cadence Extensions + Playwright Volume
+
+**Rationale:** Depends on Redis (Phase 1) and Postgres schema (Phase 2). The cadence dispatcher and worker require BullMQ (Redis) and the `get_due_cadence_agents()` SQL function (Postgres). This phase can proceed in parallel with Phase 3 if team size allows — the two phases share infrastructure dependencies but have no code dependencies on each other.
+
+**Delivers:** LangGraph server with BullMQ cadence (`dispatcher.ts` + `worker.ts` wired into `index.ts`), `GEMINI_API_KEY` replacing `LOVABLE_API_KEY`, `DATABASE_URL` updated to Railway Postgres, Playwright volume mounted at `/playwright-data` with `RAILWAY_RUN_UID=0` set for volume permissions.
+
+**Addresses (FEATURES.md):** LangGraph server DATABASE_URL update, chat persistence, agent memory intact post-migration.
+
+**Avoids (PITFALLS.md):** LangGraph UUID namespace alignment (verify checkpoint rows queryable with preserved UUIDs), BullMQ worker in wrong service (Architecture Anti-Pattern 2 from ARCHITECTURE.md).
+
+**Uses (STACK.md):** `node-cron ^4.2.1` (in-process), BullMQ (via Redis), `@google/genai ^1.46.0` (already installed).
+
+**Research flag:** Standard patterns — BullMQ worker pattern is well-documented with working code examples in ARCHITECTURE.md. node-cron API is straightforward. Volume mount config is confirmed in Railway docs. No additional research needed.
+
+---
+
+### Phase 5: Frontend Rewiring + Production Cutover
+
+**Rationale:** Final phase — depends on all API routes being live (Phase 3) and Logto issuing tokens (Phase 1). Frontend cannot be tested end-to-end until the full API surface is available. This phase is high-volume (many hook rewrites) but mechanically straightforward.
+
+**Delivers:** Frontend with `@supabase/supabase-js` removed, `@logto/react` OIDC flow replacing `supabase.auth.*`, all data-fetching hooks (`useTeamData`, `useAgentWorkspace`, `useNotifications`, `usePushSubscription`, etc.) rewired to call `/api/*` with Bearer token injection, Vite build deployed as Nginx Docker container on Railway, custom domains configured, production DNS cutover.
+
+**Addresses (FEATURES.md):** Frontend auth rewire, `@supabase/supabase-js` removal, all `VITE_` env vars updated, custom domains, static frontend hosting.
+
+**Avoids (PITFALLS.md):** Keeping Supabase client SDK in frontend (Technical Debt table), CORS wildcard on Express routes, `GEMINI_API_KEY` leaking into frontend bundle.
+
+**Uses (STACK.md):** `@logto/react ^4.0.13`, direct `fetch()` with Bearer token injection from `useLogto()` hook.
+
+**Research flag:** Standard patterns — `@logto/react` hooks are well-documented in official Logto React quickstart. Hook rewiring is high-volume but mechanical. No additional research needed.
 
 ---
 
 ### Phase Ordering Rationale
 
-- Phase 1 before everything: schema triggers are synchronous with agent activation — if the trigger doesn't exist when the first `user_agents` insert happens, workspace rows are never created and manual recovery is required.
-- Phases 2 and 3 in parallel: they share the schema but have no component dependencies on each other. Running them in parallel shortens the critical path to Phase 4.
-- Phase 3 before Phase 4: heartbeat runner reads HEARTBEAT.md content that users may have customized; the workspace editor must exist so users can configure their agents before heartbeats start.
-- Phase 4 before Phase 5: OrgChartView and notification delivery both require live heartbeat data and suppression correctness to be meaningful and safe.
-- Phase 5 last: it is the product's "showroom" layer — displaying data from all previous phases. It can start UI scaffolding against the schema immediately but cannot display real agent activity until Phase 4 is running.
+- **Infrastructure before code:** Logto, Postgres, and Redis must exist before any application code can be validated. All API routes require a DB connection, all routes require JWT validation, scheduling requires Redis. These cannot be parallelized with code phases.
+- **Database before API server:** The Express server's connection pool fails on startup if the schema is missing. All 13 HTTP routes have DB queries — they must be testable immediately after deployment.
+- **API server before frontend:** Frontend hooks that call `/api/*` return 404 or 401 until the Express server is live with correct auth middleware. End-to-end testing requires both.
+- **Phase 3 and Phase 4 can run in parallel:** The API server build and LangGraph cadence additions share only the infrastructure dependencies (Postgres + Redis). Neither depends on the other's code.
+- **UUID preservation in Phase 1, not Phase 5:** The temptation to migrate auth "at the end" is the single most dangerous planning mistake for this project. User UUIDs are foreign keys in every table. Migrating them last means either running the entire v2.1 stack with no users (untestable) or doing a late-stage re-keying operation under time pressure.
 
 ### Research Flags
 
-Phases needing deeper research during planning:
+**Phases needing attention during implementation:**
 
-- **Phase 4 (Heartbeat System):** Per-user daily call budget enforcement mechanism needs a decision — counter column vs aggregate query vs external rate limiter. Interaction of `EdgeRuntime.waitUntil()` with paid vs free plan duration limits needs verification before setting batch size.
-- **Phase 5 (Org View and Notifications):** Morning briefing per-user timezone scheduling strategy. pg_cron minimum granularity is 1 minute and runs UTC — a per-timezone-bucket approach may be needed for users distributed across time zones.
-- **Phase 3 (Workspace Editor):** HEARTBEAT.md checklist grammar definition — must be specified before writing the format validator to avoid building the wrong validator.
+- **Phase 1 — user migration script:** The Logto Management API import with UUID preservation requires a one-time migration script. Must be validated against a staging Logto instance with seed data before touching production users.
+- **Phase 3 — image model decision (external blocker):** Nano Banana 2 has no direct equivalent. Gemini Imagen 3 is the recommended default (same SDK, same API key), but this decision must be explicit before Phase 3 begins — it blocks 2 routes.
+- **Phase 3 — scheduling conversion:** 6 functions change from HTTP-triggered (pg_cron calling Edge Function URLs) to BullMQ workers. BullMQ job IDs, `lockDuration` matching old `visibility_timeout`, and concurrency tuning need careful execution. Not research-blocked — patterns are fully documented in ARCHITECTURE.md.
 
-Phases with standard, well-documented patterns (skip research-phase):
+**Phases with standard, well-documented patterns (no additional research needed):**
 
-- **Phase 1 (Schema):** Standard Supabase migrations, RLS, and Postgres triggers — no research needed.
-- **Phase 2 (Spawner + Onboarding):** JSON-mode LLM calls and React component extension — established patterns in the codebase.
-- **Phase 4 (Queue Architecture):** pgmq dispatcher + runner pattern is directly documented in official Supabase blog and docs.
-- **Phase 5 (VAPID Push):** `@negrel/webpush` + service worker pattern is fully documented with Deno examples.
+- **Phase 2 (database migration):** SQL transformation is mechanical — known exactly which clauses to strip.
+- **Phase 4 (LangGraph cadence):** node-cron + BullMQ pattern is directly demonstrated in ARCHITECTURE.md with working code examples.
+- **Phase 5 (frontend):** `@logto/react` hook replacement follows Logto's React quickstart exactly.
 
 ---
 
@@ -216,22 +236,20 @@ Phases with standard, well-documented patterns (skip research-phase):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All 5 stack questions resolved against official Supabase docs (pgmq, cron, streaming, push, realtime). One MEDIUM-HIGH: `@negrel/webpush` JSR library verified but less battle-tested than npm web-push. |
-| Features | HIGH | Competitor analysis from official sources (Lindy, AutoGen, AgentOps). Agentic UX patterns from Smashing Magazine Feb 2026 (primary source). One MEDIUM: "reasoning card" per agent is a novel pattern — no direct competitor example found; inferred from trust literature. |
-| Architecture | HIGH | Schema, trigger, timeout safety analysis, and queue patterns all verified against official Supabase limits documentation. One MEDIUM: pg_cron practical job limit inferred from community reports + docs recommendation; not an exact published number. |
-| Pitfalls | HIGH (codebase-grounded) / MEDIUM (external) | Pitfalls 1-5 grounded in actual codebase patterns (CONCERNS.md findings, existing edge function code). External industry failure modes (Glean, Arize, OWASP) are MEDIUM confidence — consistent across multiple sources but not Worryless-specific. |
+| Stack | HIGH | All package versions verified against GitHub releases and npm as of 2026-03-21. `@google/genai ^1.46.0`, `jose ^6.2.2`, `@logto/react ^4.0.13`, `web-push ^3.6.5` all confirmed current. |
+| Features | HIGH (migration scope) / MEDIUM (scheduling strategy) | Railway docs confirmed Logto one-click template, pgvector availability, Redis service. Scheduling: STACK.md and ARCHITECTURE.md reached different conclusions on pg_cron availability — the correct synthesis is node-cron (in-process dispatch tick) + BullMQ (job persistence), which eliminates the pg_cron question entirely. |
+| Architecture | HIGH | Codebase inspected directly (21 Edge Functions, LangGraph server `index.ts`, persistence layer). Railway private networking, volumes, and reference variables verified via official Railway docs. 6-service topology validated against Railway Hobby plan limits. |
+| Pitfalls | HIGH | All 10 critical pitfalls are grounded in either direct codebase inspection (15+ `auth.users` FK references counted, Deno globals catalogued across all 21 functions) or official documentation (Logto user migration API, Gemini OpenAI-compat endpoint, Railway nginx buffering). |
 
-**Overall confidence: HIGH**
-
-The research is unusually strong because the architecture and pitfalls research was grounded in the actual codebase rather than generic patterns. The main source of residual uncertainty is the East African / Kenyan market context for the spawner recommendation quality — LLM behavior on niche or informal-sector businesses is hard to predict from documentation alone and will need empirical testing during Phase 2.
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Spawner recommendation quality for niche businesses:** The agent spawner's accuracy for non-mainstream business types in the East African context cannot be fully assessed from documentation. Mitigate by instrumenting acceptance rate tracking from day one (Phase 2) and iterating on the system prompt based on real user data.
-- **HEARTBEAT.md checklist grammar:** The exact format the heartbeat runner expects to parse from HEARTBEAT.md must be defined before Phase 3 validation logic is built. This is a two-hour specification task, not a research gap — but it must happen before Phase 3 begins.
-- **Morning briefing cron strategy for multi-timezone users:** The morning briefing digest must run once per user at their local morning time. pg_cron is UTC-only with 1-minute minimum granularity. Whether to use timezone bucket scheduling, a per-user next-run timestamp approach (same as heartbeat dispatcher), or a different mechanism needs a spike during Phase 5 planning.
-- **Per-user daily heartbeat budget enforcement:** No clear best-practice for in-Supabase rate limiting at user level. Options: counter column on `user_agents` reset daily by cron, aggregate query in dispatcher before enqueue, or a lightweight token bucket in pgmq metadata. Decision needed before Phase 4 begins.
-- **CodeMirror bundle impact:** `@uiw/react-codemirror` adds ~50KB gzipped. The existing Vite SPA bundle size is unknown. Verify with `vite-bundle-visualizer` before committing to the import; lazy-load the `AgentWorkspaceEditor` Sheet to ensure CodeMirror only loads when the panel is opened.
+- **Image model decision (external, blocks Phase 3):** Nano Banana 2 has no direct equivalent. Gemini Imagen 3 is the recommended default (same SDK, same API key), but a quality comparison against Stability AI has not been evaluated. Decide before Phase 3 begins.
+- **Logto shared vs dedicated Postgres for identity data:** ARCHITECTURE.md recommends considering a second Postgres service for Logto isolation; STACK.md recommends the shared instance with a dedicated `logto` schema. Evaluate during Phase 1 — the shared approach is the default unless schema conflicts arise.
+- **BullMQ Redis TLS on Railway:** Railway Redis requires `tls: {}` in IORedis connection options for production. One-line config change, but must not be missed during Phase 3 — BullMQ silently fails to connect without it.
+- **LangGraph checkpoint data migration:** Existing LangGraph checkpoints use Supabase-issued UUIDs as thread ID prefixes. Since UUIDs are preserved via Logto import, existing checkpoint rows should remain queryable. Verify with a direct query after Phase 2 migrations are applied.
+- **CORS origin restriction:** Converted Edge Functions may have `Access-Control-Allow-Origin: *`. Express API server must restrict CORS to the frontend Railway domain in production. Wildcard CORS + JWT = anyone can make authenticated API calls on behalf of logged-in users.
 
 ---
 
@@ -239,38 +257,38 @@ The research is unusually strong because the architecture and pitfalls research 
 
 ### Primary (HIGH confidence)
 
-- [Supabase Queues Docs](https://supabase.com/docs/guides/queues) — pgmq API, queue creation, visibility timeout behavior
-- [Supabase Queues: Consuming with Edge Functions](https://supabase.com/docs/guides/queues/consuming-messages-with-edge-functions) — batch read pattern, delete-on-success
-- [Processing Large Jobs with Edge Functions, Cron, and Queues](https://supabase.com/blog/processing-large-jobs-with-edge-functions) — dispatcher + queue fan-out architecture
-- [Supabase Edge Function Limits](https://supabase.com/docs/guides/functions/limits) — 150s free / 400s paid wall-clock limits
-- [Background Tasks in Edge Functions](https://supabase.com/blog/edge-functions-background-tasks-websockets) — `EdgeRuntime.waitUntil()` pattern
-- [Realtime Broadcast from Database](https://supabase.com/blog/realtime-broadcast-from-database) — trigger-based broadcast, `realtime.broadcast_changes()`
-- [Supabase Cron](https://supabase.com/docs/guides/cron) — job registration, vault secret usage, 8-job concurrent limit
-- [Push Notifications via Supabase Edge Functions](https://supabase.com/docs/guides/functions/examples/push-notifications) — VAPID pattern in Deno
-- [PostgreSQL Full Text Search](https://www.postgresql.org/docs/current/textsearch.html) — generated tsvector column, GIN index
-- [AutoGen Studio v0.4 User Guide](https://microsoft.github.io/autogen/dev//user-guide/autogenstudio-user-guide/index.html) — visual agent management patterns
-- [Lindy 3.0 Launch](https://www.lindy.ai/blog/lindy-3-0) — AI employee framing, team accounts
-- [Designing Agentic AI: Practical UX Patterns](https://www.smashingmagazine.com/2026/02/designing-agentic-ai-practical-ux-patterns/) — autonomy dial, intent preview, recommendation reveal
-- [OWASP LLM Top 10 2025 — Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) — workspace sanitization rationale
-- [react-codemirror](https://github.com/uiwjs/react-codemirror) — bundle size, Vite compatibility, markdown extension
+- [Logto React quickstart](https://docs.logto.io/quick-starts/react) — `@logto/react` hooks, OIDC flow for SPA
+- [Logto Express API protection](https://docs.logto.io/api-protection/nodejs/express) — `jose` JWKS middleware pattern, recommended by Logto for stateless Express
+- [Logto deployment and configuration](https://docs.logto.io/logto-oss/deployment-and-configuration) — port architecture, DB_URL, Logto CLI seed
+- [Logto user migration docs](https://docs.logto.io/user-management/user-migration) — `passwordAlgorithm: "Bcrypt"` import field
+- [Railway PostgreSQL docs](https://docs.railway.com/databases/postgresql) — extension support, pgvector availability
+- [Railway pgvector blog post](https://blog.railway.com/p/hosting-postgres-with-pgvector) — pgvector template details
+- [Railway pgcron template](https://railway.com/deploy/pgcron-railway) — pg_cron native availability confirmed
+- [Railway private networking docs](https://docs.railway.com/networking/private-networking) — `.railway.internal` hostname resolution, IPv4/IPv6 caveat
+- [Railway volumes docs](https://docs.railway.com/reference/volumes) — mount constraints, `RAILWAY_RUN_UID=0` requirement
+- [Deploy Logto on Railway](https://railway.com/deploy/logto) — one-click Railway template
+- [BullMQ repeatable jobs docs](https://docs.bullmq.io/guide/jobs/repeatable) — cron expression support confirmed
+- [Railway fastify-bullmq template](https://github.com/railwayapp-templates/fastify-bullmq) — BullMQ + Redis on Railway reference
+- [Gemini OpenAI-compatible endpoint](https://ai.google.dev/gemini-api/docs/openai) — `/v1beta/openai/chat/completions` preserves response format
+- [googleapis/js-genai releases](https://github.com/googleapis/js-genai/releases) — `@google/genai` v1.46.0 latest (verified 2026-03-18)
+- [google-gemini/deprecated-generative-ai-js](https://github.com/google-gemini/deprecated-generative-ai-js) — `@google/generative-ai` deprecated August 2025
+- [panva/jose releases](https://github.com/panva/jose/releases) — v6.2.2 latest verified
+- Codebase inspection: `worrylesssuperagent/langgraph-server/`, `supabase/functions/` (21 Edge Functions), `supabase/migrations/` (20+ files) — direct source of truth
 
 ### Secondary (MEDIUM confidence)
 
-- [Secrets of Agentic UX — UX Magazine](https://uxmag.com/articles/secrets-of-agentic-ux-emerging-design-patterns-for-human-interaction-with-ai-agents) — onboarding trust patterns
-- [Help Your Users Avoid Notification Fatigue — MagicBell](https://www.magicbell.com/blog/help-your-users-avoid-notification-fatigue) — 61% retention stat for preference-following notifications
-- [Relevance AI Reviews — G2](https://www.g2.com/products/relevance-ai/reviews) — pre-built role templates, version history
-- [Glean: Hallucinations in Enterprise Agent Onboarding](https://www.glean.com/perspectives/when-llms-hallucinate-in-enterprise-contexts-and-how-contextual-grounding) — niche business context failure mode
-- [Arize: Why AI Agents Break in Production](https://arize.com/blog/common-ai-agent-failures/) — production failure modes
-- [SaaS Onboarding Best Practices 2025](https://www.flowjam.com/blog/saas-onboarding-best-practices-2025-guide-checklist) — per-step drop-off rates (5-7% per additional step)
-- [Openclaw Runaway Heartbeat Issue #3181](https://github.com/openclaw/openclaw/issues/3181) — heartbeat runaway documented in sister project
-- [Multi-Tenant Security Pitfalls 2025](https://securityboulevard.com/2025/12/tenant-isolation-in-multi-tenant-systems-architecture-identity-and-security/) — userId-from-body vulnerability pattern
+- [Railway Node.js + Express zero-downtime guide](https://docs.railway.com/guides/deploy-node-express-api-with-auto-scaling-secrets-and-zero-downtime) — health check endpoint pattern
+- [BullMQ vs node-cron comparison](https://betterstack.com/community/guides/scaling-nodejs/best-nodejs-schedulers/) — persistence importance for production schedulers
+- [Supabase vs Railway 2026 comparison](https://www.buildmvpfast.com/compare/supabase-vs-railway) — migration context, Edge Functions incompatibility confirmed
+- [Gemini API latency overhead research](https://dev.to/pranay_batta/top-5-cloudflare-ai-gateway-alternatives-in-2026-521e) — 10-50ms gateway overhead confirmed
 
-### Tertiary (LOW confidence / needs validation)
+### Tertiary (reference only)
 
-- `supabase/functions-js#67` — `supabase.functions.invoke()` streaming buffering issue; confirmed in GitHub discussions but no official documentation acknowledgment
-- Community reports on pg_cron practical job limits beyond 8-32 concurrent — the 8-job concurrent recommendation is official; the performance degradation curve beyond that is community-reported
+- [pgmq Railway feature request](https://station.railway.com/feedback/support-postgres-extensions-04b914a7) — pgmq not natively supported on Railway (confirms BullMQ replacement is necessary)
+- [Supabase RLS security pitfalls](https://dev.to/fabio_a26a4e58d4163919a53/supabase-security-the-hidden-dangers-of-rls-and-how-to-audit-your-api-29e9) — cross-user data leak pattern when RLS is removed
+- [Better Auth Supabase migration guide](https://better-auth.com/docs/guides/supabase-migration-guide) — bcrypt portability reference
 
 ---
 
-*Research completed: 2026-03-12*
+*Research completed: 2026-03-21*
 *Ready for roadmap: yes*

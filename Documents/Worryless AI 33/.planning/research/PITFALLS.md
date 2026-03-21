@@ -1,307 +1,417 @@
-# Domain Pitfalls
+# Pitfalls Research
 
-**Domain:** Proactive multi-agent SaaS — heartbeat scheduling, agent spawning, MD workspaces, onboarding flow extension, role-based tool access
-**Researched:** 2026-03-12
-**Confidence:** HIGH (codebase-grounded) / MEDIUM (external patterns)
+**Domain:** Supabase → Railway migration — self-hosted PostgreSQL, Logto auth, Express API, direct Gemini API
+**Researched:** 2026-03-21
+**Confidence:** HIGH (codebase-grounded + official documentation) / MEDIUM (third-party ecosystem patterns)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, data loss, runaway costs, or broken production apps.
+Mistakes that cause data loss, broken auth, or a non-functional production app.
 
 ---
 
-### Pitfall 1: Heartbeat Runaway — Unbounded LLM Calls Burn Budget Overnight
+### Pitfall 1: Auth User UUIDs Become Orphaned Keys in Migrated Data
 
 **What goes wrong:**
-The dispatcher cron wakes every N minutes and fans out to all agents that are "due". If suppression logic fails (or is missing), every agent makes a full LLM call on every tick. At 12 agents x 4-hour interval x 8 business hours x 100 users, that is 3,600 LLM calls per day under normal operation. A bug that drops the `HEARTBEAT_OK` short-circuit — e.g., a JSON parse error in the suppression check, or an exception before the early-return — turns every quiet tick into a billable call. This exact failure mode is documented in the Openclaw issue tracker (runaway heartbeat loop, Issue #3181).
+Supabase stores users in `auth.users` with UUID primary keys. Every row in `public.profiles`, `user_agents`, `tasks`, `notifications`, `document_embeddings`, `langgraph.store`, and `langgraph.checkpoints` has a `user_id` UUID foreign key that references those Supabase-generated UUIDs. Logto generates its own user IDs (also UUIDs, but different values). If you migrate users into Logto and Logto assigns new IDs, every existing `user_id` foreign key in your 20+ table schema becomes a dangling reference pointing to non-existent users. The entire business context, agent workspaces, task history, and LangGraph checkpoints for every existing user is now orphaned.
 
 **Why it happens:**
-The existing codebase already has fragile LLM JSON parsing via regex fallback (`orchestrator/index.ts` lines 641–644, `generate-outreach/index.ts` line 182). If the heartbeat agent response does not parse cleanly, the suppression condition silently evaluates to false and the tick is logged as "surfaced" even though nothing was found. The result is notification spam AND cost bleed simultaneously.
+Teams assume "UUID is UUID" and migrate users by re-registering them in Logto, getting fresh IDs. They migrate the database separately. The two ID namespaces never align.
 
-**Consequences:**
-- Gemini API cost spikes with no alerting (codebase has zero error monitoring today)
-- Non-technical users receive dozens of false "something needs attention" notifications
-- User trust collapses within days; churn follows
-- The existing scheduled-task system already has no retry or error monitoring — the same gap applies here
+**How to avoid:**
+Export `auth.users` from Supabase including `id` (the UUID), `email`, and `encrypted_password`. Import into Logto's user store via the Management API with the **explicit `id` field set** to preserve the original UUID. Logto's user import API accepts a custom `id` field. Verify the UUID match before any user-facing traffic is cut over. Script: `SELECT id, email FROM auth.users` → POST to `/api/users` with `{ "id": "<original_uuid>", ... }`.
 
-**Prevention:**
-1. Implement hard per-user daily heartbeat call budgets enforced at the dispatcher level, not inside the agent function.
-2. Use structured output (`response_format: { type: "json_object" }`) for heartbeat responses — do not rely on regex extraction to determine HEARTBEAT_OK vs. surfaced.
-3. Log every tick outcome to `agent_heartbeat_log` before the LLM call, not after — so a crash mid-call leaves a visible record.
-4. Add a per-agent `last_heartbeat_at` guard: if the last run was less than `min_interval_minutes` ago, skip regardless of cron fire time. Protects against duplicate dispatcher invocations.
-5. Cap maximum agents eligible per dispatcher run (e.g., 50 at a time) to prevent a single cron tick from spawning 100+ concurrent edge function calls.
+**Warning signs:**
+- Users can log in but see an empty dashboard (new Logto ID, no `profiles` row)
+- `profiles` table shows rows but agent queries return empty (UUID mismatch)
+- LangGraph threads return no history for authenticated users
 
-**Detection / Early Warning Signs:**
-- Gemini API spend grows faster than user count
-- `agent_heartbeat_log` shows surfaced rate > 15% across all agents (quiet businesses generate very little genuine insight daily)
-- Edge function invocation count in Supabase dashboard spikes without corresponding user activity
-- Non-technical users report "too many notifications" in first week
-
-**Phase that must address this:** Heartbeat System phase — build suppression correctness before enabling notifications.
+**Phase to address:**
+Auth migration phase (first phase of v2.1). Must be resolved before any other data migration proceeds.
 
 ---
 
-### Pitfall 2: Supabase Edge Function Timeout Kills the Dispatcher Mid-Fan-Out
+### Pitfall 2: Supabase Password Hashes Not Portable Without Explicit Algorithm Declaration
 
 **What goes wrong:**
-The `heartbeat-dispatcher` is a single edge function invoked by a pg_cron job. It must query all due agents, fan out calls, and return within Supabase's wall-clock limit (150 seconds on free plan, 400 seconds on paid). If there are 500 users each with 4 active agents, the dispatcher has 2,000 agents to evaluate. Sequential HTTP calls to per-agent runner functions will hit the timeout. The cron job shows as "completed" (pg_cron fires and gets a response back from pg_net) even if the dispatcher timed out and left most agents unprocessed — a silent partial failure.
+Supabase uses bcrypt to hash passwords (stored in `auth.users.encrypted_password`). If you export the hash string and import it into Logto without specifying `passwordAlgorithm: "Bcrypt"`, Logto will treat the raw bcrypt hash string as an Argon2 digest or reject it. Users will be unable to log in and will need to reset their passwords — causing a forced password reset for every existing user in production.
 
 **Why it happens:**
-The existing codebase has a custom `calculateNextRun` cron parser that only handles daily/weekly/monthly patterns and has zero tests (CONCERNS.md). Adding heartbeat scheduling on top of this untested foundation multiplies the failure surface. Additionally, Supabase pg_cron has a documented concurrency limit of 8–32 concurrent jobs depending on plan; a per-agent-per-user cron approach is explicitly not viable.
+Logto's default hashing algorithm is Argon2. The import API uses Argon2 by default if `passwordAlgorithm` is omitted from the import payload.
 
-**Consequences:**
-- Agents silently miss their heartbeat windows with no user visibility
-- "Hours saved" and activity metrics go stale, undermining the platform's core value claim
-- Debugging is extremely difficult without error monitoring
+**How to avoid:**
+When calling Logto's user import API, always include:
+```json
+{
+  "passwordDigest": "<bcrypt_hash_from_supabase>",
+  "passwordAlgorithm": "Bcrypt"
+}
+```
+Logto supports bcrypt natively and will automatically re-hash to Argon2 on the user's first successful sign-in. Confirm by logging in as a test user post-migration before cutting over DNS.
 
-**Prevention:**
-1. The dispatcher must be queue-based, not loop-based. Write all due agents to a `heartbeat_queue` table in one fast query, then return 200. A separate `heartbeat-worker` edge function polls the queue and processes one agent per invocation. This is the Supabase-recommended pattern for large jobs (see Processing large jobs with Edge Functions, Cron, and Queues).
-2. Set a hard cap on agents processed per dispatcher run with a `LIMIT` clause; remaining agents stay in queue for the next minute's tick.
-3. Use `pg_cron` to fire the dispatcher every minute, not every 4 hours. The dispatcher only enqueues; the interval logic lives in the queue row (`next_run_at`), not the cron schedule.
-4. Mark queue rows as `processing` before starting work (optimistic locking) to prevent duplicate processing across concurrent workers.
+**Warning signs:**
+- All migrated users get "invalid credentials" on first login attempt
+- Password reset flow works (confirming the email/ID mapping is correct, but hash is broken)
 
-**Detection / Early Warning Signs:**
-- pg_cron job duration consistently near 150 seconds
-- `agent_heartbeat_log` shows gaps (agents with no run record in expected window)
-- Supabase edge function logs show 504 Gateway Timeout on dispatcher invocations
-
-**Phase that must address this:** Heartbeat System phase — architecture must be queue-based from day one; retrofitting is much harder.
+**Phase to address:**
+Auth migration phase. Run a test migration with a seed user and verify login before bulk import.
 
 ---
 
-### Pitfall 3: Agent Spawner Recommends Irrelevant Agents for Niche or Atypical Businesses
+### Pitfall 3: JWT `sub` Claim Format Differences Break All Downstream Authorization
 
 **What goes wrong:**
-The Agent Spawner analyzes onboarding context (business name, industry, description, website crawl) and recommends a team from the 12-agent catalog. For mainstream business types (e.g., e-commerce, professional services), the LLM recommendation is likely reasonable. For niche businesses — solo artists, traditional craft businesses, informal sector operators, unusual hybrids — the model has poor training coverage and will confidently recommend agents that are wrong for the context (e.g., recommending a `procurement` agent to a one-person yoga studio, or a `legal_compliance` agent to a market trader).
+Every Supabase Edge Function validates auth by calling `supabase.auth.getUser()` which internally validates the JWT and returns a `user.id` that matches the Supabase `auth.users` UUID. The frontend sends `Authorization: Bearer <supabase_jwt>`. After migrating to Logto, Logto issues its own JWTs signed with a different secret and a different JWKS endpoint. The `sub` claim in a Logto JWT uses the same UUID format (if you preserved IDs), but the JWT is signed with Logto's RSA key, not Supabase's JWT secret. Any code that still tries to validate tokens with the old Supabase JWT secret (`SUPABASE_JWT_SECRET`) will reject every Logto token with a 401.
 
 **Why it happens:**
-Gemini Flash is optimized for speed and general coverage, not domain-specific nuance. The existing website crawler (`crawl-business-website`) feeds into business artifacts, but the crawl quality depends entirely on the website's content richness. Businesses with sparse or no website (common in the Kenyan/East African market given the project's location context) will have thin crawl artifacts, leaving the spawner with limited signal. Hallucination of business context is the #1 documented failure mode in enterprise LLM onboarding (Yellow.ai enterprise study, Glean context engineering report).
+The Express conversion of `langgraph-proxy` validates JWTs by calling `createClient(supabaseUrl, supabaseAnonKey)` and then `supabase.auth.getUser()`. This approach hard-codes Supabase as the token validator. After cutover, the same middleware pattern must instead verify against Logto's JWKS endpoint using `jose` or `jsonwebtoken`.
 
-**Consequences:**
-- Users adopt a "wrong" team, never engage with the agents, churn
-- Users feel the product doesn't understand their business — the opposite of the core value proposition
-- Worse: an irrelevant agent runs heartbeats and surfaces noise, accelerating distrust
+**How to avoid:**
+Replace Supabase JWT validation in every Express route with:
+```typescript
+import { createRemoteJWKSet, jwtVerify } from 'jose';
+const JWKS = createRemoteJWKSet(new URL(`${LOGTO_ENDPOINT}/oidc/jwks`));
+const { payload } = await jwtVerify(token, JWKS, { issuer: LOGTO_ISSUER });
+const userId = payload.sub; // same UUID as before if IDs were preserved
+```
+The `sub` claim value in Logto JWTs equals the Logto user ID — which must match the preserved Supabase UUID.
 
-**Prevention:**
-1. The Agent Team Selector UI must show checkboxes with plain-English reason strings per agent ("Your business sells physical products, so this agent tracks supplier invoices"). Users must be able to deselect. Never auto-accept.
-2. Implement a confidence threshold inside the spawner: if the LLM returns a low-confidence reason for an agent recommendation, exclude it from the defaults and show it only under an "Optional additions" accordion.
-3. Always default to a smaller safe team (4–5 agents) rather than the full 12. Non-technical users are overwhelmed by too many agents; underselecting is safer than overselecting.
-4. Store the raw spawner output and the user's final selection in `user_agents` for analysis — this is the primary feedback signal to improve recommendations over time.
-5. Allow the user to change their agent team at any time post-onboarding (Agent Marketplace panel), so a wrong initial recommendation is not permanent.
+**Warning signs:**
+- All API calls return 401 after auth cutover
+- `jwtVerify` throws `JWSSignatureVerificationFailed`
+- Supabase client SDK throws "JWT expired" on tokens that are still fresh
 
-**Detection / Early Warning Signs:**
-- Low acceptance rate on pre-checked agents (users unchecking more than 3 of the recommended agents)
-- Heartbeat surfaced rate is near-zero for certain agent types shortly after activation (agent is active but has nothing relevant to do)
-- Support requests: "Why do I have a [HR/Legal/Procurement] agent? I don't need that."
-
-**Phase that must address this:** Agent Spawner & Team Selection phase — validation UI is the safety net; build it before enabling auto-recommendations.
+**Phase to address:**
+API layer migration phase. Every Express route that previously called `supabase.auth.getUser()` must be audited (23 functions total).
 
 ---
 
-### Pitfall 4: Users Break Their Agents by Editing SOPs Badly — No Recovery Path
+### Pitfall 4: pgmq Extension Not Available on Railway's Default PostgreSQL Image
 
 **What goes wrong:**
-The Agent Settings panel exposes IDENTITY.md, SOUL.md, SOPs.md, and HEARTBEAT.md for user editing. A non-technical entrepreneur will not understand what "system prompt" means but will want to "improve" their agent by editing its instructions. Common edits that silently degrade behavior:
-- Overwriting the structured HEARTBEAT.md checklist with a paragraph of conversational text, causing the agent to misparse its task list
-- Adding conflicting instructions to SOPs.md ("always be formal" and "always be casual and friendly")
-- Accidentally deleting the TOOLS.md-referenced skill invocation patterns, causing tool calls to fail silently
-- Writing prompt injection content unintentionally (e.g., pasting a template that contains "Ignore previous instructions and...")
-
-The codebase already shows that the orchestrator has a single-tool-call-only limit (`toolCalls[0]`), meaning malformed SOPs that cause unexpected tool call patterns will silently truncate agent behavior.
+The heartbeat scheduler uses `pgmq` for durable job queuing (`pgmq.create('heartbeat_jobs')`, `pgmq_public.rpc('read', ...)`, `pgmq_public.rpc('delete', ...)`). Railway's built-in PostgreSQL template does not include `pgmq` — it is a Supabase-specific bundled extension. Running the current migrations on Railway's default Postgres will fail at `SELECT pgmq.create('heartbeat_jobs')` with `ERROR: schema "pgmq" does not exist`. The entire proactive cadence engine stops working.
 
 **Why it happens:**
-The Openclaw-borrowed concept of editable MD workspaces is powerful for technical users but is a sharp edge for non-technical ones. OWASP 2025 rates prompt injection as the #1 LLM vulnerability. User-authored content in SOPs.md is untrusted input that feeds directly into the system prompt. The architecture does not yet include any sanitization layer between user edits and prompt assembly.
+Teams assume Railway's PostgreSQL supports all the same extensions as Supabase's PostgreSQL. Supabase bundles 50+ extensions including `pgmq`, `pg_cron`, and `pg_net` that are not in vanilla PostgreSQL images.
 
-**Consequences:**
-- Agent silently produces worse output; user blames the platform, not their edits
-- In the worst case, a user inadvertently injects instructions that override safety behavior or cause data leakage to other tools
-- Workspace state diverges from defaults with no way to reset
+**How to avoid:**
+Do not attempt to port `pgmq` to Railway. Replace the entire queue pattern with BullMQ + Redis (Railway has a native Redis service and a `fastify-bullmq` template). The architectural change:
+- `pgmq.create('heartbeat_jobs')` → BullMQ Queue named `heartbeat_jobs`
+- `pgmq_public.rpc('read', { n: 5, sleep_seconds: 30 })` → BullMQ Worker with `concurrency: 5`
+- Visibility timeout (30s) → BullMQ `lockDuration: 30000`
+- Manual `pgmq_public.rpc('delete', ...)` → BullMQ auto-acks on worker completion
+The `heartbeat-dispatcher` function (which enqueues) and `heartbeat-runner` function (which dequeues and processes) both need to be rewritten as Express routes + BullMQ producers/workers.
 
-**Prevention:**
-1. Add a "Reset to defaults" button per workspace file. The default templates must be stored in `available_agent_types` and remain immutable — users edit a copy, not the template.
-2. Validate HEARTBEAT.md format on save: it must parse as a valid checklist (lines starting with `- [ ]`). Reject saves that would produce an unparseable checklist with an inline error message.
-3. Sanitize user-edited workspace content before injecting into system prompts: strip or escape common injection patterns (`Ignore previous instructions`, `</system>`, `<|im_start|>`, etc.).
-4. Show a "last working version" diff on the settings page so users can see what changed and revert.
-5. MEMORY.md is correctly scoped as agent-write-only in the spec. Enforce this at the RLS level, not just in the UI — the column should have no UPDATE permission for the user role.
+**Warning signs:**
+- Migration fails at any SQL file containing `pgmq.create` or `pgmq_public`
+- Heartbeat cadence appears configured but no agents fire
+- No errors surface because the dispatcher silently fails to enqueue
 
-**Detection / Early Warning Signs:**
-- Spike in user edits followed by drop in task completion rate for that agent
-- Heartbeat surfaced rate goes to zero after a user edits their HEARTBEAT.md
-- Support requests: "My agent stopped working after I changed something"
-- MEMORY.md grows faster than expected (could indicate injected instructions causing agents to write excessively)
-
-**Phase that must address this:** Agent MD Workspace System phase — validation and reset must ship with the edit UI, not as a follow-up.
+**Phase to address:**
+Scheduling replacement phase. Must be designed before database migration to avoid running the pgmq migrations at all on Railway.
 
 ---
 
-### Pitfall 5: Agent Team Selector Step Kills Onboarding Conversion
+### Pitfall 5: pg_cron Extension Not Available on Railway — Entire Cadence Engine Stops
 
 **What goes wrong:**
-The existing onboarding is 11 steps and already complete. Adding a 12th step — the Agent Team Selector — introduces a decision point at the moment users are most fatigued (end of a long flow). Industry data is consistent: each additional form step reduces completion by 5–7%, and each additional minute reduces conversion by ~3%. The agent selector presents a grid of 12 agent types with reasons, checkboxes, and a CTA. For a non-technical user who has just spent 5–10 minutes on business context steps, this is cognitively expensive.
+The cadence engine depends on `pg_cron` jobs to invoke the heartbeat dispatcher every 5 minutes (`cron.schedule('heartbeat_dispatcher', '*/5 * * * *', ...)`). Railway's PostgreSQL does not include `pg_cron`. The migrations `20260313000007_heartbeat_cron_jobs.sql` and `20260313000009_morning_digest_cron.sql` will fail silently or with errors when applied to Railway's Postgres. With no `pg_cron`, no cron jobs fire, no agents run proactively, and the core platform value (proactive AI team) is entirely absent from production.
 
 **Why it happens:**
-The temptation is to add the selector "while users are already in onboarding flow" because it feels like the right moment. The PROJECT.md rationale ("users are most engaged and context-primed right after completing onboarding") is partially correct but ignores that context-primed is not the same as decision-ready. Users have just provided data; they want to see the product working, not make more configuration decisions.
+Same root cause as pgmq: Supabase bundles `pg_cron` as a managed extension. Railway does not.
 
-**Consequences:**
-- Drop in trial-to-activation rate
-- Users who do complete the selector but rush through it accept a default team that doesn't fit their business (see Pitfall 3)
-- Abandonment at this exact step is invisible unless step-level analytics are instrumented
+**How to avoid:**
+Replace `pg_cron` trigger with Railway's built-in cron job service (HTTP cron) or `node-cron` running inside the API server process. Railway supports HTTP cron triggers that call a route at a defined interval. The dispatcher becomes an Express route (`POST /internal/dispatch-heartbeats`) that Railway's cron calls every 5 minutes. This is more observable than a database-internal cron because it produces HTTP logs. The `node-cron` approach (`cron.schedule('*/5 * * * *', dispatcher)`) is simpler but risks cron execution stopping if the process restarts.
 
-**Prevention:**
-1. Make the Agent Team Selector a post-completion interstitial, not a blocking step. After the "Your AI team is ready" success screen, show the selector as an optional enhancement: "Customize your team (takes 30 seconds)" with a "Use suggested team" bypass that is visually dominant.
-2. Pre-check the spawner's recommended team (5 agents max), make the default path a single "Accept team" click. Expanded customization is revealed on toggle.
-3. Instrument per-step drop-off analytics before shipping this step. The existing `ConversationalOnboarding` flow has zero test coverage (CONCERNS.md); adding a new step into untested flow code is high-risk.
-4. If the selector is kept as a blocking step, limit it to showing 4–5 pre-checked agents. The full catalog of 12 should only be accessible via the post-onboarding Agent Marketplace.
+**Warning signs:**
+- `cron.schedule` migration SQL fails with `ERROR: extension "pg_cron" does not exist`
+- No heartbeat logs appear after deployment despite users having active agents
+- `get_due_cadence_agents()` function works correctly (it's pure SQL) but is never called
 
-**Detection / Early Warning Signs:**
-- Overall onboarding completion rate drops after shipping the selector step
-- Time-on-step for the selector step exceeds 90 seconds on average
-- Users frequently click "Skip" or "Accept all" without interacting with checkboxes (rubber-stamp behavior)
-- Session recordings show scroll hesitation and rage clicks on the selector UI
-
-**Phase that must address this:** Agent Spawner & Team Selection phase — design the bypass path first; A/B test against adding any new step to onboarding.
+**Phase to address:**
+Scheduling replacement phase — same phase as pgmq replacement. Both must be solved together.
 
 ---
 
-## Moderate Pitfalls
-
----
-
-### Pitfall 6: Agent Workspace Bloat Degrades Query Performance Over Time
+### Pitfall 6: RLS Removal Creates a Direct Data Exposure Window
 
 **What goes wrong:**
-Each activated agent creates 6 rows in `agent_workspaces`. With 12 spawnable agent types per user, a fully activated account generates 72 workspace rows. MEMORY.md grows with every completed task (agents append learnings). Over months of active use, MEMORY.md rows can grow to tens of kilobytes each. The `orchestrator` edge function already fetches full business knowledge on every request (CONCERNS.md performance issue); if workspace content is fetched the same way, context window pressure and query latency both grow unboundedly.
-
-**Prevention:**
-1. Cap MEMORY.md content length server-side before write (e.g., max 8,000 characters). When the cap is reached, trigger a summarization pass that condenses older memories.
-2. Do not fetch all 6 workspace files on every heartbeat tick. Load only HEARTBEAT.md + MEMORY.md (recent N entries) for heartbeat runs; load the full workspace only for chat interactions.
-3. Add a created-at/updated-at index on `agent_workspaces (user_id, agent_type)` — lookups will be frequent.
-4. Implement the `profiles.knowledge_base_cache` pattern already recommended in CONCERNS.md; apply the same pattern to agent workspace assembly.
-
-**Phase that must address this:** Agent MD Workspace System phase.
-
----
-
-### Pitfall 7: Role-Based Tool Boundaries Enforced Only in UI — Agents Access Each Other's Data at DB Level
-
-**What goes wrong:**
-The PROJECT.md specifies that tool access is role-scoped (e.g., HR agent writes to team calendar, not invoices). The existing codebase already has a critical security pattern: `userId` accepted from request body without JWT verification in three edge functions (CONCERNS.md — `planning-agent`, `generate-leads`, `crawl-business-website`). New agent runner functions built on the same pattern will inherit this vulnerability. An agent runner that accepts `{ userId, agentType }` from the request body without verifying the JWT can be called by any user to execute any agent on any other user's data.
+Every `public.*` table in this codebase has RLS enabled with `auth.uid() = user_id` policies. When you remove Supabase and disable RLS (as required when moving to Express middleware auth), any query that reaches PostgreSQL without a `WHERE user_id = $1` clause will return data from all users. The LangGraph server already connects with `service_role` (bypasses RLS) — that is safe because the LangGraph server explicitly scopes queries by `user_id`. But the 23 converted Edge Functions query the database via Express, and any missing `WHERE user_id = $1` in a converted function will silently return cross-user data with no RLS to catch it.
 
 **Why it happens:**
-The codebase-wide pattern is to use the service role key server-side while accepting the userId from the body. This works only when the caller is always the legitimate user. For heartbeat runners (called by pg_cron, not by the user), there is no user JWT in play — the cron job provides no user identity. This forces server-side trust decisions without a clean security model.
+RLS acts as a safety net — it enforces authorization at the database level regardless of application bugs. When you remove it, a single missing WHERE clause in any Express route becomes a data leak. The Supabase pattern `supabase.from('tasks').select()` (no WHERE, but RLS scopes it automatically) becomes `SELECT * FROM tasks` — returning every user's tasks.
 
-**Consequences:**
-- Cross-tenant data access: one user's heartbeat runner could, via a bug or injection, operate on another user's workspace
-- An agent with broad tool access (e.g., COO agent, data_analyst) becomes a high-privilege target
-- Regulatory risk: if the platform handles financial or HR data, a cross-tenant breach is a material incident
+**How to avoid:**
+1. Enable RLS in PostgreSQL even on Railway Postgres — it is a standard PostgreSQL feature, not Supabase-specific. RLS does not require `auth.uid()`. Replace with a custom function: `CREATE FUNCTION current_user_id() RETURNS UUID AS $$ SELECT current_setting('app.user_id', true)::UUID; $$` and set `SET LOCAL app.user_id = $1` in every DB connection before querying.
+2. Alternatively, build an Express middleware layer that injects `user_id` into every query object and audits all queries to verify the filter is present.
+3. Do not rely solely on application-level checks without database-level enforcement.
 
-**Prevention:**
-1. Heartbeat runners must derive `userId` exclusively from a server-side source (e.g., a signed queue record with an HMAC, or a Supabase service-role lookup of the queue row) — never from user-supplied input.
-2. Each agent type must have an explicit allowlist of Supabase tables and operations it may access, enforced at the RLS policy level, not just in the edge function code.
-3. Audit all new edge functions against the pattern in CONCERNS.md before merging: extract userId from verified JWT or from a server-controlled queue record.
-4. Apply the fix already recommended in CONCERNS.md to existing functions (`planning-agent`, `generate-leads`, `crawl-business-website`) before building new agent runners on top — the vulnerability compounds.
+**Warning signs:**
+- Converted route returns a list that "seems too large" during testing
+- Row counts in responses do not match what a single user should see
+- Any route where the original Supabase call had no `.eq('user_id', userId)` but worked (due to RLS)
 
-**Detection / Early Warning Signs:**
-- Any edge function that accepts both `userId` and `agentType` from the request body without JWT verification
-- Supabase logs show edge function calls with no Authorization header (pg_cron-originated calls)
-- RLS is absent on new tables (`agent_workspaces`, `user_agents`, `agent_heartbeat_log`, `available_agent_types`)
-
-**Phase that must address this:** Security hardening should be a prerequisite before any agent runner has write access to user data; address in the first phase that introduces new edge functions.
+**Phase to address:**
+API layer migration phase. Every converted function must be audited against a checklist: does this query have an explicit `user_id` filter? RLS-on-Railway should be evaluated as the fallback safety net.
 
 ---
 
-### Pitfall 8: The heartbeat-dispatcher Cron Fires Duplicate Runs If Previous Run Is Still In-Flight
+### Pitfall 7: Lovable AI Gateway Uses OpenAI-Compatible Format — Direct Gemini API Does Not
 
 **What goes wrong:**
-pg_cron does not check whether the previous invocation of a job has completed before firing the next one. If the dispatcher runs every minute but takes 90 seconds to process the queue, two dispatcher instances will be running simultaneously and will both claim the same queue rows, producing duplicate heartbeat runs per agent.
+All 23 Edge Functions use the Lovable AI Gateway (`https://ai.gateway.lovable.dev/v1/chat/completions`) which exposes an OpenAI-compatible endpoint. The response format is:
+```json
+{ "choices": [{ "message": { "content": "..." } }] }
+```
+The current code reads `data.choices?.[0]?.message?.content` throughout. The **direct Gemini API** (`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash:generateContent`) uses a completely different format:
+```json
+{ "candidates": [{ "content": { "parts": [{ "text": "..." }] } }] }
+```
+Switching to direct Gemini without updating the response parser will cause every LLM call to return `undefined`, silently producing empty agent responses or crashing with a `TypeError: Cannot read properties of undefined`.
 
-**Prevention:**
-1. Use optimistic locking: update queue rows to `processing` status in the same query that selects them (`UPDATE ... WHERE status = 'pending' RETURNING *`). PostgreSQL's row-level locking ensures only one worker claims each row.
-2. Add a `claimed_at` timestamp and a cleanup job that resets rows stuck in `processing` for more than 10 minutes (handle crashes).
+**Why it happens:**
+Teams assume "we're already calling Gemini through the gateway, so the format is the same." The gateway is an OpenAI-format adapter layer. The direct API is not.
 
-**Phase that must address this:** Heartbeat System phase.
+**How to avoid:**
+Use Gemini's OpenAI-compatible endpoint instead of the native endpoint:
+```
+https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+```
+This endpoint accepts OpenAI-format request bodies and returns OpenAI-format responses. Model name becomes `gemini-2.0-flash` (not `google/gemini-3-flash-preview`). The only code changes needed are: swap the base URL, swap the `Authorization` header from `Bearer LOVABLE_API_KEY` to `Bearer GEMINI_API_KEY`, and update the model name string. Zero changes to response parsing.
+
+**Warning signs:**
+- All agent responses return empty strings or `undefined`
+- No errors in logs (the `?.` optional chaining silences the undefined access)
+- Heartbeat runner logs `severity=ok` for every agent even in clearly non-ok states
+
+**Phase to address:**
+API layer migration phase. Create a shared `callGemini(messages, options)` wrapper used by all 23 functions so the endpoint and response parsing are in one place.
 
 ---
 
-## Minor Pitfalls
-
----
-
-### Pitfall 9: Default Workspace Files Generated With Stale Business Context
+### Pitfall 8: SSE Streaming Breaks Through Express Without Explicit Buffer Disabling
 
 **What goes wrong:**
-When an agent is spawned, its IDENTITY.md, SOPs.md, and HEARTBEAT.md are generated using the business context at spawn time. If the user updates their business profile, website, or uploaded docs later, the workspace files are not automatically regenerated. The agent continues operating on outdated context indefinitely.
+The `langgraph-proxy` Supabase function passes SSE streams directly through (`return new Response(upstream.body, { headers: { 'Content-Type': 'text/event-stream' } })`). This works in Deno's `serve()` because Deno streams responses natively. In Express on Railway, if the response is buffered by Express's default middleware (compression, body-parser) or by Railway's proxy layer (nginx-based), the entire SSE stream is held in memory and delivered as one large chunk when the connection closes. The frontend's `EventSource` never receives incremental events — it either times out or receives everything at once at the end.
 
-**Prevention:**
-1. Store the `business_context_version` at workspace generation time (e.g., a hash of the business_artifacts rows used).
-2. Show a "Workspace may be outdated" badge in the Agent Settings panel if the user's business context has changed since the workspace was last generated.
-3. Provide a "Regenerate from current business context" button per agent (destructive action, with confirmation).
+**Why it happens:**
+Express does not stream by default without explicit `res.flushHeaders()` and proper response header setup. Railway's infrastructure may also add a buffering layer. The Deno `Response(readable_stream)` pattern has no Node.js equivalent — it must be manually reconstructed with `res.write()` in a loop.
 
-**Phase that must address this:** Agent MD Workspace System phase.
+**How to avoid:**
+In Express, implement SSE proxying as:
+```typescript
+res.setHeader('Content-Type', 'text/event-stream');
+res.setHeader('Cache-Control', 'no-cache');
+res.setHeader('Connection', 'keep-alive');
+res.setHeader('X-Accel-Buffering', 'no'); // disables nginx buffering on Railway
+res.flushHeaders(); // critical: sends headers immediately
+for await (const chunk of upstream.body) {
+  res.write(chunk);
+}
+res.end();
+```
+The `X-Accel-Buffering: no` header is essential for Railway's nginx proxy layer. Without it, all SSE events are buffered and the frontend experiences complete streaming failure.
+
+**Warning signs:**
+- Chat UI shows "thinking..." indefinitely then all text appears at once
+- `EventSource` `onmessage` fires only once at connection end
+- Network inspector shows response body arriving in one transfer
+
+**Phase to address:**
+API layer migration phase. The `langgraph-proxy` route conversion is highest risk for this pattern.
 
 ---
 
-### Pitfall 10: Agent Heartbeat Runs During Non-Business Hours Due to Timezone Mismatch
+### Pitfall 9: Deno-Specific APIs Silently Fail in Node.js Without Errors
 
 **What goes wrong:**
-The HEARTBEAT.md design specifies "business hours only." Supabase pg_cron runs in UTC. If the dispatcher does not translate user timezone to UTC correctly, agents will fire at 3am local time for users in non-UTC timezones (e.g., East Africa Time, UTC+3).
+The Edge Functions use multiple Deno-specific globals: `Deno.env.get()`, `jsr:@negrel/webpush` (JSR registry, not npm), URL imports from `https://esm.sh/` and `https://deno.land/std`, and the `serve()` function from `deno.land/std`. These are syntactically valid TypeScript but are runtime errors in Node.js. Specifically: `Deno` is not defined in Node.js (throws `ReferenceError`), `jsr:` imports are not supported by Node.js module resolution (throws `ERR_UNSUPPORTED_ESM_URL_SCHEME`), and URL imports (`https://esm.sh/resend@2.0.0`) fail with `ERR_UNSUPPORTED_ESM_URL_SCHEME`.
 
-**Prevention:**
-1. Store `timezone` on the user profile (already likely captured in onboarding for Kenyan market).
-2. The dispatcher query that determines "due" agents must convert `next_run_at` using the user's stored timezone offset, not UTC.
-3. Test with a UTC+3 user explicitly during development.
+**Why it happens:**
+The migration converts `.ts` files from Deno to Node.js but misses runtime-specific patterns embedded in the logic (not just the imports).
 
-**Phase that must address this:** Heartbeat System phase.
+**How to avoid:**
+Systematic audit checklist for each function:
+1. Replace `Deno.env.get('KEY')` → `process.env.KEY`
+2. Replace `https://esm.sh/[package]` imports → `import { X } from '[package]'` (npm)
+3. Replace `https://deno.land/std/...` imports → npm equivalents (`npm:@std/...` or Node.js built-ins)
+4. Replace `jsr:@negrel/webpush` → `web-push` npm package
+5. Replace `serve(handler)` → `app.post('/route', handler)` in Express
+6. Replace `new Response(body, { status, headers })` → `res.status(N).json(body)`
+7. Replace `req.json()` → `req.body` (with `express.json()` middleware)
+8. Replace `req.headers.get('authorization')` → `req.headers['authorization']`
+
+**Warning signs:**
+- `ReferenceError: Deno is not defined` at any point during startup
+- Import errors: `Cannot find module 'https://esm.sh/...'`
+- Function seems to load but env vars always return `undefined`
+
+**Phase to address:**
+API layer migration phase. Build a conversion script or checklist that flags each pattern automatically.
 
 ---
 
-### Pitfall 11: planning-agent Duplicate Initialization Affects Agent Workspace Init
+### Pitfall 10: LangGraph PostgresSaver Tables Need UUID Extension — Not Pre-Installed on Vanilla Postgres
 
 **What goes wrong:**
-The existing `planning-agent` has a documented bug: calling `initialize` twice creates duplicate scheduled tasks (CONCERNS.md). The agent workspace generation step will likely reuse a similar pattern. If the onboarding completion event fires twice (e.g., user refreshes mid-onboarding completion, or a React StrictMode double-effect), agents will be spawned twice, producing duplicate workspace rows that conflict.
+The LangGraph schema uses `gen_random_uuid()` in several places (via Supabase's bundled `pgcrypto`/`uuid-ossp`). Vanilla Railway PostgreSQL 16+ has `gen_random_uuid()` built-in (it's a core function since PG 13), so this specific function is safe. However, the `document_embeddings` table's FK reference is `REFERENCES auth.users(id)` — the `auth` schema is a Supabase-specific schema that does not exist in vanilla PostgreSQL. Applying migrations with `REFERENCES auth.users(id)` will fail with `ERROR: schema "auth" does not exist`.
 
-**Prevention:**
-1. Use upsert with a unique constraint on `(user_id, agent_type, file_name)` for `agent_workspaces`.
-2. Apply the same fix to `user_agents`: unique constraint on `(user_id, agent_type)`.
-3. Make the Agent Spawner idempotent: check for existing agent records before inserting.
+**Why it happens:**
+Supabase adds a managed `auth` schema not present in standard PostgreSQL. Any table created with FK references to `auth.users` is coupled to Supabase.
 
-**Phase that must address this:** Agent Spawner & Team Selection phase.
+**How to avoid:**
+Before applying migrations to Railway's PostgreSQL:
+1. Audit all migration files for `auth.users` references: `grep -r "auth.users" supabase/migrations/`
+2. Replace `REFERENCES auth.users(id)` with `REFERENCES public.users(id)` — create a `public.users` table as the new identity table (populated from Logto user data via webhook or sync)
+3. Alternatively, create an empty `auth` schema with an `auth.users` stub table just to satisfy FK constraints, then back-fill from Logto
+4. Update all `ON DELETE CASCADE` policies referencing `auth.users`
+
+Current count in this codebase: 15+ tables have `REFERENCES auth.users(id)`.
+
+**Warning signs:**
+- `pg_restore` or `psql` migration run fails at first table with `auth.users` FK
+- Error: `ERROR: schema "auth" does not exist`
+- `pg_dump --schema-only` from Supabase includes the `auth` schema but Railway's target does not have it
+
+**Phase to address:**
+Database migration phase. This must be resolved before running any migration on Railway's PostgreSQL.
 
 ---
 
-## Phase-Specific Warnings
+## Technical Debt Patterns
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|---|---|---|
-| Heartbeat System | Runaway LLM costs from suppression logic failure | Structured output for HEARTBEAT_OK, hard call budgets, queue-based architecture |
-| Heartbeat System | Dispatcher timeout on edge function wall-clock limit | Queue-fan-out pattern, not sequential loop |
-| Heartbeat System | Duplicate runs from concurrent dispatcher invocations | Optimistic locking on queue rows |
-| Heartbeat System | Timezone mismatch for business-hours enforcement | Store and use user timezone in dispatcher query |
-| Agent Spawner & Team Selection | Wrong agents recommended for niche businesses | Confidence threshold, smaller default team, user can deselect |
-| Agent Spawner & Team Selection | New onboarding step kills conversion rate | Post-completion interstitial with dominant bypass CTA |
-| Agent Spawner & Team Selection | Duplicate agent spawning on double-init | Idempotent spawner, unique constraints |
-| Agent MD Workspace System | User edits break agent behavior silently | Validation on save, reset-to-default button, injection sanitization |
-| Agent MD Workspace System | Workspace content bloat degrades performance | MEMORY.md size cap, targeted workspace loading, summarization |
-| Agent MD Workspace System | Stale workspace after business context update | Context version tracking, "Workspace outdated" badge |
-| Role-Based Tooling | Agent accesses wrong user's data via userId-from-body pattern | Server-side userId derivation, per-table RLS per agent type |
-| Role-Based Tooling | Tool permission sprawl as catalog grows | Explicit allowlist per agent type in `available_agent_types` registry |
+Shortcuts that seem reasonable but create long-term problems.
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Keep Supabase client SDK in frontend, point at Railway API | Zero frontend refactor | Supabase SDK expects Supabase-specific auth flows and Realtime; will break subtly on session refresh | Never — replace the SDK |
+| Use pg_dump to copy all schemas including `auth` to Railway | Single command migration | `auth` schema contains Supabase-specific RLS triggers and GoTrue functions that won't work on vanilla Postgres | Never for auth schema, only for public schema |
+| Skip RLS on Railway and rely only on Express middleware | Faster conversion, no RLS policy rewrite | One missing WHERE clause = silent data leak across all users | Never for user-scoped data |
+| Use `node-cron` inside the API process for heartbeat dispatching | No extra Redis service | Cron stops when API process restarts; no distributed lock; duplicate fires on multi-instance deploy | Only in single-instance MVP with Railway restart policy |
+| Hardcode Gemini model name `google/gemini-3-flash-preview` in Express | Zero code change from gateway format | Model name is Lovable-gateway-specific; direct Gemini API uses different model identifiers | Never — use env var `GEMINI_MODEL` |
+| Skip data migration for LangGraph Store/checkpoints | Saves migration time | Users lose all agent memory, chat history, and in-flight HITL approvals | Only acceptable if explicitly communicated to users |
+
+---
+
+## Integration Gotchas
+
+Common mistakes when connecting to external services.
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Logto user import | Omit `passwordAlgorithm: "Bcrypt"` in import payload | Always set `passwordAlgorithm: "Bcrypt"` when importing Supabase bcrypt hashes |
+| Logto JWT validation | Validate with old `SUPABASE_JWT_SECRET` | Validate with Logto's JWKS endpoint using `jose.createRemoteJWKSet` |
+| Gemini API direct | Call `generativelanguage.googleapis.com/v1beta/models/gemini-flash:generateContent` | Use the OpenAI-compatible endpoint `/v1beta/openai/chat/completions` to preserve response format |
+| Gemini streaming | Assume SSE format is identical to Lovable gateway | Verify `data:` event format — native Gemini SSE sends `data: {"candidates":[...]}` not `data: {"choices":[...]}` if not using the compat endpoint |
+| Railway PostgreSQL | Run `supabase db dump` output directly | Filter out `auth`, `storage`, `pgmq`, `pgcron` schema objects before applying to Railway |
+| BullMQ on Railway | Use default Redis connection without TLS | Railway Redis requires `tls: {}` in the IORedis connection options for production |
+| Railway SSE proxy | Rely on default nginx buffering | Set `X-Accel-Buffering: no` response header on all SSE routes |
+| Resend email (Express) | Import from `https://esm.sh/resend@2.0.0` | `import { Resend } from 'resend'` (npm package, standard Node.js) |
+| Web push VAPID (Express) | Import from `jsr:@negrel/webpush` | `import webpush from 'web-push'` (npm) — different API surface, re-implement push logic |
+
+---
+
+## Performance Traps
+
+Patterns that work in Supabase's managed environment but fail on Railway.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| No connection pooling on Railway PostgreSQL | Timeouts under modest load, "too many clients" errors | Use `pg-pool` with `max: 10` connections in Express server; LangGraph server already pools | At ~20 concurrent users |
+| `pgmq` visibility timeout replaced with BullMQ without tuning `lockDuration` | Same heartbeat job processed by two workers simultaneously | Set BullMQ `lockDuration` to match old `sleep_seconds: 30` (30000ms) | Immediately on concurrent worker deployment |
+| Embedding generation with IVFFlat index on small dataset | Cosine similarity queries run full table scan | Only create IVFFlat index once `document_embeddings` has >10,000 rows (it's commented out in migration correctly) | Not a Railway-specific trap — existing code handles correctly |
+| Railway container cold starts on free/hobby tier | First request after idle takes 10-30s; SSE client may timeout before connection established | Use Railway's Always On option or implement client-side retry with exponential backoff | Immediately if Railway sleeps the service |
+| LangGraph Server + Playwright on same Railway container | Playwright's Chromium uses 300-500MB RAM; combined with LangGraph graph execution memory, container OOMs | Allocate at minimum 2GB RAM to LangGraph Railway service | On first Playwright browser launch under concurrent agent load |
+
+---
+
+## Security Mistakes
+
+Migration-specific security issues.
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Expose `SUPABASE_SERVICE_ROLE_KEY` as Railway env var for direct DB access | Service role key bypasses all RLS; if leaked via logs or error messages, full DB read/write | Retire the service role key after migration; use DATABASE_URL (postgres connection string) with a scoped DB user |
+| Set `Access-Control-Allow-Origin: *` on all Express routes (copied from Edge Functions) | Any website can make authenticated API calls on behalf of logged-in users | Restrict CORS to your frontend Railway domain in production: `cors({ origin: 'https://app.worryless.ai' })` |
+| Store `GEMINI_API_KEY` in frontend env vars (VITE_GEMINI_API_KEY) | API key exposed in browser JavaScript bundle; anyone can call Gemini at your expense | Gemini calls must stay server-side in Express. Frontend calls the Railway API, never Gemini directly |
+| Logto Management API token in Railway env as a permanent credential | Management API tokens are powerful admin credentials; leaked token = full user database access | Use short-lived tokens via client credentials grant at migration time; rotate immediately after |
+| Skip JWT expiry validation in Express routes | Tokens from years-old sessions remain valid indefinitely | Always verify `exp` claim in `jwtVerify` — `jose` does this by default, but confirm `clockTolerance` is not set too loosely |
+| Direct database port exposed publicly on Railway | Anyone who discovers the Railway PostgreSQL host can attempt brute force | Railway databases are private by default; ensure no public networking is enabled on the DB service |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+Things that appear complete but are missing critical pieces.
+
+- [ ] **Auth migration:** Users can log in — but verify `user_id` in Logto matches the UUID in `public.profiles`. Query: `SELECT p.user_id, l.id FROM profiles p LEFT JOIN logto_users l ON p.user_id = l.id WHERE l.id IS NULL` should return zero rows.
+- [ ] **pgmq replacement:** BullMQ queue is configured and workers start — but verify the dispatcher actually enqueues jobs. Check BullMQ dashboard shows non-zero job counts within 5 minutes of deployment.
+- [ ] **pg_cron replacement:** Cron route exists in Express — but verify Railway's HTTP cron trigger is actually firing. Check Railway's cron execution logs, not just the route handler logs.
+- [ ] **Gemini API swap:** LLM calls return text — but verify streaming works end-to-end. Test with a long prompt that forces multi-chunk streaming. Confirm `EventSource` fires multiple `onmessage` events, not one.
+- [ ] **RLS removal:** Express routes return correct data for the authenticated user — but test with two different user accounts. Confirm user A cannot see user B's tasks, agents, or heartbeat logs.
+- [ ] **SSE streaming:** `/langgraph-proxy` returns streamed responses — but verify `X-Accel-Buffering: no` header is present in the response. Confirm chat UI shows progressive token display, not a single chunk at end.
+- [ ] **data_embeddings FK:** Migrations applied without errors — but query `\d document_embeddings` in Railway psql to confirm the FK constraint points to `public.users`, not `auth.users`.
+- [ ] **Deno → Node conversion:** All 23 functions deployed — but run each once in staging and confirm no `ReferenceError: Deno is not defined` in Railway logs.
+- [ ] **VAPID web push:** Push subscriptions table exists — but verify a test push notification actually reaches a browser. The `web-push` npm package API differs from `jsr:@negrel/webpush`.
+- [ ] **LangGraph checkpoints:** Thread IDs in `langgraph.checkpoints` use user UUIDs as namespace — verify a post-migration LangGraph invocation creates a checkpoint row and the `thread_id` prefix matches the new Logto user UUID.
+
+---
+
+## Recovery Strategies
+
+When pitfalls occur despite prevention, how to recover.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| UUID mismatch (orphaned user data) | HIGH | Export Logto users, identify UUID mismatches, write UPDATE script to re-key all `user_id` FK columns across all tables in a transaction, re-import |
+| Password hash import failure (users can't log in) | MEDIUM | Trigger password reset emails via Logto Management API for all affected users; communicate via email |
+| JWT validation failure (all 401s) | LOW | Roll back Express JWT middleware to accept both old Supabase tokens and new Logto tokens during transition window using try/catch on both validators |
+| pgmq migration fails on Railway | LOW | Skip pgmq migrations entirely; deploy BullMQ + Redis before running DB migrations |
+| SSE buffering (no streaming) | LOW | Add `X-Accel-Buffering: no` header and redeploy; no data loss |
+| Gemini response format wrong (empty responses) | LOW | Switch to OpenAI-compat endpoint, redeploy; affects UX but no data loss |
+| `auth.users` FK failures in migrations | MEDIUM | Create `auth` schema stub with minimal `users` table before running public schema migrations; or sed-replace all `auth.users` references before apply |
+| RLS data leak discovered | CRITICAL | Immediately disable affected routes, audit query logs for cross-user data access, notify affected users per GDPR/data protection obligations, add database-level RLS or explicit WHERE filters |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+How roadmap phases should address these pitfalls.
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| UUID orphan on auth migration | Auth migration (Phase 1 of v2.1) | Query: zero rows in `profiles LEFT JOIN logto_users ON user_id` where Logto ID is NULL |
+| Password hash incompatibility | Auth migration (Phase 1) | Smoke test: migrated user can log in with original password |
+| JWT format/secret mismatch | Auth + API layer (Phase 1-2) | All API routes return 200 with Logto JWT; 401 with expired/invalid JWT |
+| pgmq unavailable | Scheduling replacement (before DB migration) | BullMQ worker processes first enqueued job within 30s |
+| pg_cron unavailable | Scheduling replacement | Railway HTTP cron fires every 5 minutes; Express route logs confirm execution |
+| RLS removal data leak | API layer migration (Phase 2) | Two-user cross-access test: user A cannot read user B's rows from any route |
+| Lovable gateway → direct Gemini format | API layer migration (Phase 2) | All LLM-calling routes return non-empty text response; streaming returns incremental chunks |
+| SSE buffering in Express | API layer migration (Phase 2) | Frontend streaming test confirms multiple `onmessage` events per response |
+| Deno → Node.js API differences | API layer migration (Phase 2) | Zero `ReferenceError: Deno is not defined` in production Railway logs |
+| `auth.users` FK in migrations | Database migration | `psql` migration run completes with zero errors on Railway PostgreSQL |
+| LangGraph UUID namespace alignment | LangGraph + data migration (Phase 3) | Existing checkpoint rows are queryable by authenticated users after UUID preservation |
 
 ---
 
 ## Sources
 
-- Supabase Edge Functions Limits (official): https://supabase.com/docs/guides/functions/limits
-- Supabase Processing Large Jobs with Edge Functions, Cron, and Queues (official): https://supabase.com/blog/processing-large-jobs-with-edge-functions
-- Supabase pg_cron Debugging Guide (official): https://supabase.com/docs/guides/troubleshooting/pgcron-debugging-guide-n1KTaz
-- Supabase Cron UI Timeout Issue (GitHub): https://github.com/supabase/supabase/issues/37629
-- OWASP LLM Top 10 2025 — Prompt Injection #1: https://genai.owasp.org/llmrisk/llm01-prompt-injection/
-- Arize: Why AI Agents Break in Production: https://arize.com/blog/common-ai-agent-failures/
-- AWS: Why AI Agents Give Inconsistent Results and How Agent SOPs Fix It: https://aws.amazon.com/blogs/publicsector/why-your-ai-agents-give-inconsistent-results-and-how-agent-sops-fix-it/
-- Promptfoo: Model Upgrades Break Agent Safety: https://www.promptfoo.dev/blog/model-upgrades-break-agent-safety/
-- SaaS Onboarding Best Practices 2025 (Flowjam): https://www.flowjam.com/blog/saas-onboarding-best-practices-2025-guide-checklist
-- Multi-Tenant Security Pitfalls (SecurityBoulevard 2025): https://securityboulevard.com/2025/12/tenant-isolation-in-multi-tenant-systems-architecture-identity-and-security/
-- Glean: Hallucinations in Enterprise Agent Onboarding: https://www.glean.com/perspectives/when-llms-hallucinate-in-enterprise-contexts-and-how-contextual-grounding
-- Openclaw Runaway Heartbeat Issue: https://github.com/openclaw/openclaw/issues/3181
-- ServiceNow Second-Order Prompt Injection (TheHackerNews): https://thehackernews.com/2025/11/servicenow-ai-agents-can-be-tricked-into-acting-against-each-other-via-second-order-prompts.html
+- Logto user migration docs — password algorithm support: https://docs.logto.io/user-management/user-migration
+- Supabase auth migration between projects: https://supabase.com/docs/guides/troubleshooting/migrating-auth-users-between-projects
+- Railway PostgreSQL extension support: https://docs.railway.com/databases/postgresql
+- Railway pgvector blog post (pgvector availability confirmed): https://blog.railway.com/p/hosting-postgres-with-pgvector
+- Gemini OpenAI-compatible endpoint (Google official): https://ai.google.dev/gemini-api/docs/openai
+- BullMQ on Railway template: https://github.com/railwayapp-templates/fastify-bullmq
+- pgmq Railway feature request (not natively supported): https://station.railway.com/feedback/support-postgres-extensions-04b914a7
+- Supabase auth schema excluded from default db dump: https://supabase.com/docs/reference/cli/supabase-db-dump
+- Supabase JWT secret and session invalidation: https://supabase.com/docs/guides/auth/signing-keys
+- Supabase password hashing (bcrypt): https://supabase.com/docs/guides/auth/password-security
+- Better Auth Supabase migration guide (reference for bcrypt portability): https://better-auth.com/docs/guides/supabase-migration-guide
+- Supabase RLS security pitfalls: https://dev.to/fabio_a26a4e58d4163919a53/supabase-security-the-hidden-dangers-of-rls-and-how-to-audit-your-api-29e9
+- Gemini multi-part response OpenAI translation loss: https://github.com/router-for-me/CLIProxyAPI/issues/948
+
+---
+*Pitfalls research for: Supabase → Railway migration (v2.1 milestone)*
+*Researched: 2026-03-21*

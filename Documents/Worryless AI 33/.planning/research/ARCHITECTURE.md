@@ -1,712 +1,743 @@
-# Architecture Patterns
+# Architecture Research
 
-**Domain:** Multi-agent SaaS — agent workspace system + heartbeat dispatcher
-**Researched:** 2026-03-12
-**Confidence:** HIGH (DB schema, timeout constraints, queue pattern verified against official Supabase docs)
-
----
-
-## 1. Database Schema
-
-### 1.1 `available_agent_types` — The Static Catalog
-
-This table is the source of truth for all 12 agent types plus the Chief of Staff. It is seeded once via migration and never written to by users. The default MD workspace templates live here so spawning a new agent is a copy-paste from this table, not a prompt call.
-
-```sql
-CREATE TABLE available_agent_types (
-  id           TEXT PRIMARY KEY,         -- e.g. 'accountant', 'marketer', 'coo'
-  display_name TEXT NOT NULL,
-  description  TEXT NOT NULL,
-  depth        INTEGER NOT NULL DEFAULT 1, -- 0 = orchestrator (chief_of_staff), 1 = specialist
-  skills       JSONB NOT NULL DEFAULT '[]', -- ["invoice_parsing", "spreadsheet_analysis", ...]
-  default_identity_md   TEXT NOT NULL,
-  default_soul_md       TEXT NOT NULL,
-  default_sops_md       TEXT NOT NULL,
-  default_memory_md     TEXT NOT NULL,
-  default_heartbeat_md  TEXT NOT NULL,
-  default_tools_md      TEXT NOT NULL,
-  created_at   TIMESTAMPTZ DEFAULT now()
-);
--- No RLS needed — this is public read-only catalog data
--- No user_id column intentionally
-```
-
-Seed rows: 12 specialist types + `chief_of_staff` (depth 0). The 4 existing hardcoded agents (accountant, marketer, sales_rep, personal_assistant) get rows here retroactively so the new system subsumes the old one.
-
-**Confidence: HIGH** — pattern matches existing `task_templates` and `agent_validators` tables in the codebase.
+**Domain:** Multi-agent SaaS platform — Railway deployment migration (Supabase → Railway self-hosted)
+**Researched:** 2026-03-21
+**Confidence:** HIGH (Railway official docs verified, Logto official docs verified, existing codebase inspected directly)
 
 ---
 
-### 1.2 `user_agents` — Activated Agents Per User
+## Standard Architecture
 
-Tracks which catalog entries a given user has activated. The 4 pre-existing agents are inserted here automatically during onboarding completion (via the updated `planning-agent` edge function). The Chief of Staff always gets a row with `is_always_active = true`.
+### System Overview
 
-```sql
-CREATE TABLE user_agents (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  agent_type_id TEXT NOT NULL REFERENCES available_agent_types(id),
-  activated_at  TIMESTAMPTZ DEFAULT now(),
-  is_active     BOOLEAN NOT NULL DEFAULT true,
-  heartbeat_interval_hours  INTEGER NOT NULL DEFAULT 4,
-  heartbeat_active_hours_start TIME NOT NULL DEFAULT '08:00',
-  heartbeat_active_hours_end   TIME NOT NULL DEFAULT '18:00',
-  heartbeat_enabled BOOLEAN NOT NULL DEFAULT true,
-  last_heartbeat_at TIMESTAMPTZ,
-  next_heartbeat_at TIMESTAMPTZ,
-  UNIQUE(user_id, agent_type_id)
-);
-
-ALTER TABLE user_agents ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own agents" ON user_agents
-  FOR ALL USING (auth.uid() = user_id);
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                          PUBLIC INTERNET                                  │
+│                                                                           │
+│   Browser → frontend.railway.app (static SPA)                            │
+│   Browser → api.railway.app      (REST + SSE)                            │
+│   Browser → logto.railway.app    (OIDC login page)                       │
+└───────────────────────────┬──────────────────────────────────────────────┘
+                            │  HTTPS (public Railway domains)
+┌──────────────────────────────────────────────────────────────────────────┐
+│                   RAILWAY PROJECT — private network                       │
+│                                                                           │
+│  ┌─────────────┐   ┌──────────────────┐   ┌───────────────────────────┐ │
+│  │  Frontend   │   │   API Server     │   │     LangGraph Server      │ │
+│  │ (Nginx SPA) │   │ (Express/Node)   │   │   (Express/Node Docker)   │ │
+│  │  Port 80    │   │   Port 8080      │   │       Port 3001           │ │
+│  └─────────────┘   └────────┬─────────┘   └──────────────┬────────────┘ │
+│                             │ private                     │ private       │
+│                             │ .railway.internal           │               │
+│  ┌─────────────┐   ┌────────▼─────────┐   ┌─────────────▼────────────┐ │
+│  │    Logto    │   │   PostgreSQL      │   │          Redis            │ │
+│  │ (Docker)    │   │  (Railway PG)     │   │     (Railway Redis)       │ │
+│  │  Port 3002  │   │   Port 5432       │   │       Port 6379           │ │
+│  └─────────────┘   └──────────────────┘   └──────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
-`next_heartbeat_at` is recalculated after each heartbeat run so the dispatcher can do a simple `WHERE next_heartbeat_at <= now()` query. This avoids scanning all agents.
+**Total services: 6**
+1. `frontend` — Nginx serving Vite build (static)
+2. `api-server` — Express, replaces all 23 Supabase Edge Functions
+3. `langgraph-server` — existing Express server (already on Railway), add cadence scheduler
+4. `postgres` — Railway managed PostgreSQL (same DB, migrated data)
+5. `redis` — Railway managed Redis (BullMQ queues replace pgmq)
+6. `logto` — self-hosted Docker (replaces Supabase Auth)
 
 ---
 
-### 1.3 `agent_workspaces` — The 6-File MD System
+## Component Responsibilities
 
-One row per (user, agent, file). Six rows per activated agent. Never store all 6 files in a single JSONB column — separate rows allow partial updates, individual file auditing, and clean RLS without reading all 6 files on every query.
-
-```sql
-CREATE TYPE workspace_file_type AS ENUM (
-  'IDENTITY', 'SOUL', 'SOPs', 'MEMORY', 'HEARTBEAT', 'TOOLS'
-);
-
-CREATE TABLE agent_workspaces (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  agent_type_id TEXT NOT NULL REFERENCES available_agent_types(id),
-  file_type     workspace_file_type NOT NULL,
-  content       TEXT NOT NULL,
-  updated_at    TIMESTAMPTZ DEFAULT now(),
-  updated_by    TEXT NOT NULL DEFAULT 'user',  -- 'user' | 'agent' | 'system'
-  UNIQUE(user_id, agent_type_id, file_type)
-);
-
-ALTER TABLE agent_workspaces ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users own workspaces" ON agent_workspaces
-  FOR ALL USING (auth.uid() = user_id);
-```
-
-**Why separate rows, not JSONB columns:** The editor loads one file at a time. An agent updating MEMORY.md doesn't need to read IDENTITY.md. Separate rows mean the DB does the work of isolation. Each file is independently auditable. JSONB for 6 files is premature optimization that adds complexity without benefit at this scale.
-
-**MEMORY.md write control:** The `updated_by` column enforces the business rule. The UI checks `file_type = 'MEMORY'` and renders a read-only view. The heartbeat runner sets `updated_by = 'agent'`. There is no DB-level write restriction on MEMORY rows — enforcement is in application code (UI and edge functions only write MEMORY from agent context).
-
-**Auto-population trigger:** When a row is inserted into `user_agents`, a Postgres trigger calls a function that copies the 6 default template rows from `available_agent_types` into `agent_workspaces` for that user+agent. This keeps workspace creation atomic with agent activation.
-
-```sql
-CREATE OR REPLACE FUNCTION create_agent_workspace()
-RETURNS TRIGGER AS $$
-DECLARE
-  agent_rec available_agent_types%ROWTYPE;
-BEGIN
-  SELECT * INTO agent_rec FROM available_agent_types WHERE id = NEW.agent_type_id;
-  INSERT INTO agent_workspaces (user_id, agent_type_id, file_type, content, updated_by)
-  VALUES
-    (NEW.user_id, NEW.agent_type_id, 'IDENTITY',  agent_rec.default_identity_md,  'system'),
-    (NEW.user_id, NEW.agent_type_id, 'SOUL',      agent_rec.default_soul_md,      'system'),
-    (NEW.user_id, NEW.agent_type_id, 'SOPs',      agent_rec.default_sops_md,      'system'),
-    (NEW.user_id, NEW.agent_type_id, 'MEMORY',    agent_rec.default_memory_md,    'system'),
-    (NEW.user_id, NEW.agent_type_id, 'HEARTBEAT', agent_rec.default_heartbeat_md, 'system'),
-    (NEW.user_id, NEW.agent_type_id, 'TOOLS',     agent_rec.default_tools_md,     'system')
-  ON CONFLICT (user_id, agent_type_id, file_type) DO NOTHING;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE TRIGGER on_agent_activated
-  AFTER INSERT ON user_agents
-  FOR EACH ROW EXECUTE FUNCTION create_agent_workspace();
-```
+| Component | Responsibility | Communicates With |
+|-----------|----------------|-------------------|
+| **frontend** | Serve Vite SPA, handle browser routing via Nginx try_files | Browser only (static) |
+| **api-server** | Auth middleware (Logto JWT verify), all 23 former Edge Function routes, user data CRUD, enqueue BullMQ jobs | postgres (direct), redis (BullMQ), langgraph-server (internal HTTP), external APIs |
+| **langgraph-server** | LangGraph graph execution, SSE streaming, PostgresSaver checkpointing, Store memory, cadence dispatcher+worker (BullMQ) | postgres (direct), redis (BullMQ worker), external AI/tool APIs |
+| **postgres** | All application data + langgraph schema (checkpoints, store, threads) | api-server, langgraph-server |
+| **redis** | BullMQ queue persistence for heartbeat jobs (replaces pgmq) | api-server (enqueue), langgraph-server (consume) |
+| **logto** | OIDC/OAuth 2.1 identity provider, JWT issuance, user management UI | api-server (JWKS verification), browser (login flow) |
 
 ---
 
-### 1.4 `agent_heartbeat_log` — Sparse Logging (Non-OK Runs Only)
+## Service Topology Detail
 
-Per the project decision: suppress HEARTBEAT_OK writes. Only log runs that surfaced something. This reduces DB writes by ~90% on quiet systems.
+### Service 1: Frontend (Nginx)
 
-```sql
-CREATE TYPE heartbeat_outcome AS ENUM ('surfaced', 'error');
+**What it is:** Vite build output served by Nginx Docker container. Railway has a one-click Vite+React template and an NGINX static site template.
 
-CREATE TABLE agent_heartbeat_log (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  agent_type_id TEXT NOT NULL REFERENCES available_agent_types(id),
-  run_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
-  outcome       heartbeat_outcome NOT NULL,
-  summary       TEXT,           -- What the agent surfaced (truncated, for notification)
-  task_created  BOOLEAN DEFAULT false,
-  notification_sent BOOLEAN DEFAULT false,
-  error_message TEXT            -- Populated if outcome = 'error'
-);
+**Why Nginx over Railway's static hosting:** Railway's native static hosting works for simple SPAs but Nginx gives full control over cache headers, SPA fallback (`try_files $uri /index.html`), and future reverse proxy if needed.
 
-ALTER TABLE agent_heartbeat_log ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users read own heartbeat logs" ON agent_heartbeat_log
-  FOR SELECT USING (auth.uid() = user_id);
--- INSERT done by edge function using service role — no INSERT policy needed for users
-
-CREATE INDEX idx_heartbeat_log_user_agent ON agent_heartbeat_log (user_id, agent_type_id, run_at DESC);
+**Configuration:**
+```nginx
+server {
+  listen 80;
+  root /usr/share/nginx/html;
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}
 ```
 
-The `user_agents.last_heartbeat_at` column is updated on every run (OK or surfaced) — it's the lightweight "last seen" indicator for the UI. The full log only captures meaningful events.
+**Railway env vars required:**
+- `VITE_API_URL` — public URL of api-server (injected at build time via `${{api-server.RAILWAY_PUBLIC_DOMAIN}}`)
+- `VITE_LOGTO_ENDPOINT` — public Logto URL
+- `VITE_LOGTO_APP_ID` — Logto application client ID
+
+**Status:** NEW service (not currently on Railway)
 
 ---
 
-### 1.5 Schema Dependency Order (Build This First)
+### Service 2: API Server (Express/Node.js)
 
-```
-available_agent_types  (no deps — seed data migration)
-       |
-user_agents            (deps: auth.users, available_agent_types)
-       |
-agent_workspaces       (deps: auth.users, available_agent_types, trigger on user_agents)
-       |
-agent_heartbeat_log    (deps: auth.users, available_agent_types)
-```
+**What it is:** New Express application that replaces all 23 Supabase Edge Functions. NOT merged into the existing LangGraph server — see rationale below.
 
----
+**Why separate from LangGraph server:**
+- LangGraph server runs long-duration streaming connections (SSE, agent graph walks taking 30–120s). CPU-intensive.
+- API server runs short CRUD requests (< 500ms). Different scaling profiles.
+- Playwright is installed in LangGraph server Docker image. Keeping API server lean avoids a 1GB+ Docker image for simple routes.
+- LangGraph server is already deployed and tested. Merging risks regressions.
+- Railway can scale each service independently.
 
-## 2. Heartbeat Dispatcher Architecture
+**23 Edge Functions → Express route mapping:**
 
-### 2.1 Why Not One Cron Per Agent
+| Edge Function | Express Route | Router File |
+|--------------|---------------|-------------|
+| `chat-with-agent` | `POST /api/chat` | `routes/chat.ts` |
+| `orchestrator` | `POST /api/orchestrate` | `routes/chat.ts` |
+| `langgraph-proxy` | `POST /api/langgraph/*` | `routes/langgraph-proxy.ts` |
+| `spawn-agent-team` | `POST /api/agents/spawn` | `routes/agents.ts` |
+| `crawl-business-website` | `POST /api/business/crawl` | `routes/business.ts` |
+| `parse-datasheet` | `POST /api/business/parse-datasheet` | `routes/business.ts` |
+| `generate-content` | `POST /api/generate/content` | `routes/generate.ts` |
+| `generate-image` | `POST /api/generate/image` | `routes/generate.ts` |
+| `generate-invoice-image` | `POST /api/generate/invoice-image` | `routes/generate.ts` |
+| `generate-leads` | `POST /api/leads` | `routes/leads.ts` |
+| `generate-outreach` | `POST /api/outreach` | `routes/outreach.ts` |
+| `heartbeat-dispatcher` | Internal (BullMQ scheduler) | `cadence/dispatcher.ts` |
+| `heartbeat-runner` | Internal (BullMQ worker) | `cadence/worker.ts` |
+| `proactive-runner` | Internal (BullMQ worker) | `cadence/worker.ts` |
+| `run-scheduled-tasks` | `POST /api/tasks/run` | `routes/tasks.ts` |
+| `planning-agent` | `POST /api/planning` | `routes/planning.ts` |
+| `sync-gmail-calendar` | `POST /api/integrations/google/sync` | `routes/integrations.ts` |
+| `send-daily-briefing` | Internal (BullMQ scheduler) | `cadence/briefing.ts` |
+| `send-morning-digest` | Internal (BullMQ scheduler) | `cadence/briefing.ts` |
+| `send-test-email` | `POST /api/email/test` | `routes/email.ts` |
+| `send-validation-email` | `POST /api/email/validation` | `routes/email.ts` |
 
-Supabase `pg_cron` has a practical limit of ~50-100 jobs before performance degrades (the jobs metadata table is queried on every scheduler tick). A platform with 500 users each with 5 active agents would require 2,500 cron rows — this is not viable.
+**Note on heartbeat/proactive runners:** These were HTTP-triggered by pg_cron via `net.http_post`. In Railway, they become BullMQ jobs dispatched internally — no HTTP endpoints needed.
 
-**Confidence: MEDIUM** — Supabase docs recommend "no more than 8 jobs running concurrently" and the 10-minute max per job. The slot limit is inferred from pg_cron internals and community reports, not officially documented.
-
-### 2.2 Recommended Pattern: Dispatcher + Queue
-
-This pattern is verified against official Supabase documentation for queue-based fan-out.
-
-```
-pg_cron (every 5 minutes)
-    |
-    v
-heartbeat-dispatcher edge function
-    |
-    +-- Query: SELECT * FROM user_agents
-    |   WHERE heartbeat_enabled = true
-    |   AND next_heartbeat_at <= now()
-    |   AND is_active = true
-    |   LIMIT 50  -- safety cap per batch
-    |
-    +-- For each due agent row:
-    |   INSERT INTO pgmq queue: heartbeat_jobs
-    |   { user_id, agent_type_id, user_agent_id }
-    |
-    +-- UPDATE user_agents SET
-            next_heartbeat_at = now() + (heartbeat_interval_hours * interval '1 hour'),
-            last_heartbeat_at = now()
-        WHERE id = $user_agent_id
-```
-
-```
-pg_cron (every 30 seconds)
-    |
-    v
-heartbeat-runner edge function
-    |
-    +-- pgmq.read('heartbeat_jobs', sleep_seconds: 0, n: 5)
-    |
-    +-- For each message:
-    |   1. Fetch agent workspaces (HEARTBEAT.md, SOPs.md, MEMORY.md snippets)
-    |   2. Fetch recent agent_tasks for this user/agent (last 7 days)
-    |   3. Fetch business context from profiles + business_artifacts
-    |   4. Call Lovable AI Gateway with assembled context
-    |   5. Parse response:
-    |      - "HEARTBEAT_OK" → pgmq.delete(msg_id), no DB write
-    |      - Any other content → INSERT agent_heartbeat_log (surfaced),
-    |                            optionally INSERT agent_tasks,
-    |                            trigger notification
-    |   6. pgmq.delete(msg_id)
-```
-
-### 2.3 Timeout Safety Analysis
-
-- **Dispatcher function**: Queries DB, inserts queue rows, updates `next_heartbeat_at`. Pure SQL I/O. Completes in < 5 seconds even for 50 agents. Well within 150s idle timeout.
-- **Runner function**: Reads 5 messages per invocation. Each message = 1 LLM call (~2-8 seconds for Gemini Flash) + DB reads/writes. 5 agents x 8 seconds max = 40 seconds. Well within 150s timeout.
-- **Burst protection**: The `LIMIT 50` in dispatcher and `n: 5` in runner prevent a single invocation from processing too many agents. The cron frequency (every 30 seconds for runner) provides continuous draining.
-
-**Confidence: HIGH** — Timeout values verified against official Supabase limits docs (free: 150s, paid: 400s). Pattern verified against Supabase Queue consumption docs.
-
-### 2.4 Edge Function Signatures
-
-**`heartbeat-dispatcher/index.ts`** (cron-invoked, no auth header needed):
+**Auth middleware replaces RLS:**
 ```typescript
-// Invoked by: cron.schedule('heartbeat-dispatcher', '*/5 * * * *', ...)
-// No user context — uses service role key
-// Returns: { dispatched: number, skipped: number }
+// All /api/* routes gated by this middleware
+import { createRemoteJWKSet, jwtVerify } from 'jose';
+
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.LOGTO_ENDPOINT}/oidc/jwks`)
+);
+
+async function requireAuth(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  const { payload } = await jwtVerify(token, JWKS, {
+    issuer: `${process.env.LOGTO_ENDPOINT}/oidc`,
+    audience: process.env.LOGTO_API_RESOURCE,
+  });
+  req.userId = payload.sub;  // replaces auth.uid() from RLS
+  next();
+}
 ```
 
-**`heartbeat-runner/index.ts`** (cron-invoked, no auth header needed):
-```typescript
-// Invoked by: cron.schedule('heartbeat-runner', '*/30 * * * *', ...)
-// Note: '*/30 * * * *' = every 30 minutes in cron syntax
-// For every-30-seconds use pg_cron with: cron.schedule('heartbeat-runner', '* * * * *', ...)
-// and implement internal throttling, OR accept every-minute frequency
-// Returns: { processed: number, surfaced: number, errors: number }
+**What replaces RLS:** Every database query in API routes filters by `req.userId` (the `sub` claim from Logto JWT). Pattern: `WHERE user_id = $1` with `req.userId`. No Supabase client — use `pg` (node-postgres) or `postgres.js` directly.
+
+**Railway env vars required:**
+```
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+REDIS_URL=${{Redis.REDIS_URL}}
+LANGGRAPH_SERVER_URL=http://langgraph-server.railway.internal:3001
+LOGTO_ENDPOINT=https://logto.railway.app   # or custom domain
+LOGTO_APP_ID=...
+LOGTO_APP_SECRET=...
+LOGTO_API_RESOURCE=https://api.worryless.ai
+GEMINI_API_KEY=...
+RESEND_API_KEY=...
+FIRECRAWL_API_KEY=...
+APIFY_API_KEY=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
 ```
 
-**Important cron syntax note:** `pg_cron` minimum granularity is 1 minute (standard cron). For sub-minute polling, use the Supabase Queues `sleep_seconds` parameter and a 1-minute cron that runs a tight internal loop, or accept 1-minute polling frequency (acceptable for a 4-hour heartbeat interval).
-
-### 2.5 Business Hours Enforcement
-
-Enforce in the dispatcher query, not in the runner:
-
-```sql
-WHERE heartbeat_enabled = true
-  AND next_heartbeat_at <= now()
-  AND is_active = true
-  AND EXTRACT(HOUR FROM now() AT TIME ZONE user_timezone)
-      BETWEEN heartbeat_active_hours_start AND heartbeat_active_hours_end
-```
-
-This requires a `timezone` column on `profiles` (already likely present given the existing timezone setting in SettingsPage). The dispatcher skips out-of-window agents rather than dequeueing and suppressing inside the runner — cleaner and cheaper.
+**Status:** NEW service — does not exist yet
 
 ---
 
-## 3. Agent Spawner LLM Call
+### Service 3: LangGraph Server (existing, extended)
 
-### 3.1 Prompt Structure
+**What it already does:** Express server with LangGraph graph execution, SSE streaming, PostgresSaver, Store, thread management. Already deployed on Railway.
 
-The Agent Spawner is called once at onboarding completion. Its job is to produce a ranked JSON array of recommended agent types. Use structured output (JSON mode) to avoid parsing failures.
+**What changes in v2.1:**
+1. `DATABASE_URL` points to new Railway PostgreSQL service (same schema, migrated data)
+2. Lovable AI Gateway replaced with direct `GEMINI_API_KEY`
+3. BullMQ cadence scheduler+worker **added** to this process (not a separate service)
+4. No new HTTP endpoints added — cadence runs internally
 
-**System prompt:**
+**Why cadence scheduler lives in LangGraph server (not API server):**
+- Cadence workers invoke `graph.invoke()` directly — they need the LangGraph graph in-process
+- Avoids HTTP round-trips between API server and LangGraph server for proactive runs
+- pgmq queue (currently consumed by `heartbeat-runner` Edge Function) is replaced by BullMQ queue backed by Redis; the LangGraph server is the natural consumer
+
+**Cadence architecture (replaces pg_cron + pgmq):**
+
 ```
-You are an AI business analyst. Your job is to recommend which AI specialist agents
-from a fixed catalog are most valuable for a specific business.
+node-cron (in-process, LangGraph server)
+  ├── every 5 min: dispatcher scans user_agents for due heartbeats
+  │     └── adds BullMQ jobs to 'heartbeat_jobs' queue (Redis)
+  └── every 1 hr: morning digest dispatcher
+        └── adds BullMQ jobs to 'digest_jobs' queue (Redis)
 
-You must return ONLY a valid JSON array. No explanation text outside the JSON.
-
-Available agent types (fixed catalog):
-[INSERT: name, description, key_skills for each of the 12 types as a JSON array]
-
-Business context:
-- Business name: {business_name}
-- Industry: {industry}
-- Location: {location}
-- Team size: {team_size}
-- Business description: {description}
-- Website content summary: {website_summary}
-- Primary challenges mentioned: {onboarding_challenges}
+BullMQ Worker (in-process, LangGraph server)
+  ├── 'heartbeat_jobs' worker → calls graph.invoke() for each due agent
+  └── 'digest_jobs' worker → compiles digest, sends via Resend
 ```
 
-**User prompt:**
-```
-Based on this business profile, recommend exactly 5-7 agents from the catalog that will
-deliver the highest value. Rank them by expected impact.
+**node-cron vs BullMQ split:**
+- `node-cron` handles the scheduling tick (replaces pg_cron) — lightweight, no persistence needed for the tick itself
+- `BullMQ` handles job execution with retry, concurrency control, and persistence (replaces pgmq) — jobs survive restarts
+- Together they mirror the pg_cron → pgmq pattern exactly
 
-Return a JSON array where each item has:
-{
-  "agent_type_id": "string (must match catalog id exactly)",
-  "rank": number (1 = highest impact),
-  "why": "string (1-2 sentences, written directly to the business owner, e.g. 'Your e-commerce store will benefit from...')",
-  "first_week_value": "string (one concrete thing this agent will do in week 1)"
+**Playwright volume mount:**
+- Railway volume mounted at `/playwright-data` (configurable)
+- Chromium user data dir: `/playwright-data/chromium-profiles/{user_id}`
+- Set `RAILWAY_RUN_UID=0` on LangGraph server service to avoid permission errors (Railway volume mounts as root)
+- Volume size: start at 5GB (Hobby), expand as needed
+
+**Railway env vars added/changed:**
+```
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+REDIS_URL=${{Redis.REDIS_URL}}
+GEMINI_API_KEY=...                          # replaces LOVABLE_API_KEY
+PLAYWRIGHT_DATA_DIR=/playwright-data        # volume mount path
+RAILWAY_RUN_UID=0                           # volume permission fix
+```
+
+**Status:** EXISTING service on Railway — modify env vars, add cadence module, mount volume
+
+---
+
+### Service 4: PostgreSQL (Railway managed)
+
+**What it is:** Railway's managed PostgreSQL. Replaces Supabase PostgreSQL.
+
+**Schema migration path:**
+1. Provision Railway Postgres
+2. Run all 20+ migrations from `supabase/migrations/` in chronological order
+3. Drop/skip Supabase-specific extensions: `auth.*` tables (Logto owns auth now), `vault.*`, `pg_net` (not needed — no outbound HTTP from SQL)
+4. Keep: `pgvector` (needed for embeddings — Railway Postgres 15+ supports it natively), all application tables, `langgraph` schema
+5. Remove: `pgmq.*` calls (queuing moves to BullMQ), `cron.*` calls (scheduling moves to node-cron), `net.*` calls (no HTTP from SQL needed)
+
+**Connection notes:**
+- LangGraph server's `PostgresSaver` requires the **direct** connection string (port 5432), not a pooled connection. PostgresSaver uses prepared statements incompatible with PgBouncer transaction pooling. Railway's `DATABASE_URL` references the direct port — this is fine.
+- API server uses connection pooling via `postgres.js` pool (safe for regular queries)
+
+**Reference variable:** `DATABASE_URL=${{Postgres.DATABASE_URL}}` — inject into both api-server and langgraph-server
+
+**Status:** NEW service — provision and migrate
+
+---
+
+### Service 5: Redis (Railway managed)
+
+**What it is:** Railway's managed Redis. Provides BullMQ queue backing.
+
+**Queues:**
+
+| Queue | Producer | Consumer | Replaces |
+|-------|----------|----------|---------|
+| `heartbeat_jobs` | node-cron dispatcher (LangGraph server) | BullMQ worker (LangGraph server) | pgmq `heartbeat_jobs` |
+| `digest_jobs` | node-cron scheduler (LangGraph server) | BullMQ worker (LangGraph server) | pg_cron morning digest |
+
+**Note:** Redis is used for BullMQ only. No session storage (Logto manages JWT sessions statelessly). No caching layer added in v2.1.
+
+**Reference variable:** `REDIS_URL=${{Redis.REDIS_URL}}` — inject into langgraph-server (and api-server if manual job triggers are needed)
+
+**Status:** NEW service — provision
+
+---
+
+### Service 6: Logto (self-hosted Docker)
+
+**What it is:** Open-source OIDC/OAuth 2.1 identity provider. Replaces Supabase Auth. Railway has a one-click Logto deploy template at `railway.com/deploy/logto`.
+
+**Deployment:** Separate Docker service in Railway project. Logto requires its own PostgreSQL database. Use the same Railway Postgres instance with a separate `logto` schema, or provision a second Postgres service (recommended for isolation — avoids schema conflicts).
+
+**Integration pattern:**
+- Browser authenticates against Logto directly (OIDC authorization code flow)
+- Logto issues JWTs (access tokens + refresh tokens)
+- Frontend stores tokens; passes `Authorization: Bearer <token>` to api-server
+- api-server verifies JWT signature using Logto's JWKS endpoint (`GET /oidc/jwks`) via `jose` library — **no Logto server call per request**, JWKS is cached locally
+- `sub` claim in JWT = user ID (replaces Supabase `auth.uid()`)
+
+**Logto configuration needed:**
+1. Create Application: type "SPA" → get `client_id`
+2. Create API Resource: indicator `https://api.worryless.ai` → used as JWT `aud` claim
+3. Configure redirect URIs: `https://frontend.railway.app/callback`
+4. SMTP config for email verification (Resend SMTP or Resend direct integration)
+
+**Logto env vars (on Logto service):**
+```
+TRUST_PROXY_HEADER=1
+DB_URL=${{Postgres.DATABASE_URL}}   # or dedicated second Postgres
+PORT=3002
+ENDPOINT=https://logto.railway.app
+```
+
+**Status:** NEW service — deploy from Railway template, configure
+
+---
+
+## Internal Networking
+
+Railway private networking uses Wireguard-encrypted tunnels. All services within a project communicate via `SERVICE_NAME.railway.internal:PORT`. No port exposure or configuration required for private traffic.
+
+| Connection | Internal Address | Notes |
+|-----------|-----------------|-------|
+| api-server → langgraph-server | `http://langgraph-server.railway.internal:3001` | SSE streaming: set `proxy_read_timeout` high; `res.flushHeaders()` on LG server |
+| api-server → postgres | `${{Postgres.DATABASE_URL}}` resolves internally | Direct port 5432 |
+| api-server → redis | `${{Redis.REDIS_URL}}` resolves internally | Port 6379 |
+| langgraph-server → postgres | `${{Postgres.DATABASE_URL}}` | Must use direct (non-pooled) connection for PostgresSaver prepared statements |
+| langgraph-server → redis | `${{Redis.REDIS_URL}}` | BullMQ worker + scheduler |
+| api-server → logto (JWKS) | `http://logto.railway.internal:3002/oidc/jwks` | JWKS is public endpoint; internal hostname avoids external round-trip |
+| logto → postgres | `${{Postgres.DATABASE_URL}}` | Logto's own user storage |
+
+**Reference variable syntax (Railway):**
+```
+# In api-server service variables panel:
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+REDIS_URL=${{Redis.REDIS_URL}}
+LANGGRAPH_SERVER_URL=http://langgraph-server.railway.internal:3001
+```
+
+**DNS caveat (October 2025 update):** New Railway environments resolve `.railway.internal` hostnames to both IPv4 and IPv6. Legacy environments (pre-October 2025) resolve to IPv6 only. If a Node.js service fails to connect, force IPv4 resolution or verify the project environment was created after October 2025.
+
+---
+
+## Recommended Project Structure
+
+### API Server (new service)
+
+```
+api-server/
+├── src/
+│   ├── index.ts               # Express app bootstrap + middleware stack
+│   ├── middleware/
+│   │   ├── auth.ts            # Logto JWT verify (jose), req.userId injection
+│   │   └── cors.ts            # CORS for frontend domain
+│   ├── routes/
+│   │   ├── chat.ts            # POST /api/chat, POST /api/orchestrate
+│   │   ├── langgraph-proxy.ts # POST /api/langgraph/* → internal forward to LG server
+│   │   ├── agents.ts          # POST /api/agents/spawn, GET /api/agents
+│   │   ├── business.ts        # POST /api/business/crawl, /parse-datasheet
+│   │   ├── generate.ts        # POST /api/generate/content|image|invoice-image
+│   │   ├── leads.ts           # POST /api/leads
+│   │   ├── outreach.ts        # POST /api/outreach
+│   │   ├── tasks.ts           # POST /api/tasks/run
+│   │   ├── planning.ts        # POST /api/planning
+│   │   ├── integrations.ts    # POST /api/integrations/google/sync
+│   │   └── email.ts           # POST /api/email/test|validation
+│   ├── db/
+│   │   └── client.ts          # postgres.js pool, single instance
+│   └── lib/
+│       └── buildWorkspacePrompt.ts  # copy from supabase/_shared (identical logic)
+├── Dockerfile
+└── package.json
+```
+
+### LangGraph Server additions (existing service)
+
+```
+langgraph-server/src/
+├── cadence/                   # (already exists — heartbeat prompts, configs)
+│   ├── dispatcher.ts          # NEW: node-cron tick + BullMQ enqueue (replaces heartbeat-dispatcher Edge Fn)
+│   └── worker.ts              # NEW: BullMQ worker consuming heartbeat_jobs (replaces heartbeat-runner Edge Fn)
+├── persistence/               # (exists — checkpointer.ts, store.ts)
+└── index.ts                   # ADD: call startDispatcher() and startWorker() on app start
+```
+
+---
+
+## Architectural Patterns
+
+### Pattern 1: JWT-Stateless Auth (Logto + jose)
+
+**What:** Frontend obtains JWT from Logto OIDC flow. Sends as `Authorization: Bearer`. API server verifies signature with cached JWKS — no DB lookup or Logto call per request.
+
+**When to use:** All `/api/*` routes except `/api/health`.
+
+**Trade-offs:** Logout is soft (token still valid until expiry). Mitigation: short access token lifetime (15 min) + refresh token rotation via `@logto/react` SDK.
+
+**Example:**
+```typescript
+// middleware/auth.ts
+import { createRemoteJWKSet, jwtVerify } from 'jose';
+
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.LOGTO_ENDPOINT}/oidc/jwks`)
+);
+
+export async function requireAuth(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const { payload } = await jwtVerify(token, JWKS, {
+      issuer: `${process.env.LOGTO_ENDPOINT}/oidc`,
+      audience: process.env.LOGTO_API_RESOURCE,
+    });
+    req.userId = payload.sub as string;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+}
+```
+
+---
+
+### Pattern 2: Internal SSE Proxy (api-server → langgraph-server)
+
+**What:** The api-server's `/api/langgraph/*` routes forward requests to `langgraph-server.railway.internal:3001` after verifying auth. SSE responses are piped through, not buffered.
+
+**When to use:** All LangGraph invoke/stream/resume calls from the frontend.
+
+**Trade-offs:** Adds one network hop (~0.5ms on Railway private network). Acceptable trade-off: auth stays centralized, LangGraph server stays unexposed to public internet.
+
+**Example:**
+```typescript
+// routes/langgraph-proxy.ts
+import { createProxyMiddleware } from 'http-proxy-middleware';
+
+const lgProxy = createProxyMiddleware({
+  target: process.env.LANGGRAPH_SERVER_URL,
+  changeOrigin: true,
+  pathRewrite: { '^/api/langgraph': '' },
+  on: {
+    proxyReq: (proxyReq, req) => {
+      proxyReq.setHeader('x-user-id', (req as any).userId);
+    },
+  },
+});
+
+router.use('/', requireAuth, lgProxy);
+```
+
+**Critical:** LangGraph server's `/invoke/stream` already calls `res.setHeader('Content-Type', 'text/event-stream')` and writes chunks directly. `http-proxy-middleware` passes SSE through transparently.
+
+---
+
+### Pattern 3: BullMQ Cadence (replaces pg_cron + pgmq)
+
+**What:** node-cron fires a tick every 5 minutes in-process within the LangGraph server. The tick queries `user_agents` for due agents and adds BullMQ jobs to Redis. BullMQ workers (also in-process) consume and execute `graph.invoke()` for each job.
+
+**When to use:** Heartbeat cadence (daily/weekly/monthly/quarterly per agent), morning digest, scheduled tasks.
+
+**Trade-offs:** Jobs survive LangGraph server restarts (BullMQ persists in Redis). Concurrency controlled by BullMQ worker `concurrency` setting. Missed ticks during downtime are caught on the next tick (same semantics as pg_cron + pgmq). Existing `get_due_cadence_agents()` SQL function is reused unchanged.
+
+**Example:**
+```typescript
+// cadence/dispatcher.ts
+import cron from 'node-cron';
+import { Queue } from 'bullmq';
+import { pool } from '../db/pool.js';  // direct pg connection
+
+const heartbeatQueue = new Queue('heartbeat_jobs', {
+  connection: { url: process.env.REDIS_URL }
+});
+
+export function startDispatcher() {
+  cron.schedule('*/5 * * * *', async () => {
+    const { rows } = await pool.query('SELECT * FROM get_due_cadence_agents()');
+    for (const agent of rows) {
+      await heartbeatQueue.add('heartbeat', agent, {
+        jobId: `${agent.user_id}-${agent.agent_type_id}-${agent.cadence_tier}-${Date.now()}`,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+      });
+    }
+  });
 }
 
-Rules:
-- Include 'chief_of_staff' only if NOT already always active (it always is — exclude it)
-- Always recommend 'personal_assistant' for solo founders
-- Always recommend 'accountant' for product/service businesses with invoicing
-- Return between 5 and 7 agents
-- Order by rank ascending (rank 1 first)
-```
+// cadence/worker.ts
+import { Worker } from 'bullmq';
+import { getCheckpointer } from '../persistence/checkpointer.js';
+import { createSupervisorGraph } from '../graph/supervisor.js';
+import { HumanMessage } from '@langchain/core/messages';
+import { getHeartbeatPrompt } from './heartbeat-prompts.js';
 
-**Why this structure works:**
-1. Fixed catalog as JSON in the system prompt means the model cannot hallucinate agent types
-2. Strict output format with `agent_type_id` matching catalog IDs prevents invalid selections
-3. `why` and `first_week_value` are the copy displayed in the Agent Team Selector UI — writing them in second person eliminates the need for a separate copy-writing step
-4. Temperature 0.3: low enough for consistent JSON output, high enough for varied reasoning text
-
-**Confidence: MEDIUM** — Structural reasoning is sound, but exact prompt wording should be iterated on in Phase 1 testing. The JSON-mode approach for agent selection is verified pattern from Supabase + Gemini usage in the codebase.
-
-### 3.2 Edge Function: `agent-spawner`
-
-This is a new edge function called at the end of `planning-agent`'s `initialize` action (or immediately after `onboarding_completed` is set to true).
-
-```
-Input:  { user_id }
-Action:
-  1. Fetch profile + business_artifacts for user_id
-  2. Assemble system + user prompt (above)
-  3. Call Lovable AI Gateway (model: google/gemini-3-flash-preview, response_format: json_object)
-  4. Parse JSON array response
-  5. Validate: each agent_type_id must exist in available_agent_types
-  6. Insert recommended agents into user_agents (with is_active = false initially)
-  7. Return { recommended: AgentRecommendation[] }
-
-Output: { recommended: [{ agent_type_id, rank, why, first_week_value }] }
-```
-
-The `is_active = false` flag is key: recommended agents are NOT active until the user accepts them in the Team Selector. This lets the Agent Team Selector UI show the recommendations without the heartbeat system starting to fire on agents the user hasn't approved.
-
-On user acceptance (checkbox → "Accept Team" CTA): frontend calls a simple Supabase update:
-```typescript
-await supabase
-  .from('user_agents')
-  .update({ is_active: true })
-  .in('id', acceptedUserAgentIds)
-```
-
-This triggers the `create_agent_workspace` trigger for each accepted agent.
-
----
-
-## 4. Onboarding Flow Modification
-
-### 4.1 Minimal Change Principle
-
-The existing `ConversationalOnboarding.tsx` has 11 steps and sets `profiles.onboarding_completed = true` at the end. The Agent Team Selector must be added as a step BEFORE that flag is set, so that:
-- The dashboard's onboarding gate (`profiles.onboarding_completed = false` → show wizard) still works
-- No new routing or redirect logic is needed
-- The user cannot skip the team selector by refreshing mid-onboarding
-
-### 4.2 New Step 12: Agent Team Selector
-
-**Data flow:**
-
-```
-Step 11 completes (validators set)
-    |
-    v
-ConversationalOnboarding: set local loading state
-    |
-    v
-supabase.functions.invoke('agent-spawner', { body: { user_id } })
-    |
-    v
-Returns { recommended: [...] }
-    |
-    v
-Render AgentTeamSelectorStep component (inline within the onboarding wizard)
-    |
-    v
-User toggles checkboxes, clicks "Accept Team"
-    |
-    v
-supabase.from('user_agents').update({ is_active: true }).in(...)
-    |
-    v
-supabase.from('profiles').update({ onboarding_completed: true })
-    |
-    v
-Onboarding wizard unmounts, Dashboard renders normally
-```
-
-**What does NOT change:**
-- The 11 existing onboarding steps
-- The `planning-agent` initialization call (it still runs at step 11)
-- The onboarding gate check in `Dashboard.tsx`
-- `BusinessOnboarding.tsx` (if still used for an alternative flow)
-
-**What changes minimally:**
-- `ConversationalOnboarding.tsx`: Add `step === 12` case that renders `AgentTeamSelectorStep`
-- Move the `profiles.onboarding_completed = true` write from step 11's completion handler to the "Accept Team" CTA handler
-- Insert the 4 default agents (accountant, marketer, sales_rep, personal_assistant) into `user_agents` during `planning-agent` initialize, before spawner runs
-
-### 4.3 Insert Default Agents During Planning-Agent Init
-
-The 4 existing agents must become `user_agents` rows so the heartbeat system can manage them. The `planning-agent` `initialize` action inserts them with `is_active = true` (they're always active, no selection needed):
-
-```typescript
-const defaultAgentTypes = ['accountant', 'marketer', 'sales_rep', 'personal_assistant', 'chief_of_staff'];
-// INSERT INTO user_agents for each — triggers create_agent_workspace
-```
-
-This ensures existing users who completed onboarding before this milestone can be backfilled via a migration that inserts the default `user_agents` rows for them.
-
----
-
-## 5. React Component Architecture
-
-### 5.1 `AgentMarketplace`
-
-**Location:** `src/components/agents/AgentMarketplace.tsx`
-**Registered as:** `activeView === 'marketplace'` in Dashboard.tsx
-
-**Component boundary:**
-
-```
-AgentMarketplace
-  ├── State: available catalog rows, user's activated agent_type_ids (to show active badge)
-  ├── Data: SELECT available_agent_types + user_agents (user_id = current user)
-  ├── AgentCatalogCard (12x)
-  │     ├── Display: name, description, skills list, activated/not badge
-  │     ├── CTA: "Activate" → INSERT user_agents row → triggers workspace creation
-  │     └── If activated: "Settings" → navigate to workspace editor view
-  └── No AI calls — pure DB read/write
-```
-
-**State pattern:** Single `useEffect` on mount fetching both tables in parallel. Local `activating` set to track in-progress activations (prevents double-click). After activation, refetch `user_agents` to update badge states.
-
----
-
-### 5.2 `AgentWorkspaceEditor`
-
-**Location:** `src/components/agents/AgentWorkspaceEditor.tsx`
-**Registered as:** `activeView === 'workspace-{agent_type_id}'` OR as a modal/sheet overlay
-
-**Recommendation:** Use a Sheet (slide-in panel from shadcn/ui) rather than a new `ActiveView` — workspace editing is a context-dependent overlay, not a top-level navigation destination. This avoids polluting the `ActiveView` union with 12 new entries.
-
-```
-AgentWorkspaceEditor (Sheet)
-  ├── Props: agent_type_id, user_id
-  ├── State: selectedFile ('IDENTITY' | 'SOUL' | 'SOPs' | 'HEARTBEAT' | 'TOOLS')
-  ├── Data: SELECT agent_workspaces WHERE user_id = X AND agent_type_id = Y
-  ├── Tab navigation: 5 editable files (MEMORY excluded from tabs)
-  ├── WorkspaceFileEditor
-  │     ├── Textarea (markdown-aware, monospace font)
-  │     ├── Save button → UPDATE agent_workspaces SET content = $1, updated_at = now()
-  │     └── "Reset to default" → SELECT default from available_agent_types, UPDATE workspace
-  ├── WorkspaceMemoryViewer (read-only panel, shown separately)
-  │     └── Display MEMORY.md content with "Agent-written only" label
-  └── HeartbeatConfig (inline section)
-        ├── Interval selector (1h, 2h, 4h, 8h, 24h)
-        ├── Active hours time range picker
-        ├── Enable/disable toggle
-        └── Save → UPDATE user_agents SET heartbeat_interval_hours, etc.
+export async function startWorker() {
+  const checkpointer = await getCheckpointer();
+  return new Worker('heartbeat_jobs', async (job) => {
+    const { user_id, agent_type_id, cadence_tier } = job.data;
+    const prompt = getHeartbeatPrompt(agent_type_id, cadence_tier);
+    const graph = createSupervisorGraph(checkpointer);
+    await graph.invoke({
+      messages: [new HumanMessage(prompt)],
+      userId: user_id,
+      agentType: agent_type_id,
+      isProactive: true,
+    }, {
+      configurable: { thread_id: `heartbeat-${user_id}-${agent_type_id}-${cadence_tier}` }
+    });
+  }, {
+    connection: { url: process.env.REDIS_URL },
+    concurrency: 3,
+  });
+}
 ```
 
 ---
 
-### 5.3 `HeartbeatStatusIndicator`
+### Pattern 4: Volume Mount for Playwright Persistent Browser
 
-**Location:** `src/components/agents/HeartbeatStatusIndicator.tsx`
-**Used by:** OrgChartView agent cards, individual agent panels
+**What:** Railway volume mounted at `/playwright-data` on the LangGraph server service. Playwright's `userDataDir` set to a per-user subdirectory.
 
-**Design:** A small inline component, not a page. Accepts `userAgentId` as prop.
+**When to use:** Marketer agent's social media tools (persistent login sessions across heartbeat runs).
 
-```
-HeartbeatStatusIndicator
-  ├── Props: userAgentId, agentTypeId, compact?: boolean
-  ├── Data:
-  │     last_heartbeat_at (from user_agents row)
-  │     most recent agent_heartbeat_log row for this agent
-  ├── Render logic:
-  │     - No heartbeat ever: grey dot + "Not yet run"
-  │     - Last run > 24h ago: yellow dot + "Last: {relative time}"
-  │     - Last run recent, no log entry (HEARTBEAT_OK): green dot + "All clear {relative time}"
-  │     - Last run recent, log entry exists: amber dot + "Surfaced: {summary truncated}"
-  │     - Error log entry: red dot + "Error {relative time}"
-  └── Click (if compact=false): opens detail sheet showing recent log entries
-```
+**Configuration:**
+- Railway Dashboard → LangGraph Server service → Volumes → Mount at `/playwright-data`
+- Set service env var: `RAILWAY_RUN_UID=0` (required — Railway volumes mount as root; Node process needs matching UID to write)
+- `PLAYWRIGHT_DATA_DIR=/playwright-data` env var read by tool implementations
 
-**State pattern:** Pass `last_heartbeat_at` down from parent (avoid N+1 queries in OrgChartView). The component only queries `agent_heartbeat_log` on demand (click to expand), not on render.
+**Constraint:** Each Railway service supports only one volume. All per-user browser profiles are subdirectories within that one mount — no issue.
+
+**Caveat:** "Data written at Docker build time will not persist on the volume even if it writes to the mount directory." Playwright's browser binary installation happens at build time to a system path (e.g., `/root/.cache/ms-playwright`). Only the user data directories (cookies, sessions) need to live on the volume. These are written at runtime.
 
 ---
 
-### 5.4 `OrgChartView`
+## Data Flow
 
-**Location:** `src/components/dashboard/OrgChartView.tsx`
-**Registered as:** `activeView === 'team'`
-
-**Do NOT use a third-party org chart library.** The org chart for this product is a fixed two-level hierarchy (Chief of Staff at depth 0, up to 12 specialists at depth 1). A Flexbox/CSS Grid layout is simpler, more maintainable, and fully customizable for the heartbeat status indicator integration. Third-party libraries (react-org-chart, react-organizational-chart) add bundle weight and force you into their node rendering APIs.
+### Chat Request Flow (post-migration)
 
 ```
-OrgChartView
-  ├── Data: SELECT user_agents JOIN available_agent_types (for current user)
-  ├── ChiefOfStaffNode (top center)
-  │     ├── Avatar + name
-  │     ├── HeartbeatStatusIndicator (compact)
-  │     └── "Always active" badge
-  ├── Connector lines (CSS border-bottom + pseudo-elements, no SVG needed)
-  └── SpecialistGrid (flex-wrap row)
-        └── AgentOrgCard (1 per active agent)
-              ├── Avatar + display_name
-              ├── HeartbeatStatusIndicator (compact)
-              ├── Last active: {last_heartbeat_at relative time}
-              ├── Skills badges (2-3 from agent_type skills array)
-              └── "Settings" button → opens AgentWorkspaceEditor sheet
+Browser
+  └── POST /api/langgraph/invoke/stream  (api-server, public domain, HTTPS)
+        └── requireAuth middleware
+              └── jwtVerify() against Logto JWKS (cached, no network call)
+              └── attach req.userId from JWT sub claim
+        └── http-proxy-middleware
+              └── forward to langgraph-server.railway.internal:3001/invoke/stream
+                    └── graph.stream() → SSE chunks
+                    └── PostgresSaver checkpoint → postgres.railway.internal:5432
+              └── SSE pipe back through proxy to browser
+Browser receives SSE stream in real time
 ```
 
-**Layout CSS pattern:**
-```
-Chief of Staff: centered, full-width row
-Vertical connector: centered border-left from Chief to grid
-Specialists: horizontal flex-wrap, each with a short vertical connector from the line
-```
-
-This renders correctly on desktop and degrades gracefully on narrower screens without a library.
-
----
-
-### 5.5 `AgentTeamSelectorStep` (Onboarding)
-
-**Location:** `src/components/onboarding/AgentTeamSelectorStep.tsx`
-**Used by:** `ConversationalOnboarding.tsx` as step 12
+### Heartbeat Cadence Flow (post-migration)
 
 ```
-AgentTeamSelectorStep
-  ├── Props: recommendations: AgentRecommendation[], onAccept: (selected: string[]) => void
-  ├── State: selectedIds (initialized to all recommended agent_type_ids)
-  ├── Header: "Your AI team is ready — {business_name}"
-  ├── AgentRecommendationCard (one per recommendation, sorted by rank)
-  │     ├── Agent avatar + name
-  │     ├── why (copy from spawner output)
-  │     ├── first_week_value highlight
-  │     ├── Skills badges
-  │     └── Checkbox (pre-checked)
-  ├── Minimum selection guard: disable "Accept" if < 1 selected
-  ├── "Accept Suggested Team" CTA button
-  │     └── onClick: calls onAccept(selectedIds)
-  └── "Add more later" subtext below CTA
+node-cron tick (every 5 min, LangGraph server process)
+  └── SELECT get_due_cadence_agents() → postgres
+  └── heartbeatQueue.add(job) → Redis BullMQ
+
+BullMQ Worker (concurrent: 3, LangGraph server process)
+  └── job.data = { user_id, agent_type_id, cadence_tier }
+  └── graph.invoke({ isProactive: true })
+        └── agent tool calls write results
+        └── writes notification row → postgres (direct pg pool)
+        └── PostgresSaver checkpoint → postgres
+        └── advance next_*_heartbeat_at column → postgres
+```
+
+**Note on notifications from heartbeat workers:** Heartbeat workers run inside LangGraph server. They need to write to the `notifications` table. Use a direct `pg` connection from within the LangGraph server process — same `DATABASE_URL`, simpler than an internal HTTP call to api-server.
+
+### Auth Flow (post-migration)
+
+```
+Browser
+  └── Clicks login → @logto/react redirects to logto.railway.app/oidc/auth
+  Logto
+  └── User authenticates (email/password)
+  └── Redirect back with authorization code to frontend callback URL
+  Browser
+  └── @logto/react SDK exchanges code for access_token + refresh_token
+  └── Stores tokens in memory (access_token) + secure storage (refresh_token)
+  └── All API calls: Authorization: Bearer <access_token>
+  └── SDK auto-refreshes tokens before expiry
 ```
 
 ---
 
-## 6. Build Order and Phase Dependencies
-
-The following dependency graph determines what must be built before what else can start. This is the critical path for milestone planning.
+## Build Order (dependency-aware)
 
 ```
-Phase 1: Database Foundation (must be first — everything depends on schema)
-  - available_agent_types table + seed data (12 agent type rows with MD templates)
-  - user_agents table + RLS
-  - agent_workspaces table + RLS + trigger
-  - agent_heartbeat_log table + RLS + indexes
-  - Update Supabase types.ts
+Phase 1: Infrastructure (no service deps)
+  ├── Provision Railway PostgreSQL service
+  ├── Provision Railway Redis service
+  └── Deploy Logto service (needs Postgres DB — share or second Postgres)
 
-Phase 2: Agent Spawner + Onboarding Tail (depends on Phase 1)
-  - agent-spawner edge function
-  - Update planning-agent to insert default user_agents rows
-  - AgentTeamSelectorStep component
-  - Modify ConversationalOnboarding.tsx (add step 12, move onboarding_completed write)
+Phase 2: Database schema (depends on Postgres)
+  └── Apply sanitized migrations
+      (remove pg_cron, pgmq, pg_net, auth.*, vault.* references)
+      (keep pgvector, application tables, langgraph schema)
+      (add Logto user_id foreign key pattern if needed)
 
-Phase 3: Workspace Editor + Marketplace (depends on Phase 1)
-  - AgentWorkspaceEditor component (Sheet)
-  - AgentMarketplace component
-  - HeartbeatConfig inline section
-  - Register new views in Dashboard.tsx sidebar
+Phase 3: API Server (depends on Postgres + Redis + Logto)
+  ├── Build new Express app
+  ├── Verify auth middleware with Logto JWKS endpoint
+  └── Test each route group end-to-end
 
-Phase 4: Heartbeat System (depends on Phase 1 + Phase 3 for HEARTBEAT.md content)
-  - heartbeat-dispatcher edge function
-  - heartbeat-runner edge function
-  - pgmq queue setup (heartbeat_jobs)
-  - pg_cron job registrations (dispatcher every 5 min, runner every 1 min)
+Phase 4: LangGraph Server (depends on Postgres + Redis)
+  ├── Update env vars (DATABASE_URL, REDIS_URL, GEMINI_API_KEY)
+  ├── Add cadence/dispatcher.ts + cadence/worker.ts
+  ├── Wire startDispatcher() + startWorker() in index.ts
+  ├── Mount Playwright volume, set RAILWAY_RUN_UID=0
+  └── Verify PostgresSaver + Store still functional
 
-Phase 5: OrgChart + Status UI (depends on Phase 4 for heartbeat data)
-  - OrgChartView component
-  - HeartbeatStatusIndicator component
-  - Notification delivery integration (email/push for surfaced heartbeats)
-```
-
-Phases 2 and 3 can be developed in parallel after Phase 1 completes. Phase 5 can start UI scaffolding in parallel with Phase 4 since it only needs the DB schema (Phase 1), not live heartbeat data.
-
----
-
-## 7. Data Flow Diagrams
-
-### 7.1 Agent Activation Flow
-
-```
-User clicks "Activate" in AgentMarketplace
-    |
-    v
-INSERT user_agents (is_active: true)
-    |
-    v (Postgres trigger fires synchronously)
-create_agent_workspace() copies 6 default MD rows → agent_workspaces
-    |
-    v
-Frontend refetches user_agents to update UI state
-    |
-    v
-AgentMarketplace shows "Active" badge
-Sidebar adds new agent entry (if view registration logic checks user_agents)
-```
-
-### 7.2 Heartbeat Full Cycle
-
-```
-pg_cron fires heartbeat-dispatcher every 5 minutes
-    |
-    v
-Dispatcher queries user_agents WHERE next_heartbeat_at <= now() LIMIT 50
-    |
-    v
-For each: enqueue { user_id, agent_type_id, user_agent_id } to pgmq heartbeat_jobs
-UPDATE user_agents SET next_heartbeat_at = now() + interval, last_heartbeat_at = now()
-    |
-    v
-pg_cron fires heartbeat-runner every 1 minute
-    |
-    v
-Runner calls pgmq.read('heartbeat_jobs', n: 5)
-    |
-    +-- For each message:
-    |
-    |   Fetch agent_workspaces: HEARTBEAT.md, SOPs.md, MEMORY.md (last 500 chars)
-    |   Fetch agent_tasks: last 7 days for this user/agent type
-    |   Fetch profiles + business_artifacts (business context)
-    |   Assemble system prompt with agent persona (IDENTITY.md + SOUL.md)
-    |
-    |   Call Lovable AI Gateway (gemini-3-flash-preview)
-    |
-    |   Response = "HEARTBEAT_OK"?
-    |     YES: pgmq.delete(msg_id), no DB write, continue
-    |     NO:
-    |       INSERT agent_heartbeat_log (surfaced, summary = first 200 chars of response)
-    |       If response includes task marker: INSERT agent_tasks
-    |       If notification_enabled: send email/push notification
-    |       pgmq.delete(msg_id)
-```
-
-### 7.3 Workspace Edit Flow
-
-```
-User opens AgentWorkspaceEditor sheet for agent X
-    |
-    v
-SELECT agent_workspaces WHERE user_id = $1 AND agent_type_id = $2
-(Returns 6 rows — all files loaded once)
-    |
-    v
-User selects IDENTITY tab, edits content, clicks Save
-    |
-    v
-UPDATE agent_workspaces SET content = $1, updated_at = now(), updated_by = 'user'
-WHERE user_id = $2 AND agent_type_id = $3 AND file_type = 'IDENTITY'
-    |
-    v
-Local state updated — no full refetch needed (optimistic update on save)
+Phase 5: Frontend (depends on API Server + Logto)
+  ├── Replace @supabase/supabase-js with direct fetch() wrapper
+  ├── Wire @logto/react auth SDK (replaces supabase.auth.*)
+  ├── Update all hooks (useTeamData, useAgentWorkspace, etc.) to call /api/*
+  └── Build Vite → deploy Nginx Docker container
 ```
 
 ---
 
-## 8. Anti-Patterns to Avoid
+## New vs Modified Components
 
-### One pg_cron job per user per agent
-Registering a cron row for every user/agent combination hits pg_cron's practical job limit within hundreds of users. The dispatcher+queue pattern is the correct solution for this scale.
+### New (does not exist yet)
 
-### Storing all 6 MD files in a single JSONB column
-Tempting for simplicity, but makes partial updates, triggers, and per-file auditing significantly harder. The per-row model adds zero overhead at this scale and dramatically improves queryability.
+| Component | What to Build |
+|-----------|--------------|
+| `api-server` Railway service | New Express app: 23 routes, auth middleware, postgres.js pool |
+| `frontend` Railway service | Nginx Docker container serving Vite dist/ output |
+| `postgres` Railway service | Provision + apply sanitized migration set |
+| `redis` Railway service | Provision (no configuration needed beyond provisioning) |
+| `logto` Railway service | Deploy from Railway template, configure app + API resource |
+| `api-server/src/middleware/auth.ts` | Logto JWT verification with `jose` library |
+| `api-server/src/db/client.ts` | postgres.js pool singleton |
+| `api-server/src/routes/*.ts` | 21 HTTP-routable Edge Functions ported to Express |
+| `langgraph-server/src/cadence/dispatcher.ts` | node-cron tick + BullMQ enqueue |
+| `langgraph-server/src/cadence/worker.ts` | BullMQ worker invoking graph.invoke() |
 
-### Calling agent-spawner from the client directly
-The spawner fetches sensitive business context. It must be an edge function call, not a direct DB query + client-side LLM call. The Lovable API key must not be in the browser.
+### Modified (exists, needs changes)
 
-### Writing HEARTBEAT_OK runs to agent_heartbeat_log
-This fills the log table with noise. The `user_agents.last_heartbeat_at` timestamp provides the recency signal the UI needs without logging every quiet run. Only insert log rows for `surfaced` and `error` outcomes.
+| Component | What Changes |
+|-----------|-------------|
+| `langgraph-server/src/index.ts` | Call `startDispatcher()` and `startWorker()` on startup |
+| `langgraph-server` Railway service | Add env vars: REDIS_URL, GEMINI_API_KEY; remove LOVABLE_API_KEY; mount volume |
+| `frontend/src/integrations/supabase/client.ts` | Replace with `fetch()` wrapper + Logto token injection |
+| `frontend/src/pages/Auth.tsx` | Replace Supabase auth UI with `@logto/react` SignIn component |
+| `frontend/src/hooks/use*.ts` | Replace `supabase.from()` calls with typed `fetch('/api/...')` |
+| `supabase/migrations/*.sql` | Create `RAILWAY_MIGRATION.sql` stripping Supabase-specific calls |
 
-### Using ActiveView string union for workspace editor navigation
-Adding 12 new `workspace-{agent_type_id}` entries to the ActiveView union in Dashboard.tsx creates tight coupling and makes sidebar management complex. Use a Sheet overlay with props instead — workspace editing is a detail view, not a top-level navigation destination.
+---
 
-### Using a third-party org chart library for a two-level hierarchy
-The org structure is fixed at 2 levels. A CSS Flexbox layout with border connectors is 30 lines of CSS vs adding a library dependency. Library APIs change, bundle size increases, and node rendering APIs force compromises on the HeartbeatStatusIndicator integration.
+## Scaling Considerations
+
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| 0–500 users | Single instance of each service. BullMQ worker concurrency: 3. |
+| 500–5k users | Scale api-server horizontally. LangGraph server remains single instance due to Playwright volume constraint. BullMQ concurrency increase. |
+| 5k+ users | Extract Playwright to dedicated browser-automation service with NFS-backed volume. LangGraph server becomes stateless and horizontally scalable. Read replicas on Postgres. |
+
+**First bottleneck:** LangGraph server — long-running SSE connections + graph computation block the event loop under concurrent load. Railway autoscaling adds instances, but the Playwright volume allows only one mounted instance. Extract Playwright first before scaling LangGraph horizontally.
+
+**Second bottleneck:** Postgres under write pressure from heartbeat workers (concurrent checkpoint writes). Mitigation: tune BullMQ worker concurrency, consider Postgres connection pooler (PgBouncer in session mode) at higher loads.
+
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Merging API Server into LangGraph Server
+
+**What people do:** Add the 23 Edge Function routes directly to the existing LangGraph `index.ts` to save one service slot.
+
+**Why it's wrong:** LangGraph server runs Playwright (1GB+ Docker image), long-lived SSE connections, and CPU-intensive graph walks. Adding short CRUD routes creates one deployment unit with conflicting scaling requirements. Any API route change requires redeploying the slow Playwright-installing Docker image. The volume mount prevents horizontal scaling of the merged unit.
+
+**Do this instead:** Keep them separate. Railway's free tier supports up to 5 services per project; all 6 services here fit on Hobby plan.
+
+---
+
+### Anti-Pattern 2: Running BullMQ Workers in API Server
+
+**What people do:** Put the heartbeat BullMQ worker in api-server since it also has Redis access.
+
+**Why it's wrong:** The worker needs to call `graph.invoke()` which requires importing the full LangGraph supervisor graph, all 13 agent implementations, tool definitions, and Playwright. This pulls the entire LangGraph dependency tree into the API server.
+
+**Do this instead:** Workers live in the LangGraph server process alongside the graph. The dispatcher tick can also live there. API server only enqueues jobs if user-triggered runs are ever needed via HTTP.
+
+---
+
+### Anti-Pattern 3: Using @supabase/supabase-js in API Server
+
+**What people do:** Install `@supabase/supabase-js` in the new api-server and point it at Railway Postgres.
+
+**Why it's wrong:** `@supabase/supabase-js` talks to Supabase-specific REST endpoints (PostgREST, Supabase Auth) that do not exist on Railway's vanilla Postgres. It will not establish a database connection.
+
+**Do this instead:** Use `postgres` (postgres.js) or `pg` (node-postgres) directly. Both connect natively to any PostgreSQL via `DATABASE_URL`.
+
+---
+
+### Anti-Pattern 4: Polling Logto on Every API Request
+
+**What people do:** Call `GET /oidc/userinfo` against Logto on every API request to validate the token.
+
+**Why it's wrong:** Adds 50–200ms latency per request, creates a hard dependency on Logto uptime for every API call, and defeats the purpose of stateless JWT.
+
+**Do this instead:** Use `createRemoteJWKSet` from `jose`. It fetches JWKS once per process lifetime and validates tokens locally using the cached public keys. The `sub` claim is the user ID.
+
+---
+
+### Anti-Pattern 5: Running Supabase Migrations Verbatim on Railway Postgres
+
+**What people do:** Copy all `supabase/migrations/*.sql` files and apply them to Railway Postgres unchanged.
+
+**Why it's wrong:** Railway Postgres does not have `pg_cron`, `pg_net`, `pgmq`, `vault`, or the `auth` schema. These SQL statements will fail and block migration.
+
+**Do this instead:** Create a single `RAILWAY_MIGRATION.sql` that strips all `SELECT cron.schedule(...)`, `SELECT net.http_post(...)`, `SELECT pgmq.create(...)`, `vault.*`, and `auth.*` references. Apply pgvector extension (`CREATE EXTENSION IF NOT EXISTS vector`) which Railway supports natively.
+
+---
+
+## Integration Points
+
+### External Services
+
+| Service | Integration | Where | Notes |
+|---------|------------|-------|-------|
+| Gemini API | `@google/generative-ai` npm (direct) | api-server + langgraph-server | Replaces Lovable AI Gateway; same model names work |
+| Resend | `resend` npm package | api-server email routes + LangGraph cadence worker | API key moves to env var |
+| Firecrawl | HTTP REST | api-server `/api/business/crawl` | API key in env var |
+| Apify | HTTP REST | api-server `/api/leads` | API key in env var |
+| Google OAuth (Gmail/Calendar) | OAuth 2.0 flows | api-server `/api/integrations/google/*` | Client ID/Secret in api-server env vars |
+| Playwright/Chromium | `playwright` npm (in-process) | langgraph-server | Volume at `/playwright-data`, `RAILWAY_RUN_UID=0` |
+| Logto | OIDC provider (external flow + JWKS) | browser + api-server | Railway-hosted service |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| Browser ↔ api-server | HTTPS REST + SSE (proxied) | All user-facing API calls |
+| Browser ↔ logto | HTTPS OIDC flow | Login/logout/token refresh only |
+| api-server ↔ langgraph-server | Private HTTP (`langgraph-server.railway.internal:3001`) | LangGraph operations proxied; SSE must flow through |
+| api-server ↔ postgres | Private TCP (`${{Postgres.DATABASE_URL}}`) | postgres.js pool for CRUD |
+| langgraph-server ↔ postgres | Private TCP (same `DATABASE_URL`) | Direct connection (no pooler) for PostgresSaver prepared statements |
+| api-server ↔ redis | Private TCP (`${{Redis.REDIS_URL}}`) | Only if manual job enqueue needed |
+| langgraph-server ↔ redis | Private TCP (`${{Redis.REDIS_URL}}`) | BullMQ dispatcher + worker |
+| logto ↔ postgres | Private TCP | Logto user storage |
 
 ---
 
 ## Sources
 
-- [Supabase Edge Function Limits](https://supabase.com/docs/guides/functions/limits) — timeout values (150s free, 400s paid, 2s CPU)
-- [Supabase Queues: Consuming with Edge Functions](https://supabase.com/docs/guides/queues/consuming-messages-with-edge-functions) — pgmq.read() pattern, batch n parameter
-- [Processing Large Jobs with Edge Functions](https://supabase.com/blog/processing-large-jobs-with-edge-functions) — dispatcher + queue fan-out architecture
-- [Scheduling Edge Functions](https://supabase.com/docs/guides/functions/schedule-functions) — pg_cron + pg_net pattern for cron-to-edge-function invocation
-- [pg_net Extension](https://supabase.com/docs/guides/database/extensions/pg_net) — async HTTP from Postgres
-- [Supabase PGMQ Extension](https://supabase.com/docs/guides/queues/pgmq) — message queue primitives
+- [Railway Private Networking](https://docs.railway.com/networking/private-networking) — HIGH confidence, official Railway docs
+- [Railway Volumes](https://docs.railway.com/reference/volumes) — HIGH confidence, official Railway docs
+- [Railway Reference Variables](https://docs.railway.com/variables/reference) — HIGH confidence, official Railway docs
+- [Logto — Validate Access Tokens](https://docs.logto.io/authorization/validate-access-tokens) — HIGH confidence, official Logto docs
+- [Logto Express.js API Protection](https://docs.logto.io/api-protection/nodejs/express) — HIGH confidence, official Logto docs
+- [Deploy Logto on Railway](https://railway.com/deploy/logto) — HIGH confidence, Railway official template
+- [BullMQ — Repeatable Jobs](https://docs.bullmq.io/guide/jobs/repeatable) — HIGH confidence, official BullMQ docs
+- Codebase inspection: `worrylesssuperagent/langgraph-server/src/index.ts`, `persistence/checkpointer.ts`, 21 Supabase Edge Functions inspected directly — HIGH confidence, source of truth
 
 ---
 
-*Architecture research: 2026-03-12*
+*Architecture research for: Worryless AI v2.1 — Railway deployment migration*
+*Researched: 2026-03-21*
