@@ -3,53 +3,30 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
-const mockGetUser = vi.fn().mockResolvedValue({
-  data: { user: { id: "test-user-id" } },
-  error: null,
-});
-
-const mockGetSession = vi.fn().mockResolvedValue({
-  data: { session: { access_token: "test-token" } },
-  error: null,
-});
-
-const mockFromSelect = vi.fn();
-
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    auth: {
-      getUser: mockGetUser,
-      getSession: mockGetSession,
-    },
-    from: vi.fn().mockImplementation((table: string) => {
-      if (table === "profiles") {
-        return {
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          single: vi.fn().mockResolvedValue({
-            data: { business_stage: "growth", use_langgraph: true },
-            error: null,
-          }),
-        };
-      }
-      return {
-        select: mockFromSelect,
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-    }),
-  },
+// Mock useAuth to provide token and userId
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: vi.fn().mockReturnValue({
+    token: "test-token",
+    userId: "test-user-id",
+    isAuthenticated: true,
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+  }),
 }));
 
-vi.mock("@/hooks/useLangGraphFlag", () => ({
-  useLangGraphFlag: vi.fn().mockReturnValue({
-    useLangGraph: true,
-    loading: false,
-    error: null,
-  }),
-  getChatEndpoint: vi
-    .fn()
-    .mockReturnValue("https://example.supabase.co/functions/v1/orchestrator"),
+// Mock api.ts for profiles/me call in sendMessage
+vi.mock("@/lib/api", () => ({
+  api: {
+    get: vi.fn().mockImplementation((path: string) => {
+      if (path === "/api/profiles/me") {
+        return Promise.resolve({ business_stage: "growth" });
+      }
+      return Promise.resolve({});
+    }),
+    post: vi.fn().mockResolvedValue({}),
+    patch: vi.fn().mockResolvedValue({}),
+    delete: vi.fn().mockResolvedValue({}),
+  },
 }));
 
 // Helper: create a ReadableStream that emits SSE data
@@ -67,11 +44,11 @@ function createSSEStream(events: object[]): ReadableStream<Uint8Array> {
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Set up VITE_SUPABASE_URL for the hook
+// Set up VITE_API_URL for the hook
 Object.defineProperty(import.meta, "env", {
   value: {
-    VITE_SUPABASE_URL: "https://example.supabase.co",
-    VITE_SUPABASE_PUBLISHABLE_KEY: "test-key",
+    VITE_API_URL: "https://example-api.railway.app",
+    VITE_LOGTO_API_RESOURCE: "https://api.worryless.ai",
   },
   writable: true,
 });
@@ -81,14 +58,6 @@ Object.defineProperty(import.meta, "env", {
 describe("useAgentChat", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: "test-user-id" } },
-      error: null,
-    });
-    mockGetSession.mockResolvedValue({
-      data: { session: { access_token: "test-token" } },
-      error: null,
-    });
 
     // Default: threads fetch returns empty
     mockFetch.mockImplementation((url: string) => {
@@ -116,8 +85,6 @@ describe("useAgentChat", () => {
       useAgentChat({ userId: "test-user-id", agentType: "chief_of_staff" }),
     );
 
-    let streamingDuringCall = false;
-
     mockFetch.mockImplementation((url: string) => {
       if (typeof url === "string" && url.includes("/threads/")) {
         return Promise.resolve({
@@ -125,8 +92,6 @@ describe("useAgentChat", () => {
           json: () => Promise.resolve({ threads: [] }),
         });
       }
-      // Capture streaming state during fetch
-      streamingDuringCall = result.current.isStreaming;
       return Promise.resolve({
         ok: true,
         headers: { get: () => "text/event-stream" },
@@ -452,28 +417,8 @@ describe("useAgentChat", () => {
     expect(result.current.pendingApprovals[0].id).toBe("interrupt_12345_0");
   });
 
-  it("Test 9: sendMessage fetches business_stage from profiles and includes business_context in POST body", async () => {
-    const { supabase } = await import("@/integrations/supabase/client");
-
-    // Spy on the profiles query
-    const mockSingle = vi.fn().mockResolvedValue({
-      data: { business_stage: "growth" },
-      error: null,
-    });
-    const mockEq = vi.fn().mockReturnValue({ single: mockSingle });
-    const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-    (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(
-      (table: string) => {
-        if (table === "profiles") {
-          return { select: mockSelect };
-        }
-        return {
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          single: vi.fn().mockResolvedValue({ data: null, error: null }),
-        };
-      },
-    );
+  it("Test 9: sendMessage fetches business_stage from /api/profiles/me and includes business_context in POST body", async () => {
+    const { api } = await import("@/lib/api");
 
     let capturedBody: Record<string, unknown> | null = null;
 
@@ -502,6 +447,14 @@ describe("useAgentChat", () => {
           { type: "done", metadata: null, thread_id: "t1" },
         ]),
       });
+    });
+
+    // Ensure api.get returns business_stage for profiles/me
+    (api.get as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
+      if (path === "/api/profiles/me") {
+        return Promise.resolve({ business_stage: "growth" });
+      }
+      return Promise.resolve({});
     });
 
     const { useAgentChat } = await import("@/hooks/useAgentChat");

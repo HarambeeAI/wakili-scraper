@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useLangGraphFlag, getChatEndpoint } from "@/hooks/useLangGraphFlag";
+import { api } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -43,7 +43,9 @@ export function useAgentChat({
   userId: string;
   agentType: string;
 }) {
-  const { useLangGraph } = useLangGraphFlag();
+  const { token } = useAuth();
+
+  const API_URL = import.meta.env.VITE_API_URL as string;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [threads, setThreads] = useState<ThreadInfo[]>([]);
@@ -57,22 +59,15 @@ export function useAgentChat({
   // Track the current streaming assistant message id via ref (stable across renders)
   const streamingMsgIdRef = useRef<string | null>(null);
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-
   // ── Load threads on mount ──────────────────────────────────────────────────
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !token) return;
 
     async function loadThreads() {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const token = session?.access_token;
-
-        const url = `${supabaseUrl}/functions/v1/langgraph-proxy/threads/${userId}?agent_type=${agentType}`;
+        const url = `${API_URL}/api/langgraph-proxy/threads/${userId}?agent_type=${agentType}`;
         const response = await fetch(url, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!response.ok) return;
@@ -91,22 +86,17 @@ export function useAgentChat({
 
     loadThreads();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, agentType, supabaseUrl]);
+  }, [userId, agentType, API_URL, token]);
 
   // ── Load thread state when activeThreadId changes ──────────────────────────
   useEffect(() => {
-    if (!activeThreadId || !userId) return;
+    if (!activeThreadId || !userId || !token) return;
 
     async function loadThreadState() {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const token = session?.access_token;
-
-        const url = `${supabaseUrl}/functions/v1/langgraph-proxy/threads/${userId}/${activeThreadId}`;
+        const url = `${API_URL}/api/langgraph-proxy/threads/${userId}/${activeThreadId}`;
         const response = await fetch(url, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!response.ok) return;
@@ -163,168 +153,123 @@ export function useAgentChat({
       setIsStreaming(true);
 
       try {
-        // Fetch business_stage from profiles before the POST
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("business_stage")
-          .eq("id", userId)
-          .single();
-
+        // Fetch business_stage from /api/profiles/me
+        const profile = await api.get<{ business_stage?: string | null }>("/api/profiles/me", { token });
         const businessContext: Record<string, unknown> = {
           business_stage: profile?.business_stage ?? null,
         };
 
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const token = session?.access_token;
+        // ── LangGraph SSE streaming path (always, per D-18) ───────────────
+        const streamUrl = `${API_URL}/api/langgraph-proxy/invoke/stream`;
+        const response = await fetch(streamUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            message: text,
+            user_id: userId,
+            thread_id: activeThreadId,
+            agent_type: agentType,
+            business_context: businessContext,
+          }),
+        });
 
-        if (useLangGraph) {
-          // ── LangGraph SSE streaming path ───────────────────────────────────
-          const streamUrl = `${supabaseUrl}/functions/v1/langgraph-proxy/invoke/stream`;
-          const response = await fetch(streamUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: JSON.stringify({
-              message: text,
-              user_id: userId,
-              thread_id: activeThreadId,
-              agent_type: agentType,
-              business_context: businessContext,
-            }),
-          });
+        if (!response.ok || !response.body) {
+          throw new Error(`Request failed: ${response.status}`);
+        }
 
-          if (!response.ok || !response.body) {
-            throw new Error(`Request failed: ${response.status}`);
-          }
+        // Read SSE stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
 
-          // Read SSE stream
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+          buffer += decoder.decode(value, { stream: true });
 
-            buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
 
-            const lines = buffer.split("\n");
-            buffer = lines.pop() ?? "";
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const jsonStr = line.slice(6).trim();
+            if (!jsonStr) continue;
 
-            for (const line of lines) {
-              if (!line.startsWith("data: ")) continue;
-              const jsonStr = line.slice(6).trim();
-              if (!jsonStr) continue;
+            try {
+              const data = JSON.parse(jsonStr) as {
+                type: string;
+                content?: string;
+                tool_name?: string;
+                components?: UIComponent[];
+                approvals?: PendingApproval[];
+                metadata?: Record<string, unknown> | null;
+                thread_id?: string;
+                message?: string;
+              };
 
-              try {
-                const data = JSON.parse(jsonStr) as {
-                  type: string;
-                  content?: string;
-                  tool_name?: string;
-                  components?: UIComponent[];
-                  approvals?: PendingApproval[];
-                  metadata?: Record<string, unknown> | null;
-                  thread_id?: string;
-                  message?: string;
-                };
-
-                if (data.type === "delta" && data.content) {
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantMsgId
-                        ? { ...m, content: m.content + data.content! }
-                        : m,
-                    ),
-                  );
-                } else if (data.type === "tool_start" && data.tool_name) {
-                  setActiveToolName(data.tool_name);
-                } else if (data.type === "ui_components" && data.components) {
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantMsgId
-                        ? { ...m, uiComponents: data.components }
-                        : m,
-                    ),
-                  );
-                } else if (
-                  data.type === "pending_approvals" &&
-                  data.approvals?.length
-                ) {
-                  // Attach first approval to the streaming assistant message
-                  // so AgentChatView renders HITLApprovalCard inline
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantMsgId
-                        ? { ...m, pendingApproval: data.approvals![0] }
-                        : m,
-                    ),
-                  );
-                  // Also maintain the pendingApprovals array for multi-approval flows
-                  setPendingApprovals((prev) => [
-                    ...prev,
-                    ...(data.approvals ?? []),
-                  ]);
-                } else if (data.type === "done") {
-                  setIsStreaming(false);
-                  setActiveToolName(null);
-                  // Set activeThreadId if not already set
-                  if (!activeThreadId && data.thread_id) {
-                    setActiveThreadId(data.thread_id);
-                  }
-                  // Finalize assistant message (remove isStreaming flag)
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantMsgId
-                        ? { ...m, isStreaming: false }
-                        : m,
-                    ),
-                  );
-                } else if (data.type === "error") {
-                  setIsStreaming(false);
-                  console.error("[useAgentChat] Stream error:", data.message);
+              if (data.type === "delta" && data.content) {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMsgId
+                      ? { ...m, content: m.content + data.content! }
+                      : m,
+                  ),
+                );
+              } else if (data.type === "tool_start" && data.tool_name) {
+                setActiveToolName(data.tool_name);
+              } else if (data.type === "ui_components" && data.components) {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMsgId
+                      ? { ...m, uiComponents: data.components }
+                      : m,
+                  ),
+                );
+              } else if (
+                data.type === "pending_approvals" &&
+                data.approvals?.length
+              ) {
+                // Attach first approval to the streaming assistant message
+                // so AgentChatView renders HITLApprovalCard inline
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMsgId
+                      ? { ...m, pendingApproval: data.approvals![0] }
+                      : m,
+                  ),
+                );
+                // Also maintain the pendingApprovals array for multi-approval flows
+                setPendingApprovals((prev) => [
+                  ...prev,
+                  ...(data.approvals ?? []),
+                ]);
+              } else if (data.type === "done") {
+                setIsStreaming(false);
+                setActiveToolName(null);
+                // Set activeThreadId if not already set
+                if (!activeThreadId && data.thread_id) {
+                  setActiveThreadId(data.thread_id);
                 }
-              } catch {
-                // Ignore parse errors for incomplete JSON
+                // Finalize assistant message (remove isStreaming flag)
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMsgId
+                      ? { ...m, isStreaming: false }
+                      : m,
+                  ),
+                );
+              } else if (data.type === "error") {
+                setIsStreaming(false);
+                console.error("[useAgentChat] Stream error:", data.message);
               }
+            } catch {
+              // Ignore parse errors for incomplete JSON
             }
           }
-        } else {
-          // ── Legacy non-streaming fallback ──────────────────────────────────
-          const legacyUrl = getChatEndpoint(false);
-          const response = await fetch(legacyUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: JSON.stringify({
-              message: text,
-              user_id: userId,
-              thread_id: activeThreadId,
-              agent_type: agentType,
-              business_context: businessContext,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`Legacy request failed: ${response.status}`);
-          }
-
-          const data = (await response.json()) as { response?: string };
-          const content = data.response ?? "";
-
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantMsgId
-                ? { ...m, content, isStreaming: false }
-                : m,
-            ),
-          );
-          setIsStreaming(false);
         }
       } catch (err) {
         console.error("[useAgentChat] sendMessage error:", err);
@@ -337,24 +282,19 @@ export function useAgentChat({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userId, agentType, activeThreadId, isStreaming, useLangGraph, supabaseUrl],
+    [userId, agentType, activeThreadId, isStreaming, API_URL, token],
   );
 
   // ── approveHITL ───────────────────────────────────────────────────────────
   const approveHITL = useCallback(
     async (threadId: string, approved: boolean, feedback?: string) => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const token = session?.access_token;
-
-        const resumeUrl = `${supabaseUrl}/functions/v1/langgraph-proxy/invoke/resume`;
+        const resumeUrl = `${API_URL}/api/langgraph-proxy/invoke/resume`;
         const response = await fetch(resumeUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             thread_id: threadId,
@@ -384,7 +324,7 @@ export function useAgentChat({
         console.error("[useAgentChat] approveHITL error:", err);
       }
     },
-    [supabaseUrl],
+    [API_URL, token],
   );
 
   // ── startNewThread ────────────────────────────────────────────────────────
