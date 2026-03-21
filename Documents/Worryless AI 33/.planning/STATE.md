@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 23-03-PLAN.md (repeatable-jobs.ts + SQL migration + unit tests — Phase 23 complete)
-last_updated: "2026-03-21T10:54:50.037Z"
+stopped_at: Completed 24-01-PLAN.md
+last_updated: "2026-03-21T11:40:40.678Z"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 20
+  completed_plans: 16
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Current Position
 
-Phase: 24
-Plan: Not started
+Phase: 24 (frontend-migration) — EXECUTING
+Plan: 2 of 5
 
 ## Performance Metrics
 
@@ -73,6 +73,9 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 23]: VAPID push helper uses lazy init with graceful no-op when keys absent
 - [Phase 23]: SCHED-03: get_due_cadence_agents() not in PRODUCTION_MIGRATION.sql — standalone idempotent migration 20260321000001 created; must be applied to Railway Postgres before dispatcher runs
 - [Phase 23]: registerRepeatableJobs() called with .catch() (not await) at startup — Redis unavailability is non-fatal, server still starts
+- [Phase 24]: api.ts receives token as parameter (not fetched internally) — keeps utility free of hook dependencies
+- [Phase 24]: profiles GET does upsert-on-first-access: INSERT ON CONFLICT DO NOTHING then re-SELECT if no row found
+- [Phase 24]: CORS methods expanded to include PATCH for frontend PATCH requests
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21
-Stopped at: Phase 23 complete, ready to plan Phase 24
+Last session: 2026-03-21T11:40:40.676Z
+Stopped at: Completed 24-01-PLAN.md
 Resume file: None
