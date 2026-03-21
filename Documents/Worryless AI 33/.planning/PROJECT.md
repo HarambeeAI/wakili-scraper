@@ -62,9 +62,35 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 
 ### Active
 
-<!-- Next milestone requirements will be defined via /gsd:new-milestone -->
+<!-- v2.1 — Railway Deployment (Full Platform Migration) -->
 
-(No active requirements — run `/gsd:new-milestone` to define v3.0)
+## Current Milestone: v2.1 Railway Deployment
+
+**Goal:** Migrate the entire Worryless AI platform off Supabase onto Railway — self-hosted PostgreSQL, self-hosted auth (Logto), Edge Functions converted to Express API routes, direct Gemini API replacing Lovable gateway, and full production deployment with domains.
+
+**Target features:**
+
+**Infrastructure Migration**
+- [ ] PostgreSQL provisioned on Railway with all 20+ migrations applied
+- [ ] Logto auth replacing Supabase Auth (email/password, JWT sessions)
+- [ ] pg_cron + pgmq scheduling replaced with Railway-compatible alternative (node-cron or BullMQ + Redis)
+
+**API Layer Migration**
+- [ ] 23 Supabase Edge Functions converted to Express routes on Railway
+- [ ] RLS replaced with Express middleware authorization (user_id from JWT)
+- [ ] Direct Gemini API calls replacing Lovable AI Gateway
+
+**Service Deployment**
+- [ ] LangGraph Server deployed on Railway (Docker, Playwright Chromium)
+- [ ] API Server deployed on Railway (Express, replaces Edge Functions)
+- [ ] Frontend deployed on Railway (static Vite build)
+- [ ] VAPID keys generated for push notifications
+- [ ] All external API keys configured (Firecrawl, Apify, Resend, Gemini, Google OAuth)
+
+**Frontend Migration**
+- [ ] @supabase/supabase-js replaced with direct API calls to Railway API server
+- [ ] Auth flow rewired to Logto
+- [ ] Environment variables updated for Railway endpoints
 
 ### Out of Scope
 
@@ -132,4 +158,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | interrupt() for HITL (not custom approval flow) | LangGraph native pattern; checkpointed state survives restarts | ✓ Good |
 
 ---
-*Last updated: 2026-03-20 after v2.0 milestone complete — Agent Intelligence Layer shipped with 13-agent hierarchy, 65+ tools, proactive cadence engine, chat-first generative UI, and full E2E data pipelines.*
+*Last updated: 2026-03-21 after v2.1 milestone started — Full Railway deployment: migrate off Supabase, self-hosted auth (Logto), direct Gemini API, all services on Railway.*

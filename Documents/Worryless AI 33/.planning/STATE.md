@@ -1,30 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Agent Intelligence Layer
-status: complete
-stopped_at: Milestone v2.0 complete
-last_updated: "2026-03-20"
+milestone: v2.1
+milestone_name: Railway Deployment
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-21"
 progress:
-  total_phases: 18
-  completed_phases: 18
-  total_plans: 82
-  completed_plans: 82
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-20)
+See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Planning next milestone (v3.0)
+**Current focus:** v2.1 Railway Deployment — full platform migration
 
 ## Current Position
 
-Milestone v2.0 Agent Intelligence Layer — SHIPPED 2026-03-20
-Next: `/gsd:new-milestone` to define v3.0
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-21 — Milestone v2.1 started
 
 ## Performance Metrics
 
