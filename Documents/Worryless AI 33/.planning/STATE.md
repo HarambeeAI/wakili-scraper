@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 24-02-PLAN.md
-last_updated: "2026-03-21T11:46:34.098Z"
+stopped_at: Completed 24-03-PLAN.md
+last_updated: "2026-03-21T11:56:17.790Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 24 (frontend-migration) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Performance Metrics
 
@@ -79,6 +79,9 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 24]: DashboardHeader props changed from user: User (supabase) to userId/userEmail strings to eliminate @supabase/supabase-js import from Dashboard.tsx
 - [Phase 24]: userEmail fetched from /api/profiles/me since Logto isAuthenticated does not expose email directly
 - [Phase 24]: FE-03 verified as pre-existing from Phase 21: LogtoProvider, /callback route, and Callback.tsx already in place
+- [Phase 24]: usePushSubscription unsubscribe uses raw fetch with DELETE+body since api.ts delete() does not accept a body parameter
+- [Phase 24]: getCadenceConfig route updated to include heartbeat_enabled in SELECT — required by useCadenceConfig heartbeatEnabled return value
+- [Phase 24]: useLangGraphFlag.ts deleted — always use LangGraph path per D-18, no dual-mode branching in useAgentChat
 
 ### Pending Todos
 
@@ -92,6 +95,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T11:46:34.095Z
-Stopped at: Completed 24-02-PLAN.md
+Last session: 2026-03-21T11:56:17.788Z
+Stopped at: Completed 24-03-PLAN.md
 Resume file: None
