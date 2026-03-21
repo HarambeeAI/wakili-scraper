@@ -57,8 +57,8 @@
 
 - [x] **SCHED-01**: node-cron dispatcher tick running inside LangGraph Server process (replaces pg_cron)
 - [x] **SCHED-02**: BullMQ worker processing heartbeat/cadence jobs from Redis queue (replaces pgmq)
-- [ ] **SCHED-03**: `get_due_cadence_agents()` SQL function adapted for Railway (remove pg_cron dependencies)
-- [ ] **SCHED-04**: Daily briefing, morning digest, and scheduled task runners converted to BullMQ recurring jobs
+- [x] **SCHED-03**: `get_due_cadence_agents()` SQL function adapted for Railway (remove pg_cron dependencies)
+- [x] **SCHED-04**: Daily briefing, morning digest, and scheduled task runners converted to BullMQ recurring jobs
 - [x] **SCHED-05**: Push notifications via `web-push` npm package with VAPID keys (replaces Deno `jsr:@negrel/webpush`)
 
 ### Frontend Migration (FE)
@@ -138,8 +138,8 @@
 | API-17 | Phase 22 | Complete |
 | SCHED-01 | Phase 23 | Complete |
 | SCHED-02 | Phase 23 | Complete |
-| SCHED-03 | Phase 23 | Pending |
-| SCHED-04 | Phase 23 | Pending |
+| SCHED-03 | Phase 23 | Complete |
+| SCHED-04 | Phase 23 | Complete |
 | SCHED-05 | Phase 22 | Complete |
 | FE-01 | Phase 24 | Pending |
 | FE-02 | Phase 24 | Pending |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 23-02-PLAN.md (cadence-dispatcher + cadence-worker + push-helper + unit tests)
-last_updated: "2026-03-21T10:47:46.669Z"
+stopped_at: Completed 23-03-PLAN.md (repeatable-jobs.ts + SQL migration + unit tests — Phase 23 complete)
+last_updated: "2026-03-21T10:54:07.693Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -71,6 +71,8 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 23]: getBullMQConnectionOptions() returns plain options not IORedis instance: avoids TS2322 type collision between top-level ioredis and BullMQ's bundled ioredis
 - [Phase 23]: heartbeat- thread prefix isolates proactive heartbeat threads from user chat threads in PostgresSaver
 - [Phase 23]: VAPID push helper uses lazy init with graceful no-op when keys absent
+- [Phase 23]: SCHED-03: get_due_cadence_agents() not in PRODUCTION_MIGRATION.sql — standalone idempotent migration 20260321000001 created; must be applied to Railway Postgres before dispatcher runs
+- [Phase 23]: registerRepeatableJobs() called with .catch() (not await) at startup — Redis unavailability is non-fatal, server still starts
 
 ### Pending Todos
 
@@ -84,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T10:47:46.666Z
-Stopped at: Completed 23-02-PLAN.md (cadence-dispatcher + cadence-worker + push-helper + unit tests)
+Last session: 2026-03-21T10:54:07.690Z
+Stopped at: Completed 23-03-PLAN.md (repeatable-jobs.ts + SQL migration + unit tests — Phase 23 complete)
 Resume file: None

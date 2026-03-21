@@ -52,7 +52,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md` for full details.
 - [x] **Phase 20: Database Migration** - All 20+ sanitized migrations applied to Railway Postgres (completed 2026-03-21)
 - [x] **Phase 21: Auth Wiring** - Logto issuing JWTs, JWT middleware on API and LangGraph servers (completed 2026-03-21)
 - [x] **Phase 22: API Server** - 17 Express routes replacing all Supabase Edge Functions (completed 2026-03-21)
-- [ ] **Phase 23: Scheduling Migration** - BullMQ + node-cron replacing pg_cron + pgmq in LangGraph server
+- [x] **Phase 23: Scheduling Migration** - BullMQ + node-cron replacing pg_cron + pgmq in LangGraph server (completed 2026-03-21)
 - [ ] **Phase 24: Frontend Migration** - Supabase client removed, Logto auth + Railway API wired in
 - [ ] **Phase 25: Production Cutover** - Domains assigned, env vars finalized, smoke test passes
 
@@ -141,7 +141,7 @@ Plans:
 Plans:
 - [x] 23-01-PLAN.md — Dockerfile + railway.toml for Playwright volume, install BullMQ/ioredis/node-cron deps, create Redis connection factory
 - [x] 23-02-PLAN.md — Implement cadence-dispatcher (node-cron tick -> BullMQ enqueue), cadence-worker (BullMQ -> graph.invoke()), push-helper, wire into index.ts
-- [ ] 23-03-PLAN.md — Verify get_due_cadence_agents() SQL function, implement BullMQ repeatable jobs for daily briefing + morning digest
+- [x] 23-03-PLAN.md — Verify get_due_cadence_agents() SQL function, implement BullMQ repeatable jobs for daily briefing + morning digest
 
 ### Phase 24: Frontend Migration
 **Goal**: The frontend runs entirely on Railway with no Supabase dependency — Logto handles auth, all data fetching calls the Express API server, and the Vite build is served by Nginx
@@ -200,7 +200,7 @@ Plans:
 | 20. Database Migration | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 21. Auth Wiring | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 22. API Server | v2.1 | 5/5 | Complete    | 2026-03-21 |
-| 23. Scheduling Migration | v2.1 | 2/3 | In Progress|  |
+| 23. Scheduling Migration | v2.1 | 3/3 | Complete   | 2026-03-21 |
 | 24. Frontend Migration | v2.1 | 0/3 | Not started | - |
 | 25. Production Cutover | v2.1 | 0/1 | Not started | - |
 
