@@ -174,7 +174,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 25-01-PLAN.md — Fix pre-cutover code gaps (CORS env var, LangGraph LLM client Lovable-to-Gemini migration)
+- [x] 25-01-PLAN.md — Fix pre-cutover code gaps (CORS env var, LangGraph LLM client Lovable-to-Gemini migration)
 - [ ] 25-02-PLAN.md — Assign Railway domains, configure production env vars, register Logto redirect URIs, run smoke test
 
 ## Progress
@@ -205,7 +205,7 @@ Plans:
 | 22. API Server | v2.1 | 5/5 | Complete    | 2026-03-21 |
 | 23. Scheduling Migration | v2.1 | 3/3 | Complete    | 2026-03-21 |
 | 24. Frontend Migration | v2.1 | 5/5 | Complete    | 2026-03-21 |
-| 25. Production Cutover | v2.1 | 0/2 | Not started | - |
+| 25. Production Cutover | v2.1 | 1/2 | In Progress|  |
 
 ---
 *Roadmap created: 2026-03-12*

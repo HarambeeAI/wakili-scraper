@@ -14,7 +14,7 @@
 - [x] **RAIL-05**: API Server (Express) deployed on Railway replacing all Supabase Edge Functions
 - [x] **RAIL-06**: Frontend deployed on Railway as static Nginx container serving Vite build
 - [ ] **RAIL-07**: All services connected via Railway private networking (`service.railway.internal:PORT`)
-- [ ] **RAIL-08**: Railway-generated domains assigned to Frontend, API Server, and LangGraph Server
+- [x] **RAIL-08**: Railway-generated domains assigned to Frontend, API Server, and LangGraph Server
 
 ### Database Migration (DB)
 
@@ -107,7 +107,7 @@
 | RAIL-05 | Phase 22 | Complete |
 | RAIL-06 | Phase 24 | Complete |
 | RAIL-07 | Phase 19 | Pending |
-| RAIL-08 | Phase 25 | Pending |
+| RAIL-08 | Phase 25 | Complete |
 | DB-01 | Phase 20 | Complete |
 | DB-02 | Phase 20 | Complete |
 | DB-03 | Phase 20 | Complete |

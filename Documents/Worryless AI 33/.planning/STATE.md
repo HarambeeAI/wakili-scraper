@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 24-05-PLAN.md - supabase final cleanup + Railway container setup (checkpoint pending)
-last_updated: "2026-03-21T12:21:57.212Z"
+stopped_at: Completed 25-01-PLAN.md - CORS env-configurable + LangGraph Gemini API switch
+last_updated: "2026-03-21T12:55:20.074Z"
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 20
-  completed_plans: 20
+  total_plans: 22
+  completed_plans: 21
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 24 — frontend-migration
+**Current focus:** Phase 25 — production-cutover
 
 ## Current Position
 
-Phase: 25
-Plan: Not started
+Phase: 25 (production-cutover) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -85,6 +85,8 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 24]: Inlined Json type in AccountantAgent to remove supabase/types dependency; replaced supabase.storage with fetch() multipart to /api/upload
 - [Phase 24]: VITE_ env vars declared as ARG in Dockerfile (baked at build time, not runtime environment)
 - [Phase 24]: nginx.conf uses separate location blocks for /assets/ (immutable 1y) vs index.html (no-cache)
+- [Phase 25]: Model name changed from google/gemini-3-flash-preview to gemini-2.0-flash to match Gemini direct API naming
+- [Phase 25]: CORS_ORIGIN || '*' wildcard fallback ensures local dev works without env var set
 
 ### Pending Todos
 
@@ -98,6 +100,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T12:20:42.490Z
-Stopped at: Completed 24-05-PLAN.md - supabase final cleanup + Railway container setup (checkpoint pending)
+Last session: 2026-03-21T12:55:20.071Z
+Stopped at: Completed 25-01-PLAN.md - CORS env-configurable + LangGraph Gemini API switch
 Resume file: None
