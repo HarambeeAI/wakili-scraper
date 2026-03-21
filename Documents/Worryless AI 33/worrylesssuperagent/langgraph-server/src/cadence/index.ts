@@ -23,3 +23,9 @@ export { startCadenceScheduler, QUEUE_NAME } from "./cadence-dispatcher.js";
 export { startHeartbeatWorker } from "./cadence-worker.js";
 export { sendPushNotification } from "./push-helper.js";
 export { createRedisConnection, getBullMQConnectionOptions } from "./redis.js";
+export {
+  registerRepeatableJobs,
+  startRepeatableWorker,
+  BRIEFING_QUEUE,
+  DIGEST_QUEUE,
+} from "./repeatable-jobs.js";

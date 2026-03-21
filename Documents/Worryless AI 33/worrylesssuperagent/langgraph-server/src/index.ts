@@ -2,6 +2,10 @@ import express from "express";
 import { Command } from "@langchain/langgraph";
 import { startCadenceScheduler } from "./cadence/cadence-dispatcher.js";
 import { startHeartbeatWorker } from "./cadence/cadence-worker.js";
+import {
+  registerRepeatableJobs,
+  startRepeatableWorker,
+} from "./cadence/repeatable-jobs.js";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { getCheckpointer } from "./persistence/checkpointer.js";
 import {
@@ -545,4 +549,9 @@ if (process.env.NODE_ENV !== "test") {
   // Start BullMQ scheduling (replaces pg_cron + pgmq)
   startCadenceScheduler();
   startHeartbeatWorker();
+  // Register BullMQ repeatable jobs (daily briefing + morning digest)
+  registerRepeatableJobs().catch((err) => {
+    console.error("[startup] Failed to register repeatable jobs:", err);
+  });
+  startRepeatableWorker();
 }
