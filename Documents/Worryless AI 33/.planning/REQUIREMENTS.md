@@ -42,12 +42,12 @@
 - [x] **API-05**: `POST /api/generate-content` route replacing `generate-content` Edge Function
 - [x] **API-06**: `POST /api/generate-image` route replacing `generate-image` Edge Function (using Gemini Imagen 3)
 - [x] **API-07**: `POST /api/generate-invoice-image` route replacing `generate-invoice-image` Edge Function (using Gemini Imagen 3)
-- [ ] **API-08**: `POST /api/generate-leads` route replacing `generate-leads` Edge Function
-- [ ] **API-09**: `POST /api/generate-outreach` route replacing `generate-outreach` Edge Function
-- [ ] **API-10**: `POST /api/crawl-business-website` route replacing `crawl-business-website` Edge Function
-- [ ] **API-11**: `POST /api/parse-datasheet` route replacing `parse-datasheet` Edge Function
-- [ ] **API-12**: `POST /api/planning-agent` route replacing `planning-agent` Edge Function
-- [ ] **API-13**: `POST /api/sync-gmail-calendar` route replacing `sync-gmail-calendar` Edge Function
+- [x] **API-08**: `POST /api/generate-leads` route replacing `generate-leads` Edge Function
+- [x] **API-09**: `POST /api/generate-outreach` route replacing `generate-outreach` Edge Function
+- [x] **API-10**: `POST /api/crawl-business-website` route replacing `crawl-business-website` Edge Function
+- [x] **API-11**: `POST /api/parse-datasheet` route replacing `parse-datasheet` Edge Function
+- [x] **API-12**: `POST /api/planning-agent` route replacing `planning-agent` Edge Function
+- [x] **API-13**: `POST /api/sync-gmail-calendar` route replacing `sync-gmail-calendar` Edge Function
 - [ ] **API-14**: `POST /api/send-validation-email` route replacing `send-validation-email` Edge Function
 - [ ] **API-15**: `POST /api/send-test-email` route replacing `send-test-email` Edge Function
 - [ ] **API-16**: `POST /api/langgraph-proxy` route replacing `langgraph-proxy` Edge Function (SSE proxy with `X-Accel-Buffering: no`)
@@ -126,12 +126,12 @@
 | API-05 | Phase 22 | Complete |
 | API-06 | Phase 22 | Complete |
 | API-07 | Phase 22 | Complete |
-| API-08 | Phase 22 | Pending |
-| API-09 | Phase 22 | Pending |
-| API-10 | Phase 22 | Pending |
-| API-11 | Phase 22 | Pending |
-| API-12 | Phase 22 | Pending |
-| API-13 | Phase 22 | Pending |
+| API-08 | Phase 22 | Complete |
+| API-09 | Phase 22 | Complete |
+| API-10 | Phase 22 | Complete |
+| API-11 | Phase 22 | Complete |
+| API-12 | Phase 22 | Complete |
+| API-13 | Phase 22 | Complete |
 | API-14 | Phase 22 | Pending |
 | API-15 | Phase 22 | Pending |
 | API-16 | Phase 22 | Pending |
