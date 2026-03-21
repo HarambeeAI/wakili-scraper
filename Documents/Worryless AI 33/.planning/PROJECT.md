@@ -73,7 +73,7 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 **Infrastructure Migration**
 - [x] PostgreSQL provisioned on Railway with all 34 app tables + langgraph schema + pgvector applied (Phase 20, 2026-03-21)
 - [x] Logto auth wiring: @logto/react frontend SDK + jose JWT middleware on LangGraph server (Phase 21, 2026-03-21)
-- [ ] Logto auth flow fully replacing Supabase Auth (frontend migration)
+- [x] Logto auth flow fully replacing Supabase Auth (Phase 24, 2026-03-21)
 - [x] pg_cron + pgmq scheduling replaced with BullMQ + Redis + node-cron (Phase 23, 2026-03-21)
 
 **API Layer Migration**
@@ -84,14 +84,14 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 **Service Deployment**
 - [ ] LangGraph Server deployed on Railway (Docker, Playwright Chromium)
 - [ ] API Server deployed on Railway (Express, replaces Edge Functions)
-- [ ] Frontend deployed on Railway (static Vite build)
+- [x] Frontend packaged as Nginx Docker container for Railway (Phase 24, 2026-03-21)
 - [ ] VAPID keys generated for push notifications
 - [ ] All external API keys configured (Firecrawl, Apify, Resend, Gemini, Google OAuth)
 
 **Frontend Migration**
-- [ ] @supabase/supabase-js replaced with direct API calls to Railway API server
-- [ ] Auth flow rewired to Logto
-- [ ] Environment variables updated for Railway endpoints
+- [x] @supabase/supabase-js removed, all calls replaced with centralized api.ts client (Phase 24, 2026-03-21)
+- [x] Auth flow rewired to Logto (Auth.tsx redirect, Dashboard isAuthenticated guard) (Phase 24, 2026-03-21)
+- [x] Environment variables updated for Railway endpoints (VITE_API_URL, VITE_LOGTO_*, VITE_VAPID_PUBLIC_KEY) (Phase 24, 2026-03-21)
 
 ### Out of Scope
 
@@ -106,13 +106,13 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 ## Current State
 
 **Shipped:** v2.0 Agent Intelligence Layer (2026-03-20)
-**In progress:** v2.1 Railway Deployment — Phase 23 (Scheduling Migration) complete (2026-03-21). BullMQ + node-cron replaces pg_cron + pgmq: cadence dispatcher (5-min cron), BullMQ worker (concurrency 3, graph.invoke), push notification helper, repeatable jobs (daily briefing 7am UTC, morning digest 6am UTC). Redis connection factory with TLS detection. 167 cadence tests passing.
+**In progress:** v2.1 Railway Deployment — Phase 24 (Frontend Migration) complete (2026-03-21). @supabase/supabase-js fully removed. Centralized api.ts client + 15 Express CRUD route files (39 new routes). Auth.tsx → Logto redirect, Dashboard → isAuthenticated guard. 9 hooks → React Query + polling. 16 components migrated. Dockerfile (multi-stage Node→Nginx) + nginx.conf + railway.toml ready for deployment.
 
 **Architecture:**
 - Frontend: React 18 + TypeScript SPA (Vite) + Tailwind + shadcn/ui (~19,700 LOC)
 - LangGraph Server: Node.js/TypeScript on Railway (~16,700 LOC) with PostgresSaver, Store, pgvector
 - Database: Railway PostgreSQL 18 with pgvector (34 app tables + langgraph schema, migrated from Supabase)
-- Backend: Supabase Edge Functions (Deno) as JWT proxy — migrating to Express on Railway
+- Backend: Express API Server on Railway (migrated from Supabase Edge Functions)
 - AI: Lovable AI Gateway (Gemini 3 Flash for text, Nano Banana 2 for images)
 - Scheduling: BullMQ + node-cron + Redis → full LangGraph graph execution (migrated from pg_cron + pgmq)
 - Browser: Playwright persistent contexts for Marketer social media ops
@@ -161,4 +161,4 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 | interrupt() for HITL (not custom approval flow) | LangGraph native pattern; checkpointed state survives restarts | ✓ Good |
 
 ---
-*Last updated: 2026-03-21 after Phase 23 (Scheduling Migration) complete — BullMQ + node-cron replaces pg_cron/pgmq, Redis connection factory, repeatable jobs for daily briefing and morning digest.*
+*Last updated: 2026-03-21 after Phase 24 (Frontend Migration) complete — @supabase/supabase-js removed, api.ts + React Query, Logto auth active, Nginx Docker container ready.*
