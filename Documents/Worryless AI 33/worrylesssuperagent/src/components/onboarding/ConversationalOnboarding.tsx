@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Loader2,
   Building2,
@@ -591,6 +592,7 @@ export const ConversationalOnboarding = ({
   const [briefingProgress, setBriefingProgress] = useState(0);
   const [isAccepting, setIsAccepting] = useState(false);
   const { toast } = useToast();
+  const { token } = useAuth();
 
   const availableCities = useMemo(() => {
     return country ? countryData[country] || ["Other"] : [];
@@ -683,14 +685,17 @@ export const ConversationalOnboarding = ({
         "sales_rep",
         "personal_assistant",
       ];
-      // Insert default 5 agents (upsert — idempotent)
+      // Insert default 5 agents (upsert — idempotent via POST /api/user-agents)
       for (const agentTypeId of DEFAULT_IDS) {
-        await (supabase as any)
-          .from("user_agents")
-          .upsert(
-            { user_id: userId, agent_type_id: agentTypeId },
-            { onConflict: "user_id,agent_type_id", ignoreDuplicates: true },
+        try {
+          await api.post(
+            "/api/user-agents",
+            { agent_type_id: agentTypeId },
+            { token },
           );
+        } catch {
+          // ignore conflict errors
+        }
       }
       setBriefingProgress(40);
       // Insert selected additional agents (exclude defaults)
@@ -698,18 +703,21 @@ export const ConversationalOnboarding = ({
         (id) => !DEFAULT_IDS.includes(id),
       );
       for (const agentTypeId of additionalIds) {
-        await (supabase as any)
-          .from("user_agents")
-          .upsert(
-            { user_id: userId, agent_type_id: agentTypeId },
-            { onConflict: "user_id,agent_type_id", ignoreDuplicates: true },
+        try {
+          await api.post(
+            "/api/user-agents",
+            { agent_type_id: agentTypeId },
+            { token },
           );
+        } catch {
+          // ignore conflict errors
+        }
       }
       setBriefingProgress(70);
       // Update profile: set onboarding_completed = true + all collected fields
-      await supabase
-        .from("profiles")
-        .update({
+      await api.patch(
+        "/api/profiles/me",
+        {
           business_name: businessName,
           industry,
           country,
@@ -717,48 +725,11 @@ export const ConversationalOnboarding = ({
           company_description: description,
           business_stage: businessStage || null,
           onboarding_completed: true,
-        } as any)
-        .eq("user_id", userId);
+        },
+        { token },
+      );
       setBriefingProgress(100);
-      // Fire-and-forget: personalize workspace content with actual business context
-      // Do NOT await — user must not be blocked waiting for this
-      const allActivatedIds = [...DEFAULT_IDS, ...additionalIds];
-      (supabase as any)
-        .from("agent_workspaces")
-        .select("id, content, file_type, agent_type_id")
-        .in("agent_type_id", allActivatedIds)
-        .eq("user_id", userId)
-        .in("file_type", ["identity", "soul"])
-        .then(({ data: workspaces }) => {
-          if (!workspaces?.length) return;
-          const replacements: Record<string, string> = {
-            "{business_name}": businessName,
-            "{industry}": industry,
-            "{city}": city,
-            "{country}": country,
-            "{description}": description,
-          };
-          const updates = workspaces
-            .map((ws) => {
-              let updated = ws.content ?? "";
-              for (const [token, value] of Object.entries(replacements)) {
-                updated = updated.replaceAll(token, value);
-              }
-              return updated !== ws.content
-                ? (supabase as any)
-                    .from("agent_workspaces")
-                    .update({ content: updated })
-                    .eq("id", ws.id)
-                : null;
-            })
-            .filter(Boolean);
-          Promise.allSettled(updates as any[]).catch((err: any) =>
-            console.warn("Workspace personalization error:", err),
-          );
-        })
-        .catch((err) =>
-          console.warn("Workspace personalization fetch error:", err),
-        );
+      // Workspace personalization is handled server-side — skip client-side patch loop
       // Step advances via nextStep() from integration_setup -> briefing -> push_opt_in
       setIsAccepting(false);
     } catch (error: any) {
