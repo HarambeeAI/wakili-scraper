@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 24-03-PLAN.md
-last_updated: "2026-03-21T11:56:17.790Z"
+stopped_at: Completed 24-04-PLAN.md - component supabase migration
+last_updated: "2026-03-21T12:15:19.630Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 20
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 24 (frontend-migration) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Performance Metrics
 
@@ -82,6 +82,7 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 24]: usePushSubscription unsubscribe uses raw fetch with DELETE+body since api.ts delete() does not accept a body parameter
 - [Phase 24]: getCadenceConfig route updated to include heartbeat_enabled in SELECT — required by useCadenceConfig heartbeatEnabled return value
 - [Phase 24]: useLangGraphFlag.ts deleted — always use LangGraph path per D-18, no dual-mode branching in useAgentChat
+- [Phase 24]: Inlined Json type in AccountantAgent to remove supabase/types dependency; replaced supabase.storage with fetch() multipart to /api/upload
 
 ### Pending Todos
 
@@ -95,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T11:56:17.788Z
-Stopped at: Completed 24-03-PLAN.md
+Last session: 2026-03-21T12:15:19.627Z
+Stopped at: Completed 24-04-PLAN.md - component supabase migration
 Resume file: None
