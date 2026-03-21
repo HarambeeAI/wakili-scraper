@@ -1,14 +1,24 @@
 import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose';
 import type { Request, Response, NextFunction } from 'express';
 
-const LOGTO_ENDPOINT = process.env.LOGTO_ENDPOINT!;
-const JWKS_URI = `${LOGTO_ENDPOINT}/oidc/jwks`;
-const ISSUER = `${LOGTO_ENDPOINT}/oidc`;
-
-const JWKS = createRemoteJWKSet(new URL(JWKS_URI));
-
 export interface AuthedRequest extends Request {
   auth?: { userId: string; payload: JWTPayload };
+}
+
+// Lazy-initialize JWKS so module import doesn't crash when LOGTO_ENDPOINT is unset (e.g. tests)
+let _jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getJWKS() {
+  if (!_jwks) {
+    const endpoint = process.env.LOGTO_ENDPOINT;
+    if (!endpoint) throw new Error('LOGTO_ENDPOINT environment variable is required');
+    _jwks = createRemoteJWKSet(new URL(`${endpoint}/oidc/jwks`));
+  }
+  return _jwks;
+}
+
+function getIssuer() {
+  return `${process.env.LOGTO_ENDPOINT}/oidc`;
 }
 
 export async function verifyLogtoJWT(
@@ -23,10 +33,8 @@ export async function verifyLogtoJWT(
   }
   const token = authHeader.slice(7);
   try {
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: ISSUER,
-      // TODO: enable audience validation once frontend consistently passes resource
-      // audience: process.env.LOGTO_API_RESOURCE,
+    const { payload } = await jwtVerify(token, getJWKS(), {
+      issuer: getIssuer(),
     });
     if (!payload.sub) {
       res.status(401).json({ error: 'Token missing sub claim' });
