@@ -153,12 +153,14 @@ Plans:
   3. An authenticated user's agent chat sends SSE requests to the Railway LangGraph server URL and receives streaming responses
   4. The environment variables `VITE_API_URL`, `VITE_LANGGRAPH_URL`, and `VITE_LOGTO_*` are set to Railway endpoints and the app builds cleanly with them
   5. The Vite build is packaged into a Nginx Docker container and deployed as a Railway service serving the SPA
-**Plans**: 3 plans
+**Plans**: 5 plans
 
 Plans:
-- [ ] 24-01: Remove @supabase/supabase-js, install @logto/react, wire LogtoProvider + sign-in/callback/sign-out routes
-- [ ] 24-02: Rewire all data-fetching hooks (useTeamData, useAgentWorkspace, useNotifications, usePushSubscription, etc.) to call /api/* with Bearer token
-- [ ] 24-03: Update useAgentChat SSE hook to Railway LangGraph URL, set all VITE_ env vars, build Nginx Docker container, deploy to Railway
+- [ ] 24-01-PLAN.md — Create frontend api.ts client + core CRUD routes in API server (profiles, notifications, team-data, tasks, artifacts, user-agents, agent-types, workspaces)
+- [ ] 24-02-PLAN.md — Add agent-specific CRUD routes (leads, invoices, social-posts, transactions, datasheets, outreach-emails) + migrate Auth.tsx/Dashboard.tsx to Logto
+- [ ] 24-03-PLAN.md — Migrate all 9 hooks from Supabase to api.ts + React Query, migrate useAgentChat SSE to Railway URL, delete useLangGraphFlag
+- [ ] 24-04-PLAN.md — Migrate all 16 component files from Supabase to api.ts (dashboard, onboarding, agents, chat, settings)
+- [ ] 24-05-PLAN.md — Delete Supabase files, remove package, create Dockerfile + nginx.conf + railway.toml for Nginx container
 
 ### Phase 25: Production Cutover
 **Goal**: All Railway services have their public domains assigned, the platform is accessible end-to-end via Railway-generated URLs, and a full smoke test confirms every critical user flow works
@@ -201,7 +203,7 @@ Plans:
 | 21. Auth Wiring | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 22. API Server | v2.1 | 5/5 | Complete    | 2026-03-21 |
 | 23. Scheduling Migration | v2.1 | 3/3 | Complete    | 2026-03-21 |
-| 24. Frontend Migration | v2.1 | 0/3 | Not started | - |
+| 24. Frontend Migration | v2.1 | 0/5 | Not started | - |
 | 25. Production Cutover | v2.1 | 0/1 | Not started | - |
 
 ---
