@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 24-04-PLAN.md - component supabase migration
-last_updated: "2026-03-21T12:15:19.630Z"
+stopped_at: Completed 24-05-PLAN.md - supabase final cleanup + Railway container setup (checkpoint pending)
+last_updated: "2026-03-21T12:20:42.492Z"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -83,6 +83,8 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 24]: getCadenceConfig route updated to include heartbeat_enabled in SELECT — required by useCadenceConfig heartbeatEnabled return value
 - [Phase 24]: useLangGraphFlag.ts deleted — always use LangGraph path per D-18, no dual-mode branching in useAgentChat
 - [Phase 24]: Inlined Json type in AccountantAgent to remove supabase/types dependency; replaced supabase.storage with fetch() multipart to /api/upload
+- [Phase 24]: VITE_ env vars declared as ARG in Dockerfile (baked at build time, not runtime environment)
+- [Phase 24]: nginx.conf uses separate location blocks for /assets/ (immutable 1y) vs index.html (no-cache)
 
 ### Pending Todos
 
@@ -96,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T12:15:19.627Z
-Stopped at: Completed 24-04-PLAN.md - component supabase migration
+Last session: 2026-03-21T12:20:42.490Z
+Stopped at: Completed 24-05-PLAN.md - supabase final cleanup + Railway container setup (checkpoint pending)
 Resume file: None

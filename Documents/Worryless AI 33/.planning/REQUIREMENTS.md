@@ -12,7 +12,7 @@
 - [ ] **RAIL-03**: Logto Auth service deployed on Railway with dedicated PostgreSQL for identity data
 - [x] **RAIL-04**: LangGraph Server deployed on Railway via Docker with Playwright Chromium and persistent volume at `/playwright-data`
 - [x] **RAIL-05**: API Server (Express) deployed on Railway replacing all Supabase Edge Functions
-- [ ] **RAIL-06**: Frontend deployed on Railway as static Nginx container serving Vite build
+- [x] **RAIL-06**: Frontend deployed on Railway as static Nginx container serving Vite build
 - [ ] **RAIL-07**: All services connected via Railway private networking (`service.railway.internal:PORT`)
 - [ ] **RAIL-08**: Railway-generated domains assigned to Frontend, API Server, and LangGraph Server
 
@@ -68,7 +68,7 @@
 - [x] **FE-03**: `@logto/react` `LogtoProvider` wrapping app with sign-in/sign-out/callback routes
 - [x] **FE-04**: `useAgentChat` hook updated to connect SSE to Railway LangGraph Server URL
 - [x] **FE-05**: All environment variables updated (`VITE_API_URL`, `VITE_LANGGRAPH_URL`, `VITE_LOGTO_*`)
-- [ ] **FE-06**: Vite build outputs static files served by Nginx container on Railway
+- [x] **FE-06**: Vite build outputs static files served by Nginx container on Railway
 
 ### Environment & Configuration (ENV)
 
@@ -105,7 +105,7 @@
 | RAIL-03 | Phase 19 | Pending |
 | RAIL-04 | Phase 23 | Complete |
 | RAIL-05 | Phase 22 | Complete |
-| RAIL-06 | Phase 24 | Pending |
+| RAIL-06 | Phase 24 | Complete |
 | RAIL-07 | Phase 19 | Pending |
 | RAIL-08 | Phase 25 | Pending |
 | DB-01 | Phase 20 | Complete |
@@ -146,7 +146,7 @@
 | FE-03 | Phase 24 | Complete |
 | FE-04 | Phase 24 | Complete |
 | FE-05 | Phase 24 | Complete |
-| FE-06 | Phase 24 | Pending |
+| FE-06 | Phase 24 | Complete |
 | ENV-01 | Phase 19 | Pending |
 | ENV-02 | Phase 19 | Pending |
 | ENV-03 | Phase 19 | Pending |

@@ -53,7 +53,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md` for full details.
 - [x] **Phase 21: Auth Wiring** - Logto issuing JWTs, JWT middleware on API and LangGraph servers (completed 2026-03-21)
 - [x] **Phase 22: API Server** - 17 Express routes replacing all Supabase Edge Functions (completed 2026-03-21)
 - [x] **Phase 23: Scheduling Migration** - BullMQ + node-cron replacing pg_cron + pgmq in LangGraph server (completed 2026-03-21)
-- [ ] **Phase 24: Frontend Migration** - Supabase client removed, Logto auth + Railway API wired in
+- [x] **Phase 24: Frontend Migration** - Supabase client removed, Logto auth + Railway API wired in (completed 2026-03-21)
 - [ ] **Phase 25: Production Cutover** - Domains assigned, env vars finalized, smoke test passes
 
 ## Phase Details
@@ -160,7 +160,7 @@ Plans:
 - [x] 24-02-PLAN.md — Add agent-specific CRUD routes (leads, invoices, social-posts, transactions, datasheets, outreach-emails) + migrate Auth.tsx/Dashboard.tsx to Logto
 - [x] 24-03-PLAN.md — Migrate all 9 hooks from Supabase to api.ts + React Query, migrate useAgentChat SSE to Railway URL, delete useLangGraphFlag
 - [x] 24-04-PLAN.md — Migrate all 16 component files from Supabase to api.ts (dashboard, onboarding, agents, chat, settings)
-- [ ] 24-05-PLAN.md — Delete Supabase files, remove package, create Dockerfile + nginx.conf + railway.toml for Nginx container
+- [x] 24-05-PLAN.md — Delete Supabase files, remove package, create Dockerfile + nginx.conf + railway.toml for Nginx container
 
 ### Phase 25: Production Cutover
 **Goal**: All Railway services have their public domains assigned, the platform is accessible end-to-end via Railway-generated URLs, and a full smoke test confirms every critical user flow works
@@ -203,7 +203,7 @@ Plans:
 | 21. Auth Wiring | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 22. API Server | v2.1 | 5/5 | Complete    | 2026-03-21 |
 | 23. Scheduling Migration | v2.1 | 3/3 | Complete    | 2026-03-21 |
-| 24. Frontend Migration | v2.1 | 4/5 | In Progress|  |
+| 24. Frontend Migration | v2.1 | 5/5 | Complete   | 2026-03-21 |
 | 25. Production Cutover | v2.1 | 0/1 | Not started | - |
 
 ---
