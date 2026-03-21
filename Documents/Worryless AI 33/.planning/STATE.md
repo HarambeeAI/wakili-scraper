@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 24-01-PLAN.md
-last_updated: "2026-03-21T11:40:40.678Z"
+stopped_at: Completed 24-02-PLAN.md
+last_updated: "2026-03-21T11:46:34.098Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 24 (frontend-migration) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -76,6 +76,9 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 24]: api.ts receives token as parameter (not fetched internally) — keeps utility free of hook dependencies
 - [Phase 24]: profiles GET does upsert-on-first-access: INSERT ON CONFLICT DO NOTHING then re-SELECT if no row found
 - [Phase 24]: CORS methods expanded to include PATCH for frontend PATCH requests
+- [Phase 24]: DashboardHeader props changed from user: User (supabase) to userId/userEmail strings to eliminate @supabase/supabase-js import from Dashboard.tsx
+- [Phase 24]: userEmail fetched from /api/profiles/me since Logto isAuthenticated does not expose email directly
+- [Phase 24]: FE-03 verified as pre-existing from Phase 21: LogtoProvider, /callback route, and Callback.tsx already in place
 
 ### Pending Todos
 
@@ -89,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T11:40:40.676Z
-Stopped at: Completed 24-01-PLAN.md
+Last session: 2026-03-21T11:46:34.095Z
+Stopped at: Completed 24-02-PLAN.md
 Resume file: None

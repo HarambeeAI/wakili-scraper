@@ -64,10 +64,10 @@
 ### Frontend Migration (FE)
 
 - [ ] **FE-01**: `@supabase/supabase-js` removed from frontend dependencies
-- [ ] **FE-02**: All Supabase client calls replaced with `fetch()` to Railway API Server
-- [ ] **FE-03**: `@logto/react` `LogtoProvider` wrapping app with sign-in/sign-out/callback routes
+- [x] **FE-02**: All Supabase client calls replaced with `fetch()` to Railway API Server
+- [x] **FE-03**: `@logto/react` `LogtoProvider` wrapping app with sign-in/sign-out/callback routes
 - [ ] **FE-04**: `useAgentChat` hook updated to connect SSE to Railway LangGraph Server URL
-- [ ] **FE-05**: All environment variables updated (`VITE_API_URL`, `VITE_LANGGRAPH_URL`, `VITE_LOGTO_*`)
+- [x] **FE-05**: All environment variables updated (`VITE_API_URL`, `VITE_LANGGRAPH_URL`, `VITE_LOGTO_*`)
 - [ ] **FE-06**: Vite build outputs static files served by Nginx container on Railway
 
 ### Environment & Configuration (ENV)
@@ -142,10 +142,10 @@
 | SCHED-04 | Phase 23 | Complete |
 | SCHED-05 | Phase 22 | Complete |
 | FE-01 | Phase 24 | Pending |
-| FE-02 | Phase 24 | Pending |
-| FE-03 | Phase 24 | Pending |
+| FE-02 | Phase 24 | Complete |
+| FE-03 | Phase 24 | Complete |
 | FE-04 | Phase 24 | Pending |
-| FE-05 | Phase 24 | Pending |
+| FE-05 | Phase 24 | Complete |
 | FE-06 | Phase 24 | Pending |
 | ENV-01 | Phase 19 | Pending |
 | ENV-02 | Phase 19 | Pending |

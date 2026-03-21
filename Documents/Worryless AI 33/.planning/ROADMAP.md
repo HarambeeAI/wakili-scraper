@@ -157,7 +157,7 @@ Plans:
 
 Plans:
 - [x] 24-01-PLAN.md — Create frontend api.ts client + core CRUD routes in API server (profiles, notifications, team-data, tasks, artifacts, user-agents, agent-types, workspaces)
-- [ ] 24-02-PLAN.md — Add agent-specific CRUD routes (leads, invoices, social-posts, transactions, datasheets, outreach-emails) + migrate Auth.tsx/Dashboard.tsx to Logto
+- [x] 24-02-PLAN.md — Add agent-specific CRUD routes (leads, invoices, social-posts, transactions, datasheets, outreach-emails) + migrate Auth.tsx/Dashboard.tsx to Logto
 - [ ] 24-03-PLAN.md — Migrate all 9 hooks from Supabase to api.ts + React Query, migrate useAgentChat SSE to Railway URL, delete useLangGraphFlag
 - [ ] 24-04-PLAN.md — Migrate all 16 component files from Supabase to api.ts (dashboard, onboarding, agents, chat, settings)
 - [ ] 24-05-PLAN.md — Delete Supabase files, remove package, create Dockerfile + nginx.conf + railway.toml for Nginx container
@@ -203,7 +203,7 @@ Plans:
 | 21. Auth Wiring | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 22. API Server | v2.1 | 5/5 | Complete    | 2026-03-21 |
 | 23. Scheduling Migration | v2.1 | 3/3 | Complete    | 2026-03-21 |
-| 24. Frontend Migration | v2.1 | 1/5 | In Progress|  |
+| 24. Frontend Migration | v2.1 | 2/5 | In Progress|  |
 | 25. Production Cutover | v2.1 | 0/1 | Not started | - |
 
 ---
