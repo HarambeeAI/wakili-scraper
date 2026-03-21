@@ -18,11 +18,11 @@
 
 ### Database Migration (DB)
 
-- [ ] **DB-01**: All 20+ Supabase migrations sanitized into RAILWAY_MIGRATION.sql (strip pg_cron, pgmq, pg_net, auth.users FK references, RLS policies, Supabase vault references)
+- [x] **DB-01**: All 20+ Supabase migrations sanitized into RAILWAY_MIGRATION.sql (strip pg_cron, pgmq, pg_net, auth.users FK references, RLS policies, Supabase vault references)
 - [ ] **DB-02**: Sanitized migrations applied to Railway PostgreSQL with all tables, indexes, and seed data created
-- [ ] **DB-03**: `langgraph` schema created with checkpoints, checkpoint_writes, store tables
-- [ ] **DB-04**: pgvector extension enabled with document_embeddings table
-- [ ] **DB-05**: `profiles` table created with `auth.users` FK replaced by standalone `users` table managed by Logto
+- [x] **DB-03**: `langgraph` schema created with checkpoints, checkpoint_writes, store tables
+- [x] **DB-04**: pgvector extension enabled with document_embeddings table
+- [x] **DB-05**: `profiles` table created with `auth.users` FK replaced by standalone `users` table managed by Logto
 
 ### Auth Migration (AUTH)
 
@@ -108,11 +108,11 @@
 | RAIL-06 | Phase 24 | Pending |
 | RAIL-07 | Phase 19 | Pending |
 | RAIL-08 | Phase 25 | Pending |
-| DB-01 | Phase 20 | Pending |
+| DB-01 | Phase 20 | Complete |
 | DB-02 | Phase 20 | Pending |
-| DB-03 | Phase 20 | Pending |
-| DB-04 | Phase 20 | Pending |
-| DB-05 | Phase 20 | Pending |
+| DB-03 | Phase 20 | Complete |
+| DB-04 | Phase 20 | Complete |
+| DB-05 | Phase 20 | Complete |
 | AUTH-01 | Phase 21 | Pending |
 | AUTH-02 | Phase 21 | Pending |
 | AUTH-03 | Phase 21 | Pending |
