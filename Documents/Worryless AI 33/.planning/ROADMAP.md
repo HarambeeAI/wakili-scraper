@@ -203,7 +203,7 @@ Plans:
 | 21. Auth Wiring | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 22. API Server | v2.1 | 5/5 | Complete    | 2026-03-21 |
 | 23. Scheduling Migration | v2.1 | 3/3 | Complete    | 2026-03-21 |
-| 24. Frontend Migration | v2.1 | 5/5 | Complete   | 2026-03-21 |
+| 24. Frontend Migration | v2.1 | 5/5 | Complete    | 2026-03-21 |
 | 25. Production Cutover | v2.1 | 0/1 | Not started | - |
 
 ---
