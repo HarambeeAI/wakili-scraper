@@ -33,6 +33,7 @@ import { spawnAgentTeam } from "./routes/spawnAgentTeam.js";
 import { generateOutreach } from "./routes/generateOutreach.js";
 import { planningAgent } from "./routes/planningAgent.js";
 import { syncGmailCalendar } from "./routes/syncGmailCalendar.js";
+import { langgraphProxy } from "./routes/langgraphProxy.js";
 
 // --- Route registrations (auth already applied via global /api middleware above) ---
 app.post("/api/generate-content", generateContent);
@@ -51,6 +52,8 @@ app.post("/api/spawn-agent-team", spawnAgentTeam);
 app.post("/api/generate-outreach", generateOutreach);
 app.post("/api/planning-agent", planningAgent);
 app.post("/api/sync-gmail-calendar", syncGmailCalendar);
+app.post("/api/langgraph-proxy", langgraphProxy);
+app.use("/api/langgraph-proxy", langgraphProxy); // Also handles sub-paths (e.g., /api/langgraph-proxy/invoke)
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 if (process.env.NODE_ENV !== "test") {
