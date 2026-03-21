@@ -72,7 +72,8 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 
 **Infrastructure Migration**
 - [x] PostgreSQL provisioned on Railway with all 34 app tables + langgraph schema + pgvector applied (Phase 20, 2026-03-21)
-- [ ] Logto auth replacing Supabase Auth (email/password, JWT sessions)
+- [x] Logto auth wiring: @logto/react frontend SDK + jose JWT middleware on LangGraph server (Phase 21, 2026-03-21)
+- [ ] Logto auth flow fully replacing Supabase Auth (frontend migration)
 - [ ] pg_cron + pgmq scheduling replaced with Railway-compatible alternative (node-cron or BullMQ + Redis)
 
 **API Layer Migration**
@@ -105,7 +106,7 @@ Every entrepreneur gets a complete, context-aware AI department on day one — a
 ## Current State
 
 **Shipped:** v2.0 Agent Intelligence Layer (2026-03-20)
-**In progress:** v2.1 Railway Deployment — Phase 20 (Database Migration) complete (2026-03-21). Railway Postgres has all application schema applied and verified.
+**In progress:** v2.1 Railway Deployment — Phase 21 (Auth Wiring) complete (2026-03-21). Logto frontend SDK (@logto/react, useAuth hook, LogtoProvider) and backend JWT middleware (jose JWKS verification on all LangGraph routes) are wired. Railway Postgres has all application schema applied.
 
 **Architecture:**
 - Frontend: React 18 + TypeScript SPA (Vite) + Tailwind + shadcn/ui (~19,700 LOC)
