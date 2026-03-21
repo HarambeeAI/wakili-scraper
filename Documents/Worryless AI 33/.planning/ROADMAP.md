@@ -50,7 +50,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
 - [x] **Phase 19: Infrastructure Provisioning** - Railway Postgres, Redis, Logto, and private networking live (completed 2026-03-21)
 - [x] **Phase 20: Database Migration** - All 20+ sanitized migrations applied to Railway Postgres (completed 2026-03-21)
-- [ ] **Phase 21: Auth Wiring** - Logto issuing JWTs, JWT middleware on API and LangGraph servers
+- [x] **Phase 21: Auth Wiring** - Logto issuing JWTs, JWT middleware on API and LangGraph servers (completed 2026-03-21)
 - [ ] **Phase 22: API Server** - 17 Express routes replacing all Supabase Edge Functions
 - [ ] **Phase 23: Scheduling Migration** - BullMQ + node-cron replacing pg_cron + pgmq in LangGraph server
 - [ ] **Phase 24: Frontend Migration** - Supabase client removed, Logto auth + Railway API wired in
@@ -105,7 +105,7 @@ Plans:
 
 Plans:
 - [x] 21-01-PLAN.md — Install @logto/react, create LogtoConfig + useAuth hook + Callback page, wrap App.tsx with LogtoProvider
-- [ ] 21-02-PLAN.md — Install jose, create verifyLogtoJWT JWKS middleware, apply to all LangGraph server routes, replace body user_id with JWT sub
+- [x] 21-02-PLAN.md — Install jose, create verifyLogtoJWT JWKS middleware, apply to all LangGraph server routes, replace body user_id with JWT sub
 
 ### Phase 22: API Server
 **Goal**: A Railway Express service hosts all 17 route equivalents of the former Supabase Edge Functions, using direct Gemini API (Gemini Imagen 3 for images), with every route protected by Logto JWT middleware and scoped to the requesting user
@@ -198,7 +198,7 @@ Plans:
 | 18. Agent-to-UI Data Pipeline Fix | v2.0 | 4/4 | Complete | 2026-03-20 |
 | 19. Infrastructure Provisioning | v2.1 | 0/3 | Complete    | 2026-03-21 |
 | 20. Database Migration | v2.1 | 2/2 | Complete    | 2026-03-21 |
-| 21. Auth Wiring | v2.1 | 1/2 | In Progress|  |
+| 21. Auth Wiring | v2.1 | 2/2 | Complete   | 2026-03-21 |
 | 22. API Server | v2.1 | 0/5 | Not started | - |
 | 23. Scheduling Migration | v2.1 | 0/3 | Not started | - |
 | 24. Frontend Migration | v2.1 | 0/3 | Not started | - |

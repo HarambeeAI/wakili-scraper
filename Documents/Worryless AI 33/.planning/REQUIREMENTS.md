@@ -28,9 +28,9 @@
 
 - [x] **AUTH-01**: Logto configured with email/password sign-in method
 - [x] **AUTH-02**: `@logto/react` integrated into frontend replacing `@supabase/supabase-js` auth
-- [ ] **AUTH-03**: Logto JWT validation middleware on API Server using `jose` JWKS
-- [ ] **AUTH-04**: Logto JWT validation on LangGraph Server for direct SSE connections
-- [ ] **AUTH-05**: User ID (`sub` claim) extracted from JWT and passed as `user_id` to all database queries (replaces RLS `auth.uid()`)
+- [x] **AUTH-03**: Logto JWT validation middleware on API Server using `jose` JWKS
+- [x] **AUTH-04**: Logto JWT validation on LangGraph Server for direct SSE connections
+- [x] **AUTH-05**: User ID (`sub` claim) extracted from JWT and passed as `user_id` to all database queries (replaces RLS `auth.uid()`)
 - [x] **AUTH-06**: Google OAuth configured in Logto for Personal Assistant Gmail/Calendar integration
 
 ### API Server — Edge Function Conversion (API)
@@ -115,9 +115,9 @@
 | DB-05 | Phase 20 | Complete |
 | AUTH-01 | Phase 21 | Complete |
 | AUTH-02 | Phase 21 | Complete |
-| AUTH-03 | Phase 21 | Pending |
-| AUTH-04 | Phase 21 | Pending |
-| AUTH-05 | Phase 21 | Pending |
+| AUTH-03 | Phase 21 | Complete |
+| AUTH-04 | Phase 21 | Complete |
+| AUTH-05 | Phase 21 | Complete |
 | AUTH-06 | Phase 21 | Complete |
 | API-01 | Phase 22 | Pending |
 | API-02 | Phase 22 | Pending |

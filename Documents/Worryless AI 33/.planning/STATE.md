@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 21-01-PLAN.md
-last_updated: "2026-03-21T09:17:13.058Z"
+stopped_at: Completed 21-02-PLAN.md (LangGraph server auth middleware)
+last_updated: "2026-03-21T09:20:07.374Z"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -57,6 +57,7 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 20]: Replaced all auth.users FK references with public.users for Logto; dropped all RLS for API-layer enforcement; replaced pgmq with RAISE NOTICE stubs for BullMQ
 - [Phase 20]: Table count is 34 (not 35) — 33 app tables + public.users; plan had off-by-one in expected count
 - [Phase 21]: LogtoProvider wraps outside QueryClientProvider as outermost provider; useAuth returns API resource access token (not id_token)
+- [Phase 21]: jose JWKS middleware on LangGraph server: stateless JWT validation via createRemoteJWKSet + jwtVerify, user_id from sub claim
 
 ### Pending Todos
 
@@ -70,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:17:13.055Z
-Stopped at: Completed 21-01-PLAN.md
+Last session: 2026-03-21T09:20:07.372Z
+Stopped at: Completed 21-02-PLAN.md (LangGraph server auth middleware)
 Resume file: None
