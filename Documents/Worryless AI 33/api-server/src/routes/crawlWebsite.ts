@@ -1,7 +1,7 @@
-import type { Response } from 'express';
-import type { AuthedRequest } from '../middleware/auth.js';
-import { pool } from '../db/pool.js';
-import { geminiOpenAI } from '../lib/gemini.js';
+import type { Response } from "express";
+import type { AuthedRequest } from "../middleware/auth.js";
+import { pool } from "../db/pool.js";
+import { getGeminiOpenAI } from "../lib/gemini.js";
 
 const systemInstruction = `You are a business analyst expert. Extract structured information from website content. Return a JSON object with the following structure:
 {
@@ -18,19 +18,22 @@ const systemInstruction = `You are a business analyst expert. Extract structured
 }
 Only include fields where you find actual information. Return valid JSON only, no markdown formatting.`;
 
-export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<void> => {
+export const crawlWebsite = async (
+  req: AuthedRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const userId = req.auth!.userId;
     const { websiteUrl, businessName, industry, description } = req.body;
 
     if (!websiteUrl) {
-      res.status(400).json({ error: 'Website URL is required' });
+      res.status(400).json({ error: "Website URL is required" });
       return;
     }
 
     const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY;
     if (!FIRECRAWL_API_KEY) {
-      throw new Error('FIRECRAWL_API_KEY is not configured');
+      throw new Error("FIRECRAWL_API_KEY is not configured");
     }
 
     console.log(`Starting crawl for website: ${websiteUrl}`);
@@ -42,12 +45,12 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     );
 
     // Step 1: Map the website to discover URLs
-    console.log('Mapping website URLs...');
-    const mapResponse = await fetch('https://api.firecrawl.dev/v1/map', {
-      method: 'POST',
+    console.log("Mapping website URLs...");
+    const mapResponse = await fetch("https://api.firecrawl.dev/v1/map", {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         url: websiteUrl,
@@ -58,7 +61,7 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
 
     if (!mapResponse.ok) {
       const errorText = await mapResponse.text();
-      console.error('Map error:', errorText);
+      console.error("Map error:", errorText);
       throw new Error(`Failed to map website: ${errorText}`);
     }
 
@@ -67,39 +70,39 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     console.log(`Found ${urls.length} URLs to crawl`);
 
     // Step 2: Scrape the main page with branding info
-    console.log('Scraping main page with branding...');
-    const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
+    console.log("Scraping main page with branding...");
+    const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         url: websiteUrl,
-        formats: ['markdown', 'links', 'screenshot'],
+        formats: ["markdown", "links", "screenshot"],
         onlyMainContent: true,
       }),
     });
 
     if (!scrapeResponse.ok) {
       const errorText = await scrapeResponse.text();
-      console.error('Scrape error:', errorText);
+      console.error("Scrape error:", errorText);
       throw new Error(`Failed to scrape website: ${errorText}`);
     }
 
     const scrapeData = await scrapeResponse.json();
-    const pageContent: string = scrapeData.data?.markdown || '';
+    const pageContent: string = scrapeData.data?.markdown || "";
     const screenshot: string | undefined = scrapeData.data?.screenshot;
 
-    console.log('Analyzing content with AI...');
+    console.log("Analyzing content with AI...");
 
     // Step 3: Use Gemini to extract structured information
-    const aiResponse = await geminiOpenAI.chat.completions.create({
-      model: 'gemini-2.0-flash',
+    const aiResponse = await getGeminiOpenAI().chat.completions.create({
+      model: "gemini-2.0-flash",
       messages: [
-        { role: 'system', content: systemInstruction },
+        { role: "system", content: systemInstruction },
         {
-          role: 'user',
+          role: "user",
           content: `Analyze this website content and extract business information:\n\n${pageContent.substring(0, 15000)}`,
         },
       ],
@@ -107,7 +110,7 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
       max_tokens: 4096,
     });
 
-    const aiContent = aiResponse.choices?.[0]?.message?.content || '';
+    const aiContent = aiResponse.choices?.[0]?.message?.content || "";
 
     // Parse AI response
     let extractedInfo: Record<string, any>;
@@ -115,11 +118,11 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
       const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
       extractedInfo = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
     } catch {
-      console.error('Failed to parse AI response');
+      console.error("Failed to parse AI response");
       extractedInfo = {};
     }
 
-    console.log('Saving artifacts to database...');
+    console.log("Saving artifacts to database...");
 
     // Step 4: Save artifacts to database
     interface Artifact {
@@ -136,8 +139,8 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     if (extractedInfo.company_description) {
       artifacts.push({
         user_id: userId,
-        artifact_type: 'description',
-        title: 'Company Overview',
+        artifact_type: "description",
+        title: "Company Overview",
         content: extractedInfo.company_description,
         source_url: websiteUrl,
       });
@@ -147,7 +150,7 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
       for (const item of extractedInfo.products_services) {
         artifacts.push({
           user_id: userId,
-          artifact_type: 'product',
+          artifact_type: "product",
           title: item.name,
           content: item.description,
           source_url: websiteUrl,
@@ -158,8 +161,8 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     if (extractedInfo.target_audience) {
       artifacts.push({
         user_id: userId,
-        artifact_type: 'description',
-        title: 'Target Audience',
+        artifact_type: "description",
+        title: "Target Audience",
         content: extractedInfo.target_audience,
         source_url: websiteUrl,
       });
@@ -168,8 +171,8 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     if (extractedInfo.brand_tone) {
       artifacts.push({
         user_id: userId,
-        artifact_type: 'description',
-        title: 'Brand Voice & Tone',
+        artifact_type: "description",
+        title: "Brand Voice & Tone",
         content: extractedInfo.brand_tone,
         source_url: websiteUrl,
       });
@@ -178,9 +181,9 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     if (extractedInfo.value_propositions?.length) {
       artifacts.push({
         user_id: userId,
-        artifact_type: 'description',
-        title: 'Value Propositions',
-        content: extractedInfo.value_propositions.join('\n- '),
+        artifact_type: "description",
+        title: "Value Propositions",
+        content: extractedInfo.value_propositions.join("\n- "),
         source_url: websiteUrl,
       });
     }
@@ -188,9 +191,9 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     if (extractedInfo.key_features?.length) {
       artifacts.push({
         user_id: userId,
-        artifact_type: 'description',
-        title: 'Key Features',
-        content: extractedInfo.key_features.join('\n- '),
+        artifact_type: "description",
+        title: "Key Features",
+        content: extractedInfo.key_features.join("\n- "),
         source_url: websiteUrl,
       });
     }
@@ -198,8 +201,8 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     if (extractedInfo.contact_info) {
       artifacts.push({
         user_id: userId,
-        artifact_type: 'contact',
-        title: 'Contact Information',
+        artifact_type: "contact",
+        title: "Contact Information",
         content: JSON.stringify(extractedInfo.contact_info),
         metadata: extractedInfo.contact_info,
         source_url: websiteUrl,
@@ -211,8 +214,8 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
         if (testimonial.quote) {
           artifacts.push({
             user_id: userId,
-            artifact_type: 'testimonial',
-            title: testimonial.author || 'Customer Testimonial',
+            artifact_type: "testimonial",
+            title: testimonial.author || "Customer Testimonial",
             content: testimonial.quote,
             source_url: websiteUrl,
           });
@@ -225,9 +228,9 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
         if (member.name) {
           artifacts.push({
             user_id: userId,
-            artifact_type: 'team_member',
+            artifact_type: "team_member",
             title: member.name,
-            content: member.role || 'Team Member',
+            content: member.role || "Team Member",
             source_url: websiteUrl,
           });
         }
@@ -237,8 +240,8 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     if (screenshot) {
       artifacts.push({
         user_id: userId,
-        artifact_type: 'image',
-        title: 'Homepage Screenshot',
+        artifact_type: "image",
+        title: "Homepage Screenshot",
         image_url: screenshot,
         source_url: websiteUrl,
       });
@@ -247,9 +250,9 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
     if (urls.length > 0) {
       artifacts.push({
         user_id: userId,
-        artifact_type: 'description',
-        title: 'Website Pages',
-        content: urls.slice(0, 20).join('\n'),
+        artifact_type: "description",
+        title: "Website Pages",
+        content: urls.slice(0, 20).join("\n"),
         metadata: { urls: urls.slice(0, 20) },
         source_url: websiteUrl,
       });
@@ -288,8 +291,9 @@ export const crawlWebsite = async (req: AuthedRequest, res: Response): Promise<v
       extractedInfo,
     });
   } catch (error: unknown) {
-    console.error('Error in crawl-business-website:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error("Error in crawl-business-website:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     res.status(500).json({ error: errorMessage });
   }
 };

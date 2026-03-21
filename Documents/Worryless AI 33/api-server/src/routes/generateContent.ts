@@ -1,8 +1,8 @@
-import { RequestHandler } from 'express';
-import type { AuthedRequest } from '../middleware/auth.js';
-import { geminiOpenAI } from '../lib/gemini.js';
-import { generateImageImagen3 } from '../lib/geminiImage.js';
-import { pool } from '../db/pool.js';
+import { RequestHandler } from "express";
+import type { AuthedRequest } from "../middleware/auth.js";
+import { getGeminiOpenAI } from "../lib/gemini.js";
+import { generateImageImagen3 } from "../lib/geminiImage.js";
+import { pool } from "../db/pool.js";
 
 const platformPrompts: Record<string, string> = {
   instagram: `You are an expert Instagram content creator. Create an engaging Instagram post about the following topic.
@@ -83,58 +83,66 @@ async function saveAsset(
         assetData.relatedTaskId || null,
       ],
     );
-    console.log('Asset saved successfully:', assetData.title);
+    console.log("Asset saved successfully:", assetData.title);
   } catch (error) {
-    console.error('Failed to save asset:', error);
+    console.error("Failed to save asset:", error);
   }
 }
 
 export const generateContent: RequestHandler = async (req, res) => {
   try {
-    const { topic, platform = 'instagram', businessContext, generateImageForPost = true, taskId } = req.body;
+    const {
+      topic,
+      platform = "instagram",
+      businessContext,
+      generateImageForPost = true,
+      taskId,
+    } = req.body;
     const userId = (req as AuthedRequest).auth!.userId;
 
     // Build system instruction
-    let systemInstruction = platformPrompts[platform] || platformPrompts.default;
+    let systemInstruction =
+      platformPrompts[platform] || platformPrompts.default;
 
     if (businessContext) {
       systemInstruction = `Business Context:\n${businessContext}\n\n${systemInstruction}\n\nMake sure the content aligns with the business context and brand voice.`;
     }
 
     // Generate content using Gemini OpenAI-compat endpoint
-    console.log('Generating content for topic:', topic);
+    console.log("Generating content for topic:", topic);
 
-    const completion = await geminiOpenAI.chat.completions.create({
-      model: 'gemini-2.0-flash',
+    const completion = await getGeminiOpenAI().chat.completions.create({
+      model: "gemini-2.0-flash",
       messages: [
-        { role: 'system', content: systemInstruction },
-        { role: 'user', content: `Create a ${platform} post about: ${topic}` },
+        { role: "system", content: systemInstruction },
+        { role: "user", content: `Create a ${platform} post about: ${topic}` },
       ],
       temperature: 0.8,
       max_tokens: 1024,
     });
 
-    const content = completion.choices?.[0]?.message?.content || 'No content generated';
+    const content =
+      completion.choices?.[0]?.message?.content || "No content generated";
 
     // Automatically generate image for visual platforms
     let imageUrl: string | null = null;
-    if (generateImageForPost && ['instagram', 'default'].includes(platform)) {
-      console.log('Auto-generating image for post...');
+    if (generateImageForPost && ["instagram", "default"].includes(platform)) {
+      console.log("Auto-generating image for post...");
       try {
         const enhancedPrompt = businessContext
           ? `Create a professional, eye-catching social media image for: ${topic}. Brand context: ${businessContext}. Style: modern, clean, engaging, suitable for Instagram. High quality, visually appealing.`
           : `Create a professional, eye-catching social media image for: ${topic}. Style: modern, clean, engaging, suitable for Instagram. High quality, visually appealing.`;
         imageUrl = await generateImageImagen3(enhancedPrompt);
       } catch (imgErr) {
-        console.error('Image generation failed:', imgErr);
+        console.error("Image generation failed:", imgErr);
         imageUrl = null;
       }
     }
 
     // Save generated assets
     await saveAsset(userId, {
-      agentType: 'marketer',
-      assetType: 'post',
+      agentType: "marketer",
+      assetType: "post",
       title: `${platform} post: ${(topic as string).substring(0, 50)}...`,
       content,
       metadata: {
@@ -148,15 +156,15 @@ export const generateContent: RequestHandler = async (req, res) => {
 
     if (imageUrl) {
       await saveAsset(userId, {
-        agentType: 'marketer',
-        assetType: 'image',
+        agentType: "marketer",
+        assetType: "image",
         title: `Image for: ${(topic as string).substring(0, 50)}...`,
         fileUrl: imageUrl,
         metadata: {
           platform,
           topic,
           generatedAt: new Date().toISOString(),
-          imageType: 'social_media_visual',
+          imageType: "social_media_visual",
         },
         relatedTaskId: taskId,
       });
@@ -164,8 +172,8 @@ export const generateContent: RequestHandler = async (req, res) => {
 
     res.json({ content, platform, imageUrl });
   } catch (error) {
-    console.error('Error in generate-content:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error("Error in generate-content:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     res.status(500).json({ error: message });
   }
 };

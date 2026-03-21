@@ -1,9 +1,14 @@
-import type { RequestHandler } from 'express';
-import { Resend } from 'resend';
-import type { AuthedRequest } from '../middleware/auth.js';
-import { pool } from '../db/pool.js';
+import type { RequestHandler } from "express";
+import { Resend } from "resend";
+import type { AuthedRequest } from "../middleware/auth.js";
+import { pool } from "../db/pool.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-initialize to avoid crash when RESEND_API_KEY is unset (e.g. tests)
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 
 export const sendTestEmail: RequestHandler = async (req, res) => {
   try {
@@ -13,23 +18,23 @@ export const sendTestEmail: RequestHandler = async (req, res) => {
 
     // Get user email from users table
     const { rows: userRows } = await pool.query(
-      'SELECT email FROM users WHERE id = $1',
+      "SELECT email FROM users WHERE id = $1",
       [userId],
     );
 
     const userEmail = userRows[0]?.email;
     if (!userEmail) {
-      res.status(400).json({ error: 'User email not found' });
+      res.status(400).json({ error: "User email not found" });
       return;
     }
 
     // Get user's profile for personalization
     const { rows: profileRows } = await pool.query(
-      'SELECT business_name FROM profiles WHERE user_id = $1',
+      "SELECT business_name FROM profiles WHERE user_id = $1",
       [userId],
     );
 
-    const businessName = profileRows[0]?.business_name || 'your business';
+    const businessName = profileRows[0]?.business_name || "your business";
 
     const emailHtml = `
       <!DOCTYPE html>
@@ -100,14 +105,14 @@ export const sendTestEmail: RequestHandler = async (req, res) => {
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
-      from: 'Worryless AI Team <myteam@worryless.ai>',
+    const emailResponse = await getResend().emails.send({
+      from: "Worryless AI Team <myteam@worryless.ai>",
       to: [userEmail],
-      subject: 'Test Email from Worryless AI',
+      subject: "Test Email from Worryless AI",
       html: emailHtml,
     });
 
-    console.log('[send-test-email] Sent successfully:', emailResponse);
+    console.log("[send-test-email] Sent successfully:", emailResponse);
 
     res.json({
       success: true,
@@ -115,7 +120,9 @@ export const sendTestEmail: RequestHandler = async (req, res) => {
       emailId: emailResponse.data?.id,
     });
   } catch (error) {
-    console.error('[send-test-email] Error:', error);
-    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+    console.error("[send-test-email] Error:", error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
