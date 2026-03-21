@@ -3,8 +3,8 @@
 -- Run: psql "$DATABASE_URL" -f scripts/verify-railway-schema.sql
 -- ============================================================
 
--- CHECK 1: All 35 public-schema tables exist (34 app tables + users)
-SELECT 'CHECK 1: Public tables' AS check_name, COUNT(*) AS actual, 35 AS expected
+-- CHECK 1: All 34 public-schema tables exist (33 app tables + users)
+SELECT 'CHECK 1: Public tables' AS check_name, COUNT(*) AS actual, 34 AS expected
 FROM information_schema.tables
 WHERE table_schema = 'public'
   AND table_type = 'BASE TABLE'
