@@ -4,7 +4,7 @@ milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
 stopped_at: Completed 23-03-PLAN.md (repeatable-jobs.ts + SQL migration + unit tests — Phase 23 complete)
-last_updated: "2026-03-21T10:54:07.693Z"
+last_updated: "2026-03-21T10:54:50.037Z"
 progress:
   total_phases: 7
   completed_phases: 5
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Current Position
 
-Phase: 23 (scheduling-migration) — EXECUTING
-Plan: 3 of 3
+Phase: 24
+Plan: Not started
 
 ## Performance Metrics
 
