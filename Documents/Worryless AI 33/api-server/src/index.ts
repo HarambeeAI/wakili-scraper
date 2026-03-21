@@ -4,7 +4,10 @@ import { verifyLogtoJWT } from "./middleware/auth.js";
 
 export const app = express();
 app.use(
-  cors({ origin: "*", methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"] }),
+  cors({
+    origin: process.env.CORS_ORIGIN || "*",
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  }),
 );
 app.use(express.json({ limit: "10mb" }));
 

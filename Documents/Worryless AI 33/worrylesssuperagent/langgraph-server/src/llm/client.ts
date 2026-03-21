@@ -5,8 +5,9 @@ import {
   BaseMessage,
 } from "@langchain/core/messages";
 
-const LOVABLE_AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const DEFAULT_MODEL = "google/gemini-3-flash-preview";
+const GEMINI_OPENAI_BASE =
+  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+const DEFAULT_MODEL = "gemini-2.0-flash";
 
 export interface LLMCallOptions {
   temperature?: number;
@@ -41,14 +42,14 @@ function messagesToOpenAI(
   });
 }
 
-// Core LLM call — sends messages to Lovable AI Gateway, returns text + token count
+// Core LLM call — sends messages to Gemini OpenAI-compatible endpoint, returns text + token count
 export async function callLLM(
   messages: BaseMessage[],
   options: LLMCallOptions = {},
 ): Promise<LLMResponse> {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("LOVABLE_API_KEY environment variable is required");
+    throw new Error("GEMINI_API_KEY environment variable is required");
   }
 
   const openAIMessages = messagesToOpenAI(messages);
@@ -68,7 +69,7 @@ export async function callLLM(
   if (options.temperature !== undefined) body.temperature = options.temperature;
   if (options.maxTokens !== undefined) body.max_tokens = options.maxTokens;
 
-  const response = await fetch(LOVABLE_AI_GATEWAY, {
+  const response = await fetch(GEMINI_OPENAI_BASE, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
