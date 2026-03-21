@@ -48,7 +48,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
 #### Phases
 
-- [ ] **Phase 19: Infrastructure Provisioning** - Railway Postgres, Redis, Logto, and private networking live
+- [x] **Phase 19: Infrastructure Provisioning** - Railway Postgres, Redis, Logto, and private networking live (completed 2026-03-21)
 - [ ] **Phase 20: Database Migration** - All 20+ sanitized migrations applied to Railway Postgres
 - [ ] **Phase 21: Auth Wiring** - Logto issuing JWTs, JWT middleware on API and LangGraph servers
 - [ ] **Phase 22: API Server** - 17 Express routes replacing all Supabase Edge Functions
@@ -196,7 +196,7 @@ Plans:
 | 16. Proactive Cadence Engine | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 17. Generative UI + Onboarding | v2.0 | 5/5 | Complete | 2026-03-19 |
 | 18. Agent-to-UI Data Pipeline Fix | v2.0 | 4/4 | Complete | 2026-03-20 |
-| 19. Infrastructure Provisioning | v2.1 | 0/3 | Not started | - |
+| 19. Infrastructure Provisioning | v2.1 | 0/3 | Complete    | 2026-03-21 |
 | 20. Database Migration | v2.1 | 0/2 | Not started | - |
 | 21. Auth Wiring | v2.1 | 0/2 | Not started | - |
 | 22. API Server | v2.1 | 0/5 | Not started | - |
