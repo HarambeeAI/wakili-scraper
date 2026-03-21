@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
-stopped_at: Completed 20-02-PLAN.md (migration applied and verified)
-last_updated: "2026-03-21T08:53:50.276Z"
+stopped_at: Completed 21-01-PLAN.md
+last_updated: "2026-03-21T09:17:13.058Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Every entrepreneur gets a complete, context-aware AI department on day one — agents that know the business, stay proactive, and get smarter over time.
-**Current focus:** Phase 20 — database-migration
+**Current focus:** Phase 21 — auth-wiring
 
 ## Current Position
 
-Phase: 21
-Plan: Not started
+Phase: 21 (auth-wiring) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - BullMQ TLS required for Railway Redis (`tls: {}` in IORedis options) — silent failure without it
 - [Phase 20]: Replaced all auth.users FK references with public.users for Logto; dropped all RLS for API-layer enforcement; replaced pgmq with RAISE NOTICE stubs for BullMQ
 - [Phase 20]: Table count is 34 (not 35) — 33 app tables + public.users; plan had off-by-one in expected count
+- [Phase 21]: LogtoProvider wraps outside QueryClientProvider as outermost provider; useAuth returns API resource access token (not id_token)
 
 ### Pending Todos
 
@@ -69,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T08:53:15.899Z
-Stopped at: Completed 20-02-PLAN.md (migration applied and verified)
+Last session: 2026-03-21T09:17:13.055Z
+Stopped at: Completed 21-01-PLAN.md
 Resume file: None

@@ -104,7 +104,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 21-01-PLAN.md — Install @logto/react, create LogtoConfig + useAuth hook + Callback page, wrap App.tsx with LogtoProvider
+- [x] 21-01-PLAN.md — Install @logto/react, create LogtoConfig + useAuth hook + Callback page, wrap App.tsx with LogtoProvider
 - [ ] 21-02-PLAN.md — Install jose, create verifyLogtoJWT JWKS middleware, apply to all LangGraph server routes, replace body user_id with JWT sub
 
 ### Phase 22: API Server
@@ -198,7 +198,7 @@ Plans:
 | 18. Agent-to-UI Data Pipeline Fix | v2.0 | 4/4 | Complete | 2026-03-20 |
 | 19. Infrastructure Provisioning | v2.1 | 0/3 | Complete    | 2026-03-21 |
 | 20. Database Migration | v2.1 | 2/2 | Complete    | 2026-03-21 |
-| 21. Auth Wiring | v2.1 | 0/2 | Not started | - |
+| 21. Auth Wiring | v2.1 | 1/2 | In Progress|  |
 | 22. API Server | v2.1 | 0/5 | Not started | - |
 | 23. Scheduling Migration | v2.1 | 0/3 | Not started | - |
 | 24. Frontend Migration | v2.1 | 0/3 | Not started | - |
