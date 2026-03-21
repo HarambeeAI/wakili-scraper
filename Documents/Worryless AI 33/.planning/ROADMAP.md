@@ -51,7 +51,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md` for full details.
 - [x] **Phase 19: Infrastructure Provisioning** - Railway Postgres, Redis, Logto, and private networking live (completed 2026-03-21)
 - [x] **Phase 20: Database Migration** - All 20+ sanitized migrations applied to Railway Postgres (completed 2026-03-21)
 - [x] **Phase 21: Auth Wiring** - Logto issuing JWTs, JWT middleware on API and LangGraph servers (completed 2026-03-21)
-- [ ] **Phase 22: API Server** - 17 Express routes replacing all Supabase Edge Functions
+- [x] **Phase 22: API Server** - 17 Express routes replacing all Supabase Edge Functions (completed 2026-03-21)
 - [ ] **Phase 23: Scheduling Migration** - BullMQ + node-cron replacing pg_cron + pgmq in LangGraph server
 - [ ] **Phase 24: Frontend Migration** - Supabase client removed, Logto auth + Railway API wired in
 - [ ] **Phase 25: Production Cutover** - Domains assigned, env vars finalized, smoke test passes
@@ -121,7 +121,7 @@ Plans:
 
 Plans:
 - [x] 22-01-PLAN.md — Scaffold Express API server with CORS, JSON, Logto JWT middleware, pg pool, Gemini clients, shared utilities, Dockerfile, railway.toml, vitest config + test scaffolds
-- [ ] 22-02-PLAN.md — Implement core agent routes (chat-with-agent, orchestrator, spawn-agent-team, langgraph-proxy SSE)
+- [x] 22-02-PLAN.md — Implement core agent routes (chat-with-agent, orchestrator, spawn-agent-team, langgraph-proxy SSE)
 - [x] 22-03-PLAN.md — Implement content + image generation routes (generate-content, generate-image, generate-invoice-image) with Gemini Imagen 3
 - [x] 22-04-PLAN.md — Implement business data routes (crawl-business-website, parse-datasheet, generate-leads, generate-outreach, planning-agent, sync-gmail-calendar)
 - [x] 22-05-PLAN.md — Implement utility routes (send-validation-email, send-test-email) + web-push VAPID notifications, verify full build
@@ -199,7 +199,7 @@ Plans:
 | 19. Infrastructure Provisioning | v2.1 | 0/3 | Complete    | 2026-03-21 |
 | 20. Database Migration | v2.1 | 2/2 | Complete    | 2026-03-21 |
 | 21. Auth Wiring | v2.1 | 2/2 | Complete    | 2026-03-21 |
-| 22. API Server | v2.1 | 4/5 | In Progress|  |
+| 22. API Server | v2.1 | 5/5 | Complete   | 2026-03-21 |
 | 23. Scheduling Migration | v2.1 | 0/3 | Not started | - |
 | 24. Frontend Migration | v2.1 | 0/3 | Not started | - |
 | 25. Production Cutover | v2.1 | 0/1 | Not started | - |

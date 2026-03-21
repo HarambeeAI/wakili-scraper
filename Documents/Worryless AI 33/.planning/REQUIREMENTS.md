@@ -36,9 +36,9 @@
 ### API Server — Edge Function Conversion (API)
 
 - [x] **API-01**: Express server with CORS, JSON parsing, and Logto auth middleware deployed as Railway service
-- [ ] **API-02**: `POST /api/chat-with-agent` route replacing `chat-with-agent` Edge Function
-- [ ] **API-03**: `POST /api/orchestrator` route replacing `orchestrator` Edge Function
-- [ ] **API-04**: `POST /api/spawn-agent-team` route replacing `spawn-agent-team` Edge Function
+- [x] **API-02**: `POST /api/chat-with-agent` route replacing `chat-with-agent` Edge Function
+- [x] **API-03**: `POST /api/orchestrator` route replacing `orchestrator` Edge Function
+- [x] **API-04**: `POST /api/spawn-agent-team` route replacing `spawn-agent-team` Edge Function
 - [x] **API-05**: `POST /api/generate-content` route replacing `generate-content` Edge Function
 - [x] **API-06**: `POST /api/generate-image` route replacing `generate-image` Edge Function (using Gemini Imagen 3)
 - [x] **API-07**: `POST /api/generate-invoice-image` route replacing `generate-invoice-image` Edge Function (using Gemini Imagen 3)
@@ -50,8 +50,8 @@
 - [x] **API-13**: `POST /api/sync-gmail-calendar` route replacing `sync-gmail-calendar` Edge Function
 - [x] **API-14**: `POST /api/send-validation-email` route replacing `send-validation-email` Edge Function
 - [x] **API-15**: `POST /api/send-test-email` route replacing `send-test-email` Edge Function
-- [ ] **API-16**: `POST /api/langgraph-proxy` route replacing `langgraph-proxy` Edge Function (SSE proxy with `X-Accel-Buffering: no`)
-- [ ] **API-17**: All LLM calls use direct Gemini API via OpenAI-compatible endpoint (`generativelanguage.googleapis.com/v1beta/openai/`) instead of Lovable AI Gateway
+- [x] **API-16**: `POST /api/langgraph-proxy` route replacing `langgraph-proxy` Edge Function (SSE proxy with `X-Accel-Buffering: no`)
+- [x] **API-17**: All LLM calls use direct Gemini API via OpenAI-compatible endpoint (`generativelanguage.googleapis.com/v1beta/openai/`) instead of Lovable AI Gateway
 
 ### Scheduling Migration (SCHED)
 
@@ -120,9 +120,9 @@
 | AUTH-05 | Phase 21 | Complete |
 | AUTH-06 | Phase 21 | Complete |
 | API-01 | Phase 22 | Complete |
-| API-02 | Phase 22 | Pending |
-| API-03 | Phase 22 | Pending |
-| API-04 | Phase 22 | Pending |
+| API-02 | Phase 22 | Complete |
+| API-03 | Phase 22 | Complete |
+| API-04 | Phase 22 | Complete |
 | API-05 | Phase 22 | Complete |
 | API-06 | Phase 22 | Complete |
 | API-07 | Phase 22 | Complete |
@@ -134,8 +134,8 @@
 | API-13 | Phase 22 | Complete |
 | API-14 | Phase 22 | Complete |
 | API-15 | Phase 22 | Complete |
-| API-16 | Phase 22 | Pending |
-| API-17 | Phase 22 | Pending |
+| API-16 | Phase 22 | Complete |
+| API-17 | Phase 22 | Complete |
 | SCHED-01 | Phase 23 | Pending |
 | SCHED-02 | Phase 23 | Pending |
 | SCHED-03 | Phase 23 | Pending |

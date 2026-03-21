@@ -4,12 +4,12 @@ milestone: v2.1
 milestone_name: Railway Deployment
 status: unknown
 stopped_at: Completed 22-05-PLAN.md (email routes, push subscriptions, full build verification)
-last_updated: "2026-03-21T10:03:00.560Z"
+last_updated: "2026-03-21T10:04:05.310Z"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -64,6 +64,8 @@ Key v2.1 decisions (see PROJECT.md Key Decisions table):
 - [Phase 22]: Used getGeminiOpenAI() lazy init pattern aligned with parallel agent refactor
 - [Phase 22]: Lazy SDK initialization via getter functions prevents test crashes from missing env vars
 - [Phase 22]: Push subscription uses DELETE+INSERT instead of ON CONFLICT UPSERT to avoid unique constraint dependency
+- [Phase 22]: Orchestrator uses direct geminiOpenAI calls instead of fetching separate edge functions
+- [Phase 22]: langgraphProxy uses app.use() for sub-path routing (Express 5 path-to-regexp v8 rejects /* wildcards)
 
 ### Pending Todos
 
