@@ -39,19 +39,16 @@ export default function Sidebar({
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [search, setSearch] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchThreads = useCallback(
-    async (query = "") => {
-      try {
-        const data = await listThreads(query);
-        setThreads(data.threads);
-      } catch {
-        // Silently fail — user may not be authed yet
-      }
-    },
-    [],
-  );
+  const fetchThreads = useCallback(async (query = "") => {
+    try {
+      const data = await listThreads(query);
+      setThreads(data.threads);
+    } catch {
+      // Silently fail — user may not be authed yet
+    }
+  }, []);
 
   // Initial load + refresh when new messages are sent
   useEffect(() => {
@@ -103,8 +100,7 @@ export default function Sidebar({
         .slice(0, 2)
     : "?";
 
-  const planLabel =
-    user?.plan === "team" ? "Team Plan" : "Professional";
+  const planLabel = user?.plan === "team" ? "Team Plan" : "Professional";
 
   return (
     <aside
