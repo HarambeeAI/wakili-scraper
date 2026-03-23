@@ -32,14 +32,17 @@ export interface ChatRequest {
   message: string;
   thread_id?: string;
   web_enabled?: boolean;
+  deep_research?: boolean;
   jurisdiction_filter?: string[];
 }
 
 export interface StreamEvent {
-  type: "token" | "citations" | "done";
+  type: "token" | "citations" | "status" | "done";
   content?: string;
   citations?: Citation[];
   thread_id?: string;
+  phase?: string;
+  message?: string;
 }
 
 export interface ExportResponse {

@@ -21,6 +21,7 @@ from app.database import get_db
 from app.models import CitationRecord, Message, Thread, User
 from app.agent.state import ChatRequest, ExportRequest, ExportResponse
 from app.agent.legal_agent import invoke_agent, stream_agent, get_agent
+from app.agent.deep_agent import stream_deep_agent
 from app.agent.tools.documents import (
     _generate_pdf,
     _generate_docx,
@@ -87,11 +88,21 @@ async def chat(
         full_content = ""
         all_citations = []
 
-        async for event in stream_agent(
-            message=request.message,
-            thread_id=thread_id,
-            web_enabled=request.web_enabled,
-        ):
+        # Choose agent based on deep_research flag
+        if request.deep_research:
+            agent_stream = stream_deep_agent(
+                message=request.message,
+                thread_id=thread_id,
+                web_enabled=request.web_enabled,
+            )
+        else:
+            agent_stream = stream_agent(
+                message=request.message,
+                thread_id=thread_id,
+                web_enabled=request.web_enabled,
+            )
+
+        async for event in agent_stream:
             if event["type"] == "token":
                 full_content += event.get("content", "")
             elif event["type"] == "citations":

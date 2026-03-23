@@ -25,6 +25,8 @@ export function useChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [threadId, setThreadId] = useState("");
   const [webEnabled, setWebEnabled] = useState(false);
+  const [deepResearch, setDeepResearch] = useState(false);
+  const [researchPhase, setResearchPhase] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
   const sendMessage = useCallback(
@@ -35,6 +37,7 @@ export function useChat() {
       const userMsg: Message = { id: nextId(), role: "user", content: text };
       setMessages((prev) => [...prev, userMsg]);
       setIsStreaming(true);
+      setResearchPhase("");
 
       // Prepare streaming assistant message
       const assistantId = nextId();
@@ -53,6 +56,7 @@ export function useChat() {
             message: text,
             thread_id: threadId || undefined,
             web_enabled: webEnabled,
+            deep_research: deepResearch,
           },
           (event: StreamEvent) => {
             if (event.type === "token" && event.content) {
@@ -65,9 +69,11 @@ export function useChat() {
               );
             } else if (event.type === "citations" && event.citations) {
               accumulatedCitations.push(...event.citations);
+            } else if (event.type === "status" && event.phase) {
+              setResearchPhase(event.message || event.phase);
             } else if (event.type === "done") {
               if (event.thread_id) setThreadId(event.thread_id);
-              // Attach all citations to the assistant message
+              setResearchPhase("");
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantId
@@ -96,20 +102,23 @@ export function useChat() {
         }
       } finally {
         setIsStreaming(false);
+        setResearchPhase("");
         abortRef.current = null;
       }
     },
-    [isStreaming, threadId, webEnabled],
+    [isStreaming, threadId, webEnabled, deepResearch],
   );
 
   const stopStreaming = useCallback(() => {
     abortRef.current?.abort();
     setIsStreaming(false);
+    setResearchPhase("");
   }, []);
 
   const newThread = useCallback(() => {
     setMessages([]);
     setThreadId("");
+    setResearchPhase("");
     msgIdCounter = 0;
   }, []);
 
@@ -120,7 +129,12 @@ export function useChat() {
       msgIdCounter = 0;
 
       const loaded: Message[] = (data.messages || []).map(
-        (m: { id?: string; role: string; content: string; citations?: Citation[] }) => ({
+        (m: {
+          id?: string;
+          role: string;
+          content: string;
+          citations?: Citation[];
+        }) => ({
           id: m.id || nextId(),
           role: m.role as "user" | "assistant",
           content: m.content,
@@ -138,16 +152,24 @@ export function useChat() {
     setWebEnabled((prev) => !prev);
   }, []);
 
+  const toggleDeep = useCallback(() => {
+    setDeepResearch((prev) => !prev);
+  }, []);
+
   return {
     messages,
     isStreaming,
     threadId,
     webEnabled,
+    deepResearch,
+    researchPhase,
     sendMessage,
     stopStreaming,
     newThread,
     loadThread,
     toggleWeb,
+    toggleDeep,
     setWebEnabled,
+    setDeepResearch,
   };
 }

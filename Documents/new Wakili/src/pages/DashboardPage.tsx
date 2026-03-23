@@ -23,10 +23,13 @@ export default function DashboardPage() {
     isStreaming,
     threadId,
     webEnabled,
+    deepResearch,
+    researchPhase,
     sendMessage,
     newThread,
     loadThread,
     toggleWeb,
+    toggleDeep,
   } = useChat();
 
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(
@@ -87,6 +90,11 @@ export default function DashboardPage() {
             {webEnabled && (
               <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-warning/10 text-warning ring-1 ring-warning/20">
                 Web Enabled
+              </span>
+            )}
+            {deepResearch && (
+              <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-gold/10 text-gold ring-1 ring-gold/20">
+                Deep Research
               </span>
             )}
           </div>
@@ -213,12 +221,24 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Deep research phase indicator */}
+        {isStreaming && researchPhase && (
+          <div className="flex items-center justify-center gap-2 py-2 bg-gold/5 border-t border-gold/10">
+            <div className="w-2 h-2 rounded-full bg-gold animate-pulse" />
+            <span className="text-xs text-gold font-medium">
+              {researchPhase}
+            </span>
+          </div>
+        )}
+
         {/* Input */}
         <ChatInput
           onSend={sendMessage}
           disabled={isStreaming}
           webEnabled={webEnabled}
           onToggleWeb={toggleWeb}
+          deepResearch={deepResearch}
+          onToggleDeep={toggleDeep}
         />
       </div>
 
