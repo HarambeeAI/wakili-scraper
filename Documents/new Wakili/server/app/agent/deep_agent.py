@@ -80,7 +80,7 @@ Respond with ONLY a JSON array of strings, each being one research step. Example
  "Find leading Court of Appeal cases on unfair dismissal in the last 5 years",
  "Check if any of the found cases have been overruled or distinguished"]
 
-Keep it to 3-6 steps. Be specific to the legal question asked."""
+Keep it to 3-4 steps maximum. Be specific to the legal question asked."""
 
 SYNTHESIZER_PROMPT = """You are Lawlyfy AI, an expert legal research assistant performing deep research.
 
@@ -472,7 +472,7 @@ async def stream_deep_agent(
     if not thread_id:
         thread_id = uuid.uuid4().hex
 
-    config = {"configurable": {"thread_id": thread_id}}
+    config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 100}
 
     accumulated_citations: list[dict] = []
     current_phase = "planning"
