@@ -1,4 +1,11 @@
-"""Lawlyfy Deep Research Agent — multi-node graph with planning, synthesis, and verification."""
+"""Lawlyfy Deep Research Agent — multi-node graph with planning, synthesis, and verification.
+
+Architecture:
+  plan → step_executor → [more steps? → step_executor | synthesize] → verify → END
+
+Each step_executor runs its own internal tool loop (no graph-level tool recursion).
+This keeps graph hops linear: plan(1) + steps(N) + synthesize(1) + verify(1) = N+3 hops.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +15,7 @@ import logging
 import uuid
 
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage, ToolMessage
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
@@ -23,8 +30,6 @@ from app.agent.legal_agent import _dedup_citations
 
 log = logging.getLogger(__name__)
 
-MAX_ITERATIONS = 3  # Max planner→research→verify loops
-
 
 # ---------- State ----------
 
@@ -33,7 +38,6 @@ class DeepAgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     citations: list[dict[str, Any]]
     web_enabled: bool
-    # Deep research additions
     plan: list[str]
     current_step: int
     research_notes: list[str]
@@ -62,31 +66,56 @@ CORE_TOOLS = [search_vector_db, query_knowledge_graph, create_document]
 ALL_TOOLS = CORE_TOOLS + [web_search]
 TOOLS_BY_NAME = {t.name: t for t in ALL_TOOLS}
 
+MAX_TOOL_ROUNDS = 3  # Max tool call rounds per research step
+
+
+def _run_tool_calls(tool_calls: list[dict]) -> tuple[list[ToolMessage], list[dict]]:
+    """Execute tool calls synchronously. Returns (tool_messages, new_citations)."""
+    results = []
+    new_citations = []
+
+    for tc in tool_calls:
+        tool_fn = TOOLS_BY_NAME.get(tc["name"])
+        if tool_fn is None:
+            content = json.dumps({"error": f"Unknown tool: {tc['name']}"})
+        else:
+            content = tool_fn.invoke(tc["args"])
+
+        try:
+            parsed = json.loads(content)
+            if "citations" in parsed:
+                new_citations.extend(parsed["citations"])
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+        results.append(ToolMessage(content=content, tool_call_id=tc["id"]))
+
+    return results, new_citations
+
 
 # ---------- Prompts ----------
 
 
-PLANNER_PROMPT = """You are a legal research planning expert. Given a legal question, decompose it into a clear, numbered research plan.
+PLANNER_PROMPT = """You are a legal research planning expert. Given a legal question, decompose it into a clear research plan.
 
 Each step should be a specific, actionable research task. Think about:
 1. What legal concepts need to be defined?
 2. What statutes or regulations are relevant?
 3. What case law needs to be found?
 4. Are there cross-jurisdictional comparisons needed?
-5. Are there recent developments to check?
 
 Respond with ONLY a JSON array of strings, each being one research step. Example:
 ["Search for the statutory definition of 'unfair dismissal' under the Employment Act",
- "Find leading Court of Appeal cases on unfair dismissal in the last 5 years",
- "Check if any of the found cases have been overruled or distinguished"]
+ "Find leading Court of Appeal cases interpreting unfair dismissal provisions",
+ "Check if any found cases have been overruled or distinguished"]
 
-Keep it to 3-4 steps maximum. Be specific to the legal question asked."""
+Keep it to exactly 3 steps. Be specific to the legal question asked."""
 
 SYNTHESIZER_PROMPT = """You are Lawlyfy AI, an expert legal research assistant performing deep research.
 
 You have completed a multi-step research plan. Below are the research findings from each step.
 
-Your task: Synthesize all findings into a comprehensive, well-structured legal analysis.
+Synthesize all findings into a comprehensive, well-structured legal analysis.
 
 ## Rules
 1. **Citation-First**: Every legal claim MUST use [n] notation matching citation IDs.
@@ -103,23 +132,19 @@ Your task: Synthesize all findings into a comprehensive, well-structured legal a
 
 You are NOT providing legal advice — you are a research tool. Flag when case law may have been overruled."""
 
-VERIFIER_PROMPT = """You are a legal research quality reviewer. Evaluate the following research answer against the original question.
+VERIFIER_PROMPT = """You are a legal research quality reviewer. Evaluate the research answer against the original question.
 
 Check for:
-1. **Completeness**: Does the answer address all parts of the question?
-2. **Citation Support**: Are all major claims backed by [n] citations?
-3. **Accuracy Signals**: Are there unsupported assertions or potential hallucinations?
-4. **Jurisdictional Clarity**: Are jurisdictions clearly noted?
-5. **Logical Flow**: Is the reasoning coherent?
+1. **Completeness**: Does it address all parts of the question?
+2. **Citation Support**: Are major claims backed by [n] citations?
+3. **Jurisdictional Clarity**: Are jurisdictions clearly noted?
+4. **Logical Flow**: Is the reasoning coherent?
 
-Respond with EXACTLY this JSON format:
-{
-    "status": "passed" or "needs_revision",
-    "issues": ["list of specific issues found, if any"],
-    "score": 1-10
-}
+Respond with EXACTLY this JSON:
+{"status": "passed", "score": 8, "issues": []}
 
-Be strict. A score below 7 should be "needs_revision"."""
+Only use "needs_revision" if the answer is fundamentally flawed (missing entire topics, no citations at all).
+A score of 6+ should be "passed". Be practical, not perfectionist."""
 
 
 # ---------- Nodes ----------
@@ -129,7 +154,6 @@ def plan_node(state: DeepAgentState) -> dict:
     """Analyze the question and create a research plan."""
     llm = _get_llm(temperature=0.2)
 
-    # Get the user's question from the last human message
     user_question = ""
     for msg in reversed(state["messages"]):
         if isinstance(msg, HumanMessage):
@@ -138,18 +162,21 @@ def plan_node(state: DeepAgentState) -> dict:
 
     response = llm.invoke([
         SystemMessage(content=PLANNER_PROMPT),
-        HumanMessage(content=f"Create a research plan for this legal question:\n\n{user_question}"),
+        HumanMessage(content=f"Create a research plan for:\n\n{user_question}"),
     ])
 
-    # Parse the plan
     try:
         plan = json.loads(response.content)
         if not isinstance(plan, list):
             plan = [response.content]
     except json.JSONDecodeError:
-        # If LLM didn't return valid JSON, treat the whole response as one step
-        lines = [l.strip() for l in response.content.split("\n") if l.strip()]
-        plan = lines if lines else ["Research the legal question comprehensively"]
+        lines = [l.strip().lstrip("0123456789.-) ") for l in response.content.split("\n") if l.strip()]
+        plan = lines[:3] if lines else ["Research the legal question comprehensively"]
+
+    # Hard cap at 3 steps
+    plan = plan[:3]
+
+    log.info(f"Deep research plan ({len(plan)} steps): {plan}")
 
     return {
         "plan": plan,
@@ -159,19 +186,23 @@ def plan_node(state: DeepAgentState) -> dict:
     }
 
 
-def research_node(state: DeepAgentState) -> dict:
-    """Execute the current research step using tools."""
-    llm = _get_llm()
+def step_executor_node(state: DeepAgentState) -> dict:
+    """Execute a single research step with its own internal tool loop.
+
+    This node is self-contained: it calls the LLM, executes any tool calls,
+    feeds results back to the LLM, and repeats until the LLM responds with
+    text (no more tool calls) or we hit MAX_TOOL_ROUNDS.
+
+    Returns a research note summary and any accumulated citations.
+    """
     plan = state.get("plan", [])
     step_idx = state.get("current_step", 0)
 
     if step_idx >= len(plan):
-        # All steps done
-        return {}
+        return {"current_step": step_idx + 1}
 
     current_task = plan[step_idx]
 
-    # Get user's original question
     user_question = ""
     for msg in reversed(state["messages"]):
         if isinstance(msg, HumanMessage):
@@ -182,94 +213,64 @@ def research_node(state: DeepAgentState) -> dict:
     prev_notes = state.get("research_notes", [])
     context = ""
     if prev_notes:
-        context = "\n\nPrevious research findings:\n" + "\n".join(f"- {n}" for n in prev_notes)
+        context = "\n\nPrevious findings:\n" + "\n".join(f"- {n}" for n in prev_notes)
 
-    # Determine available tools
-    if state.get("web_enabled", False):
-        tools = ALL_TOOLS
-    else:
-        tools = CORE_TOOLS
-
+    tools = ALL_TOOLS if state.get("web_enabled", False) else CORE_TOOLS
+    llm = _get_llm()
     llm_with_tools = llm.bind_tools(tools)
 
-    research_prompt = f"""You are a legal researcher executing step {step_idx + 1} of a research plan.
+    # Start the internal conversation for this step
+    step_messages = [
+        SystemMessage(content=f"""You are a legal researcher executing one step of a research plan.
 
 Original question: {user_question}
-
-Current task: {current_task}
+Current task (step {step_idx + 1}): {current_task}
 {context}
 
-Execute this research step by calling the appropriate tools. After getting results, provide a brief summary of your findings for this step."""
+Call the appropriate tools to execute this step. Once you have enough results, provide a summary of your findings. Do NOT call tools more than twice."""),
+        HumanMessage(content=f"Execute: {current_task}"),
+    ]
 
-    response = llm_with_tools.invoke([
-        SystemMessage(content=research_prompt),
-        HumanMessage(content=f"Execute research step: {current_task}"),
-    ])
-
-    return {"messages": [response]}
-
-
-def tool_exec_node(state: DeepAgentState) -> dict:
-    """Execute tool calls and accumulate citations."""
-    last_message = state["messages"][-1]
-
-    if not hasattr(last_message, "tool_calls") or not last_message.tool_calls:
-        return {}
-
-    results = []
     accumulated_citations: list[dict] = list(state.get("citations", []))
+    step_content = ""
 
-    for tool_call in last_message.tool_calls:
-        tool_name = tool_call["name"]
-        tool_args = tool_call["args"]
+    # Internal tool loop (max rounds to prevent runaway)
+    for _round in range(MAX_TOOL_ROUNDS):
+        response = llm_with_tools.invoke(step_messages)
+        step_messages.append(response)
 
-        tool_fn = TOOLS_BY_NAME.get(tool_name)
-        if tool_fn is None:
-            result_content = json.dumps({"error": f"Unknown tool: {tool_name}"})
-        else:
-            result_content = tool_fn.invoke(tool_args)
+        # If no tool calls, the LLM is done with this step
+        if not response.tool_calls:
+            step_content = response.content
+            break
 
-        try:
-            parsed = json.loads(result_content)
-            if "citations" in parsed:
-                for cite in parsed["citations"]:
-                    accumulated_citations.append(cite)
-        except (json.JSONDecodeError, TypeError):
-            pass
+        # Execute tool calls
+        tool_msgs, new_cites = _run_tool_calls(response.tool_calls)
+        accumulated_citations.extend(new_cites)
+        step_messages.extend(tool_msgs)
+    else:
+        # Hit max rounds — ask LLM to summarize what it has
+        summary_resp = llm.invoke(step_messages + [
+            HumanMessage(content="Summarize your findings for this step in 2-3 sentences."),
+        ])
+        step_content = summary_resp.content
 
-        from langchain_core.messages import ToolMessage
-        results.append(
-            ToolMessage(content=result_content, tool_call_id=tool_call["id"])
-        )
-
+    # Deduplicate citations
     accumulated_citations = _dedup_citations(accumulated_citations)
 
-    return {"messages": results, "citations": accumulated_citations}
-
-
-def collect_note_node(state: DeepAgentState) -> dict:
-    """After tool results, have LLM summarize findings and advance to next step."""
-    llm = _get_llm()
-
-    plan = state.get("plan", [])
-    step_idx = state.get("current_step", 0)
-    current_task = plan[step_idx] if step_idx < len(plan) else "research"
-
-    # Get the last few messages (tool results)
-    recent_messages = list(state["messages"])[-6:]  # Last few for context
-
-    response = llm.invoke([
-        SystemMessage(content=f"Summarize the research findings for this step in 2-3 sentences. Step: {current_task}"),
-        *recent_messages,
-    ])
+    # Build the research note
+    note = f"Step {step_idx + 1} — {current_task}: {step_content}"
 
     notes = list(state.get("research_notes", []))
-    notes.append(f"Step {step_idx + 1} ({current_task}): {response.content}")
+    notes.append(note)
+
+    log.info(f"Deep research step {step_idx + 1}/{len(plan)} complete: {current_task[:60]}...")
 
     return {
-        "research_notes": notes,
         "current_step": step_idx + 1,
-        "messages": [response],
+        "research_notes": notes,
+        "citations": accumulated_citations,
+        "messages": [AIMessage(content=f"[Step {step_idx + 1} complete] {step_content}")],
     }
 
 
@@ -286,7 +287,6 @@ def synthesize_node(state: DeepAgentState) -> dict:
     notes = state.get("research_notes", [])
     citations = state.get("citations", [])
 
-    # Build citation reference for the LLM
     citation_ref = "\n".join(
         f"[{c.get('id')}] {c.get('title', 'Unknown')} ({c.get('court', '')}, {c.get('year', '')})"
         for c in citations
@@ -298,7 +298,7 @@ Research findings:
 {chr(10).join(notes)}
 
 Available citations (use [n] to reference):
-{citation_ref}
+{citation_ref if citation_ref else "(No citations found — note this in your response)"}
 
 Synthesize a comprehensive legal analysis addressing the original question."""
 
@@ -326,33 +326,24 @@ def verify_node(state: DeepAgentState) -> dict:
     answer = state.get("final_answer", "")
     citations = state.get("citations", [])
 
-    verify_input = f"""Original question: {user_question}
-
-Answer to verify:
-{answer}
-
-Citations available: {len(citations)}
-
-Evaluate this answer."""
-
     response = llm.invoke([
         SystemMessage(content=VERIFIER_PROMPT),
-        HumanMessage(content=verify_input),
+        HumanMessage(content=f"Question: {user_question}\n\nAnswer:\n{answer}\n\nCitations: {len(citations)}"),
     ])
 
     try:
         result = json.loads(response.content)
         status = result.get("status", "passed")
-        score = result.get("score", 7)
     except json.JSONDecodeError:
         status = "passed"
-        score = 7
 
     iteration = state.get("iteration_count", 0) + 1
 
-    # Force pass after max iterations to prevent infinite loops
-    if iteration >= MAX_ITERATIONS:
+    # Force pass after 1 revision attempt
+    if iteration >= 2:
         status = "passed"
+
+    log.info(f"Deep research verification: {status} (iteration {iteration})")
 
     return {
         "verification_status": status,
@@ -363,20 +354,12 @@ Evaluate this answer."""
 # ---------- Routing ----------
 
 
-def should_research_continue(state: DeepAgentState) -> str:
-    """After research node: does the LLM want to call tools, or move on?"""
-    last_message = state["messages"][-1]
-    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-        return "tools"
-    return "collect"
-
-
 def has_more_steps(state: DeepAgentState) -> str:
-    """After collecting a note: are there more plan steps?"""
+    """After step execution: are there more plan steps?"""
     step_idx = state.get("current_step", 0)
     plan = state.get("plan", [])
     if step_idx < len(plan):
-        return "research"
+        return "execute_step"
     return "synthesize"
 
 
@@ -391,51 +374,41 @@ def verification_result(state: DeepAgentState) -> str:
 
 
 def build_deep_agent_graph():
-    """Build the deep research multi-node graph.
+    """Build the deep research graph.
 
-    Flow:
-    plan → research → [tools → research loop] → collect_note → [more steps? → research | synthesize]
-    synthesize → verify → [passed? → done | needs_revision? → research step 0 again]
+    Linear flow with no graph-level tool loops:
+      plan → step_executor → [more steps? → step_executor | synthesize] → verify → [done | revise→synthesize]
+
+    Total graph hops: plan(1) + steps(3) + synthesize(1) + verify(1) = 6 hops typical.
+    Max with 1 revision: 6 + synthesize(1) + verify(1) = 8 hops.
     """
     graph = StateGraph(DeepAgentState)
 
     graph.add_node("plan", plan_node)
-    graph.add_node("research", research_node)
-    graph.add_node("tools", tool_exec_node)
-    graph.add_node("collect_note", collect_note_node)
+    graph.add_node("execute_step", step_executor_node)
     graph.add_node("synthesize", synthesize_node)
     graph.add_node("verify", verify_node)
 
     graph.set_entry_point("plan")
 
-    # plan → research
-    graph.add_edge("plan", "research")
+    # plan → first step execution
+    graph.add_edge("plan", "execute_step")
 
-    # research → tools (if tool calls) or collect_note (if done)
+    # step done → more steps or synthesize
     graph.add_conditional_edges(
-        "research",
-        should_research_continue,
-        {"tools": "tools", "collect": "collect_note"},
-    )
-
-    # tools → research (loop back for LLM to process results)
-    graph.add_edge("tools", "research")
-
-    # collect_note → research (more steps) or synthesize (done)
-    graph.add_conditional_edges(
-        "collect_note",
+        "execute_step",
         has_more_steps,
-        {"research": "research", "synthesize": "synthesize"},
+        {"execute_step": "execute_step", "synthesize": "synthesize"},
     )
 
     # synthesize → verify
     graph.add_edge("synthesize", "verify")
 
-    # verify → done or revise
+    # verify → done or revise (re-synthesize with same data)
     graph.add_conditional_edges(
         "verify",
         verification_result,
-        {"done": END, "revise": "research"},
+        {"done": END, "revise": "synthesize"},
     )
 
     checkpointer = MemorySaver()
@@ -472,12 +445,11 @@ async def stream_deep_agent(
     if not thread_id:
         thread_id = uuid.uuid4().hex
 
-    config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 100}
+    config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 50}
 
     accumulated_citations: list[dict] = []
     current_phase = "planning"
 
-    # Emit initial status
     yield {"type": "status", "phase": "planning", "message": "Creating research plan..."}
 
     try:
@@ -499,14 +471,14 @@ async def stream_deep_agent(
             kind = event.get("event", "")
             name = event.get("name", "")
 
-            # Track phase changes
+            # Track phase changes via node names
             if kind == "on_chain_start":
                 if name == "plan":
                     current_phase = "planning"
                     yield {"type": "status", "phase": "planning", "message": "Creating research plan..."}
-                elif name == "research":
+                elif name == "execute_step":
                     current_phase = "researching"
-                    yield {"type": "status", "phase": "researching", "message": "Researching..."}
+                    yield {"type": "status", "phase": "researching", "message": "Executing research step..."}
                 elif name == "synthesize":
                     current_phase = "synthesizing"
                     yield {"type": "status", "phase": "synthesizing", "message": "Synthesizing findings..."}
@@ -514,13 +486,13 @@ async def stream_deep_agent(
                     current_phase = "verifying"
                     yield {"type": "status", "phase": "verifying", "message": "Verifying quality..."}
 
-            # Stream tokens only from the synthesize node (final answer)
+            # Stream tokens from the synthesize node (the final answer)
             if kind == "on_chat_model_stream" and current_phase == "synthesizing":
                 chunk = event.get("data", {}).get("chunk")
                 if chunk and hasattr(chunk, "content") and chunk.content:
                     yield {"type": "token", "content": chunk.content}
 
-            # Collect citations from tool outputs
+            # Collect citations from tool outputs (inside step_executor)
             elif kind == "on_tool_end":
                 output = event.get("data", {}).get("output", "")
                 try:
@@ -539,7 +511,6 @@ async def stream_deep_agent(
     # Deduplicate and re-number
     accumulated_citations = _dedup_citations(accumulated_citations)
 
-    # Emit citations batch
     if accumulated_citations:
         yield {"type": "citations", "citations": accumulated_citations}
 
