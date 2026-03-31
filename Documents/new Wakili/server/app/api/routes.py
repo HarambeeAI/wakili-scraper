@@ -206,9 +206,11 @@ async def chat(
             use_type = "draft" if is_drafting else "chat"
             trial_block = _check_subscription(user, is_drafting=is_drafting)
             if trial_block:
+                # Rename "type" to "usage_type" to avoid collision with SSE event type
+                block_data = {**trial_block, "usage_type": trial_block.get("type", ""), "type": "trial_limit"}
                 yield {
                     "event": "trial_limit",
-                    "data": json.dumps(trial_block),
+                    "data": json.dumps(block_data),
                 }
                 return
 

@@ -45,7 +45,8 @@ class Settings:
     PAYSTACK_PUBLIC_KEY: str = os.getenv("PAYSTACK_PUBLIC_KEY", "")
     PAYSTACK_BASE_URL: str = "https://api.paystack.co"
 
-    # CaseMark skill cache
+    # CaseMark MCP
+    CASEMARK_API_KEY: str = os.getenv("CASEMARK_API_KEY", "")
     SKILL_CACHE_DIR: str = os.getenv("SKILL_CACHE_DIR", "/tmp/lawlyfy-skill-cache")
     SKILL_CACHE_TTL_HOURS: int = int(os.getenv("SKILL_CACHE_TTL_HOURS", "168"))  # 7 days
 

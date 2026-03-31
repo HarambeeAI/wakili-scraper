@@ -319,7 +319,12 @@ def fetch_from_casemark_mcp(query: str) -> dict | None:
             },
         }
 
-        with httpx.Client(timeout=15) as client:
+        # Build headers — include API key if configured
+        mcp_headers = {"Content-Type": "application/json"}
+        if settings.CASEMARK_API_KEY:
+            mcp_headers["Authorization"] = f"Bearer {settings.CASEMARK_API_KEY}"
+
+        with httpx.Client(timeout=15, headers=mcp_headers) as client:
             res = client.post(CASEMARK_MCP_URL, json=resolve_payload)
             if res.status_code != 200:
                 log.warning(f"CaseMark MCP resolve failed: {res.status_code}")

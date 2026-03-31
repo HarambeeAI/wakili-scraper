@@ -390,7 +390,7 @@ export function useChat() {
               setSubscriptionBlock({
                 show: true,
                 error: "trial_limit_reached",
-                type: limitEvent.type === "draft" ? "draft" : "chat",
+                type: limitEvent.usage_type === "draft" ? "draft" : "chat",
                 message:
                   limitEvent.message || "You've reached your free trial limit.",
                 trialChatsRemaining: limitEvent.trial_chats_remaining,
