@@ -20,6 +20,11 @@ class Settings:
     NEO4J_USER: str = os.getenv("NEO4J_USER", "neo4j")
     NEO4J_PASSWORD: str = os.getenv("NEO4J_PASSWORD", "")
 
+    # Cohere Reranker
+    COHERE_API_KEY: str = os.getenv("COHERE_API_KEY", "")
+    RERANK_MODEL: str = os.getenv("RERANK_MODEL", "rerank-v3.5")
+    RERANK_CANDIDATE_MULTIPLIER: int = int(os.getenv("RERANK_CANDIDATE_MULTIPLIER", "3"))
+
     # Tavily (web search)
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY", "")
 
@@ -31,12 +36,18 @@ class Settings:
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))  # 7 days
 
-    # Email (for invites)
-    SMTP_HOST: str = os.getenv("SMTP_HOST", "")
-    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
-    SMTP_USER: str = os.getenv("SMTP_USER", "")
-    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-    SMTP_FROM: str = os.getenv("SMTP_FROM", "noreply@lawlyfy.ai")
+    # Email (Resend)
+    RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "Lawlyfy <Sure@lawlyfy.ai>")
+
+    # Paystack
+    PAYSTACK_SECRET_KEY: str = os.getenv("PAYSTACK_SECRET_KEY", "")
+    PAYSTACK_PUBLIC_KEY: str = os.getenv("PAYSTACK_PUBLIC_KEY", "")
+    PAYSTACK_BASE_URL: str = "https://api.paystack.co"
+
+    # CaseMark skill cache
+    SKILL_CACHE_DIR: str = os.getenv("SKILL_CACHE_DIR", "/tmp/lawlyfy-skill-cache")
+    SKILL_CACHE_TTL_HOURS: int = int(os.getenv("SKILL_CACHE_TTL_HOURS", "168"))  # 7 days
 
     # App
     APP_URL: str = os.getenv("APP_URL", "http://localhost:5173")
