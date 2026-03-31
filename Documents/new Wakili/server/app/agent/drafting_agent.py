@@ -264,8 +264,10 @@ For EACH section:
 Rules:
 - Check for placeholder brackets like [PARTY NAME] or [DATE] — these indicate "low" confidence for that topic
 - Prefix EVERY enrichment_prompt with "Co-Drafter:"
-- The enrichment_prompt should summarize: overall assessment, then the 2-3 weakest topics and what information would improve them
-- Maximum 3 sentences for the enrichment_prompt
+- Format the enrichment_prompt as structured bullet points, NOT prose:
+  Line 1: Overall assessment sentence
+  Then one bullet per weak topic: "• Topic Name — what's needed and why"
+  Example: "Co-Drafter: This section covers the core provisions but has gaps in two areas.\n• Valuation Mechanics — No methodology specified; ask client: FMV appraisal, formula-based, or third-party?\n• Non-Compete Duration — Current 3-year restriction may be unenforceable under Kenyan law; consider capping at 12 months."
 - For "high" confidence sections (all topics high), the enrichment_prompt should briefly confirm: "Co-Drafter: This section is well-grounded in the details you provided. No additional input needed."
 
 Respond with EXACTLY this JSON:
