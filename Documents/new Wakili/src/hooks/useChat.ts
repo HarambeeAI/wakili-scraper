@@ -531,6 +531,11 @@ export function useChat() {
                 last_edited_by?: string;
                 confidence?: string;
                 enrichment_prompt?: string;
+                topic_assessments?: {
+                  topic: string;
+                  confidence: string;
+                  note: string;
+                }[];
                 comment?: string;
               }) => ({
                 id: s.id,
@@ -544,6 +549,7 @@ export function useChat() {
                   | "low"
                   | undefined,
                 enrichment_prompt: s.enrichment_prompt,
+                topic_assessments: s.topic_assessments || [],
                 comment: s.comment,
               }),
             ),
