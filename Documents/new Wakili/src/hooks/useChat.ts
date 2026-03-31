@@ -15,6 +15,10 @@ import {
   type DocumentContext,
   type UploadedFile,
 } from "../lib/api";
+import {
+  type SubscriptionBlock,
+  EMPTY_BLOCK,
+} from "../components/dashboard/SubscriptionGate";
 
 export interface AttachedFileInfo {
   filename: string;
@@ -86,6 +90,8 @@ export function useChat() {
     version: 0,
     status: "intake",
   });
+  const [subscriptionBlock, setSubscriptionBlock] =
+    useState<SubscriptionBlock>(EMPTY_BLOCK);
   const abortRef = useRef<AbortController | null>(null);
   const planStepsRef = useRef<string[]>([]);
   const completedStepsRef = useRef<number>(0);
@@ -379,15 +385,19 @@ export function useChat() {
                 ),
               }));
             } else if (event.type === ("trial_limit" as any)) {
-              // Trial limit reached — show message to user
-              const limitMsg =
-                (event as any).message ||
-                "You've reached your free trial limit. Subscribe to continue.";
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId ? { ...m, content: limitMsg } : m,
-                ),
-              );
+              // Trial limit reached — show subscription gate modal
+              const limitEvent = event as any;
+              setSubscriptionBlock({
+                show: true,
+                error: "trial_limit_reached",
+                type: limitEvent.type === "draft" ? "draft" : "chat",
+                message:
+                  limitEvent.message || "You've reached your free trial limit.",
+                trialChatsRemaining: limitEvent.trial_chats_remaining,
+                trialDraftsRemaining: limitEvent.trial_drafts_remaining,
+              });
+              // Remove the empty assistant placeholder
+              setMessages((prev) => prev.filter((m) => m.id !== assistantId));
             } else if (event.type === ("trial_usage" as any)) {
               // Trial usage update — frontend can read updated counts from auth/me
               // No-op here; TrialBanner reads from auth context which gets refreshed
@@ -418,7 +428,31 @@ export function useChat() {
           abort.signal,
         );
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
+        if ((err as Error).name === "AbortError") {
+          // User cancelled — do nothing
+        } else if ((err as Error).message === "subscription_blocked") {
+          // HTTP 402 — subscription or trial block
+          const detail =
+            (err as Error & { detail?: Record<string, unknown> }).detail || {};
+          setSubscriptionBlock({
+            show: true,
+            error:
+              (detail.error as SubscriptionBlock["error"]) ||
+              "subscription_inactive",
+            type: (detail.type as "chat" | "draft") || undefined,
+            message:
+              (detail.message as string) ||
+              "Your subscription is inactive. Please subscribe to continue.",
+            trialChatsRemaining: detail.trial_chats_remaining as
+              | number
+              | undefined,
+            trialDraftsRemaining: detail.trial_drafts_remaining as
+              | number
+              | undefined,
+          });
+          // Remove the empty assistant placeholder
+          setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        } else {
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
@@ -618,5 +652,10 @@ export function useChat() {
     clearAttachments,
     setWebEnabled,
     setDeepResearch,
+    subscriptionBlock,
+    dismissSubscriptionBlock: useCallback(
+      () => setSubscriptionBlock(EMPTY_BLOCK),
+      [],
+    ),
   };
 }
