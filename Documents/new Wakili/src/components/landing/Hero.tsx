@@ -104,7 +104,13 @@ export default function Hero() {
             }}
           >
             {/* Main headline */}
-            <div style={{ overflow: "hidden", margin: "0 0 24px" }}>
+            <div
+              style={{
+                overflow: "hidden",
+                margin: "0 0 24px",
+                minHeight: m ? "11rem" : undefined,
+              }}
+            >
               <h1
                 style={{
                   fontFamily: "'Instrument Serif', Georgia, serif",
