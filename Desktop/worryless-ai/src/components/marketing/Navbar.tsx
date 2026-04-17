@@ -61,13 +61,13 @@ export default function Navbar() {
         {/* Right side */}
         <div className="hidden md:flex items-center gap-3">
           <a
-            href="#"
+            href="/login"
             className="text-[14px] font-medium text-muted-dark hover:text-dark transition-colors duration-250"
           >
             Login
           </a>
           <a
-            href="#cta"
+            href="/signup"
             className="btn-primary text-white text-[14px] font-medium px-5 py-2 rounded-full no-underline inline-block"
           >
             Get Started
@@ -136,11 +136,11 @@ export default function Navbar() {
             Blog
           </a>
           <hr className="border-border" />
-          <a href="#" className="text-[15px] text-dark py-2">
+          <a href="/login" className="text-[15px] text-dark py-2">
             Login
           </a>
           <a
-            href="#cta"
+            href="/signup"
             className="btn-primary text-white text-[15px] font-medium px-5 py-3 rounded-full text-center no-underline"
           >
             Get Started
