@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { organizations, agentRuns, brandFiles, chatMessages } from "@/lib/db/schema";
+import {
+  organizations,
+  agentRuns,
+  brandFiles,
+  chatMessages,
+} from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { createBrandDNAGraph } from "@/lib/agent/graph";
 
 // In-memory store for SSE connections per agent run
-const runEventEmitters = new Map<string, Array<(event: string, data: Record<string, unknown>) => void>>();
+const runEventEmitters = new Map<
+  string,
+  Array<(event: string, data: Record<string, unknown>) => void>
+>();
 
 export function getEventEmitters(runId: string) {
   return runEventEmitters.get(runId) || [];
 }
 
-export function registerListener(runId: string, listener: (event: string, data: Record<string, unknown>) => void) {
+export function registerListener(
+  runId: string,
+  listener: (event: string, data: Record<string, unknown>) => void,
+) {
   if (!runEventEmitters.has(runId)) {
     runEventEmitters.set(runId, []);
   }
@@ -74,7 +85,10 @@ export async function POST(req: NextRequest) {
       db.insert(chatMessages)
         .values({
           organizationId,
-          role: (data.role as string) || "system",
+          role: ((data.role as string) || "system") as
+            | "agent"
+            | "user"
+            | "system",
           content: (data.content as string) || (data.message as string) || "",
           type: event === "status" ? "status" : "text",
         })
@@ -85,7 +99,11 @@ export async function POST(req: NextRequest) {
       db.insert(brandFiles)
         .values({
           organizationId,
-          type: data.type as string,
+          type: data.type as
+            | "business_profile"
+            | "brand_guidelines"
+            | "market_research"
+            | "marketing_strategy",
           title: data.title as string,
           content: data.content as string,
           metadata: {},

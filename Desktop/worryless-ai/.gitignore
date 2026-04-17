@@ -7,12 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+node_modules/
 dist
 dist-ssr
 *.local
-.next
+.env.local
+.env
+.superpowers/
+.next/
 next-env.d.ts
+drizzle/meta/
 
 # Editor directories and files
 .vscode/*

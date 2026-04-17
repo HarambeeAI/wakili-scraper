@@ -16,13 +16,9 @@ export interface CrawlResult {
 }
 
 export async function scrapeWebsite(url: string): Promise<CrawlResult> {
-  const result = await firecrawl.scrapeUrl(url, {
+  const result = await firecrawl.scrape(url, {
     formats: ["markdown", "html", "screenshot"],
   });
-
-  if (!result.success) {
-    throw new Error(`Firecrawl scrape failed: ${result.error}`);
-  }
 
   return {
     content: result.markdown || "",
@@ -36,7 +32,10 @@ export async function scrapeWebsite(url: string): Promise<CrawlResult> {
   };
 }
 
-export function extractLogoFromHtml(html: string, baseUrl: string): string | null {
+export function extractLogoFromHtml(
+  html: string,
+  baseUrl: string,
+): string | null {
   const patterns = [
     /<link[^>]*rel=["'](?:icon|apple-touch-icon|shortcut icon)["'][^>]*href=["']([^"']+)["']/gi,
     /<(?:header|nav)[^>]*>[\s\S]*?<img[^>]*(?:class|alt|src)=["'][^"']*logo[^"']*["'][^>]*src=["']([^"']+)["']/gi,
