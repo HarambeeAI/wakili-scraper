@@ -31,15 +31,32 @@ export async function extractBrand(
   ];
 
   if (state.screenshots.length > 0) {
-    messageContent.push({
-      type: "image_url",
-      image_url: { url: `data:image/png;base64,${state.screenshots[0]}` },
-    });
+    try {
+      const screenshotData = state.screenshots[0];
+      // Handle both raw base64 and data URI formats
+      const imageUrl = screenshotData.startsWith("data:")
+        ? screenshotData
+        : `data:image/png;base64,${screenshotData}`;
+      messageContent.push({
+        type: "image_url",
+        image_url: { url: imageUrl },
+      });
+    } catch (e) {
+      console.error("Failed to attach screenshot, proceeding without:", e);
+    }
   }
 
-  const response = await llm.invoke([
-    new HumanMessage({ content: messageContent }),
-  ]);
+  let response;
+  try {
+    response = await llm.invoke([
+      new HumanMessage({ content: messageContent }),
+    ]);
+  } catch (e) {
+    // If multimodal fails (e.g. image format issue), retry without screenshot
+    console.error("LLM call with image failed, retrying text-only:", e);
+    const textOnly = messageContent.filter((m) => m.type === "text");
+    response = await llm.invoke([new HumanMessage({ content: textOnly })]);
+  }
 
   const brandGuidelines =
     typeof response.content === "string" ? response.content : "";
