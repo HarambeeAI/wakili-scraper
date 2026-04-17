@@ -9,7 +9,7 @@ export async function generateProfile(
 ): Promise<Partial<AgentStateType>> {
   const llm = new ChatOpenAI({
     modelName: "google/gemini-2.5-pro-preview",
-    openAIApiKey: process.env.OPENROUTER_API_KEY,
+    apiKey: process.env.OPENROUTER_API_KEY,
     configuration: {
       baseURL: "https://openrouter.ai/api/v1",
     },
@@ -22,13 +22,20 @@ export async function generateProfile(
   });
 
   const domain = new URL(state.websiteUrl).hostname;
-  const pressResults = await searchWeb(
-    `"${domain}" OR "${state.siteMetadata.title}" news coverage`,
-    5,
-  );
-  const pressContext = pressResults
-    .map((r) => `- ${r.title}: ${r.snippet}`)
-    .join("\n");
+  let pressContext = "No press coverage found";
+  try {
+    const companyName =
+      state.siteMetadata.title?.split(/[|\-–]/)[0]?.trim() || domain;
+    const pressResults = await searchWeb(
+      `${companyName} news coverage reviews`,
+      5,
+    );
+    pressContext =
+      pressResults.map((r) => `- ${r.title}: ${r.snippet}`).join("\n") ||
+      "No press coverage found";
+  } catch (e) {
+    console.error("Press search failed, continuing without:", e);
+  }
 
   const response = await llm.invoke([
     new HumanMessage({

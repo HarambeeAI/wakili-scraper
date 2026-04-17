@@ -40,19 +40,48 @@ export function registerListener(
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { organizationId, websiteUrl, selectedServices } = body;
+  const { websiteUrl, selectedServices } = body;
 
-  // Update organization with onboarding data
-  const [org] = await db
-    .update(organizations)
-    .set({
-      websiteUrl,
-      selectedServices,
-      onboardingCompleted: true,
-      updatedAt: new Date(),
-    })
-    .where(eq(organizations.id, organizationId))
-    .returning();
+  // Derive org name and slug from the website URL
+  const domain = new URL(websiteUrl).hostname.replace("www.", "");
+  const orgName = domain.split(".")[0];
+  const slug = orgName.toLowerCase().replace(/[^a-z0-9]/g, "-");
+
+  // Create or update organization
+  let org: typeof organizations.$inferSelect;
+  const existing = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.slug, slug))
+    .limit(1);
+
+  if (existing.length > 0) {
+    const [updated] = await db
+      .update(organizations)
+      .set({
+        websiteUrl,
+        selectedServices,
+        onboardingCompleted: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(organizations.id, existing[0].id))
+      .returning();
+    org = updated;
+  } else {
+    const [created] = await db
+      .insert(organizations)
+      .values({
+        name: orgName.charAt(0).toUpperCase() + orgName.slice(1),
+        slug,
+        websiteUrl,
+        selectedServices,
+        onboardingCompleted: true,
+      })
+      .returning();
+    org = created;
+  }
+
+  const organizationId = org.id;
 
   // Create agent run
   const [run] = await db

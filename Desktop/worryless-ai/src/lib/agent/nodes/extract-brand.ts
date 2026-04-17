@@ -8,7 +8,7 @@ export async function extractBrand(
 ): Promise<Partial<AgentStateType>> {
   const llm = new ChatOpenAI({
     modelName: "google/gemini-2.5-pro-preview",
-    openAIApiKey: process.env.OPENROUTER_API_KEY,
+    apiKey: process.env.OPENROUTER_API_KEY,
     configuration: {
       baseURL: "https://openrouter.ai/api/v1",
     },

@@ -9,7 +9,7 @@ export async function researchMarket(
 ): Promise<Partial<AgentStateType>> {
   const llm = new ChatOpenAI({
     modelName: "google/gemini-2.5-pro-preview",
-    openAIApiKey: process.env.OPENROUTER_API_KEY,
+    apiKey: process.env.OPENROUTER_API_KEY,
     configuration: {
       baseURL: "https://openrouter.ai/api/v1",
     },
@@ -28,23 +28,35 @@ export async function researchMarket(
   const queries = [
     `${companyName} industry market size 2025 2026`,
     `${companyName} competitors alternatives`,
-    `"${domain}" reviews OR customers OR users`,
+    `${domain} reviews customers users`,
     `${companyName} industry trends growth`,
   ];
 
-  const searchResults = await searchMultiple(queries);
+  let allResults: Record<
+    string,
+    { title: string; link: string; snippet: string; position: number }[]
+  > = {};
+  try {
+    const searchResults = await searchMultiple(queries);
+    allResults = { ...searchResults };
+  } catch (e) {
+    console.error("Market search failed, continuing with partial data:", e);
+  }
 
   state.emitEvent("status", {
     task: "research_market",
     message: "Researching keywords",
   });
 
-  const keywordQueries = [
-    `${companyName} type of product keyword search volume`,
-  ];
-  const keywordResults = await searchMultiple(keywordQueries);
-
-  const allResults = { ...searchResults, ...keywordResults };
+  try {
+    const keywordQueries = [
+      `${companyName} type of product keyword search volume`,
+    ];
+    const keywordResults = await searchMultiple(keywordQueries);
+    allResults = { ...allResults, ...keywordResults };
+  } catch (e) {
+    console.error("Keyword search failed, continuing:", e);
+  }
   const searchContext = Object.entries(allResults)
     .map(([query, results]) => {
       const formatted = results
