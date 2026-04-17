@@ -3,16 +3,18 @@ import { HumanMessage } from "@langchain/core/messages";
 import type { AgentStateType } from "../state";
 import { BRAND_GUIDELINES_PROMPT } from "../prompts/brand-guidelines";
 
-const llm = new ChatOpenAI({
-  modelName: "google/gemini-2.5-pro-preview",
-  openAIApiKey: process.env.OPENROUTER_API_KEY,
-  configuration: {
-    baseURL: "https://openrouter.ai/api/v1",
-  },
-  temperature: 0.3,
-});
+export async function extractBrand(
+  state: AgentStateType,
+): Promise<Partial<AgentStateType>> {
+  const llm = new ChatOpenAI({
+    modelName: "google/gemini-2.5-pro-preview",
+    openAIApiKey: process.env.OPENROUTER_API_KEY,
+    configuration: {
+      baseURL: "https://openrouter.ai/api/v1",
+    },
+    temperature: 0.3,
+  });
 
-export async function extractBrand(state: AgentStateType): Promise<Partial<AgentStateType>> {
   state.emitEvent("status", {
     task: "extract_brand",
     message: "Analyzing brand identity and visual design",
@@ -39,13 +41,13 @@ export async function extractBrand(state: AgentStateType): Promise<Partial<Agent
     new HumanMessage({ content: messageContent }),
   ]);
 
-  const brandGuidelines = typeof response.content === "string"
-    ? response.content
-    : "";
+  const brandGuidelines =
+    typeof response.content === "string" ? response.content : "";
 
   state.emitEvent("message", {
     role: "agent",
-    content: "Solid brand identity emerging. I've mapped out your colors, typography, and design language.",
+    content:
+      "Solid brand identity emerging. I've mapped out your colors, typography, and design language.",
   });
 
   state.emitEvent("file_card", {

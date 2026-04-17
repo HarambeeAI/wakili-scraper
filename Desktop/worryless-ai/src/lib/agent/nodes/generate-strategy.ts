@@ -3,16 +3,18 @@ import { HumanMessage } from "@langchain/core/messages";
 import type { AgentStateType } from "../state";
 import { MARKETING_STRATEGY_PROMPT } from "../prompts/marketing-strategy";
 
-const llm = new ChatOpenAI({
-  modelName: "google/gemini-2.5-pro-preview",
-  openAIApiKey: process.env.OPENROUTER_API_KEY,
-  configuration: {
-    baseURL: "https://openrouter.ai/api/v1",
-  },
-  temperature: 0.6,
-});
+export async function generateStrategy(
+  state: AgentStateType,
+): Promise<Partial<AgentStateType>> {
+  const llm = new ChatOpenAI({
+    modelName: "google/gemini-2.5-pro-preview",
+    openAIApiKey: process.env.OPENROUTER_API_KEY,
+    configuration: {
+      baseURL: "https://openrouter.ai/api/v1",
+    },
+    temperature: 0.6,
+  });
 
-export async function generateStrategy(state: AgentStateType): Promise<Partial<AgentStateType>> {
   state.emitEvent("status", {
     task: "generate_strategy",
     message: "Crafting marketing strategy",
@@ -26,13 +28,13 @@ export async function generateStrategy(state: AgentStateType): Promise<Partial<A
     }),
   ]);
 
-  const marketingStrategy = typeof response.content === "string"
-    ? response.content
-    : "";
+  const marketingStrategy =
+    typeof response.content === "string" ? response.content : "";
 
   state.emitEvent("message", {
     role: "agent",
-    content: "Strategy locked in. I've tailored recommendations to your market position and competitive landscape. Let me pull everything together into the final files.",
+    content:
+      "Strategy locked in. I've tailored recommendations to your market position and competitive landscape. Let me pull everything together into the final files.",
   });
 
   state.emitEvent("file_card", {

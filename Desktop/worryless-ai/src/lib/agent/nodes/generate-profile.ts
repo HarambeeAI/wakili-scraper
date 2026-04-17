@@ -4,23 +4,28 @@ import type { AgentStateType } from "../state";
 import { BUSINESS_PROFILE_PROMPT } from "../prompts/business-profile";
 import { searchWeb } from "../tools/serper";
 
-const llm = new ChatOpenAI({
-  modelName: "google/gemini-2.5-pro-preview",
-  openAIApiKey: process.env.OPENROUTER_API_KEY,
-  configuration: {
-    baseURL: "https://openrouter.ai/api/v1",
-  },
-  temperature: 0.3,
-});
+export async function generateProfile(
+  state: AgentStateType,
+): Promise<Partial<AgentStateType>> {
+  const llm = new ChatOpenAI({
+    modelName: "google/gemini-2.5-pro-preview",
+    openAIApiKey: process.env.OPENROUTER_API_KEY,
+    configuration: {
+      baseURL: "https://openrouter.ai/api/v1",
+    },
+    temperature: 0.3,
+  });
 
-export async function generateProfile(state: AgentStateType): Promise<Partial<AgentStateType>> {
   state.emitEvent("status", {
     task: "generate_profile",
     message: "Building business profile",
   });
 
   const domain = new URL(state.websiteUrl).hostname;
-  const pressResults = await searchWeb(`"${domain}" OR "${state.siteMetadata.title}" news coverage`, 5);
+  const pressResults = await searchWeb(
+    `"${domain}" OR "${state.siteMetadata.title}" news coverage`,
+    5,
+  );
   const pressContext = pressResults
     .map((r) => `- ${r.title}: ${r.snippet}`)
     .join("\n");
@@ -31,13 +36,13 @@ export async function generateProfile(state: AgentStateType): Promise<Partial<Ag
     }),
   ]);
 
-  const businessProfile = typeof response.content === "string"
-    ? response.content
-    : "";
+  const businessProfile =
+    typeof response.content === "string" ? response.content : "";
 
   state.emitEvent("message", {
     role: "agent",
-    content: "Great picture forming already. I've mapped out the product, traction, and key value props.",
+    content:
+      "Great picture forming already. I've mapped out the product, traction, and key value props.",
   });
 
   state.emitEvent("file_card", {

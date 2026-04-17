@@ -4,23 +4,26 @@ import type { AgentStateType } from "../state";
 import { MARKET_RESEARCH_PROMPT } from "../prompts/market-research";
 import { searchMultiple } from "../tools/serper";
 
-const llm = new ChatOpenAI({
-  modelName: "google/gemini-2.5-pro-preview",
-  openAIApiKey: process.env.OPENROUTER_API_KEY,
-  configuration: {
-    baseURL: "https://openrouter.ai/api/v1",
-  },
-  temperature: 0.4,
-});
+export async function researchMarket(
+  state: AgentStateType,
+): Promise<Partial<AgentStateType>> {
+  const llm = new ChatOpenAI({
+    modelName: "google/gemini-2.5-pro-preview",
+    openAIApiKey: process.env.OPENROUTER_API_KEY,
+    configuration: {
+      baseURL: "https://openrouter.ai/api/v1",
+    },
+    temperature: 0.4,
+  });
 
-export async function researchMarket(state: AgentStateType): Promise<Partial<AgentStateType>> {
   state.emitEvent("status", {
     task: "research_market",
     message: "Searching the web",
   });
 
   const domain = new URL(state.websiteUrl).hostname;
-  const companyName = state.siteMetadata.title?.split(/[|\-–]/)[0]?.trim() || domain;
+  const companyName =
+    state.siteMetadata.title?.split(/[|\-–]/)[0]?.trim() || domain;
 
   const queries = [
     `${companyName} industry market size 2025 2026`,
@@ -58,13 +61,13 @@ export async function researchMarket(state: AgentStateType): Promise<Partial<Age
     }),
   ]);
 
-  const marketResearch = typeof response.content === "string"
-    ? response.content
-    : "";
+  const marketResearch =
+    typeof response.content === "string" ? response.content : "";
 
   state.emitEvent("message", {
     role: "agent",
-    content: "Big market signals found. I've mapped the competitive landscape, keyword opportunity, and target segments.",
+    content:
+      "Big market signals found. I've mapped the competitive landscape, keyword opportunity, and target segments.",
   });
 
   state.emitEvent("file_card", {
