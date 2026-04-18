@@ -34,7 +34,8 @@ export async function generateCalendar(
     },
   });
 
-  const { platforms, frequency, contentGoals, additionalContext } = state.wizardAnswers;
+  const { platforms, frequency, contentGoals, additionalContext } =
+    state.wizardAnswers;
 
   const userPrompt = CALENDAR_GENERATION_USER_PROMPT({
     businessProfile: state.businessProfile,
@@ -51,7 +52,10 @@ export async function generateCalendar(
       .join(". "),
   });
 
-  let calendarData: { contentPillars: string[]; posts: Array<Record<string, unknown>> };
+  let calendarData: {
+    contentPillars: string[];
+    posts: Array<Record<string, unknown>>;
+  };
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -60,11 +64,13 @@ export async function generateCalendar(
         { role: "user", content: userPrompt },
       ]);
 
-      const text = typeof response.content === "string"
-        ? response.content
-        : JSON.stringify(response.content);
+      const text =
+        typeof response.content === "string"
+          ? response.content
+          : JSON.stringify(response.content);
 
-      const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
+      const jsonMatch =
+        text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error("No JSON found in response");
 
       calendarData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
@@ -89,8 +95,20 @@ export async function generateCalendar(
   const postRecords = calendarData!.posts.map((post) => ({
     calendarId: calendar.id,
     organizationId: state.organizationId,
-    platform: post.platform as string,
-    contentFormat: post.contentFormat as string,
+    platform: post.platform as
+      | "instagram"
+      | "tiktok"
+      | "linkedin"
+      | "facebook"
+      | "x"
+      | "youtube",
+    contentFormat: post.contentFormat as
+      | "image_post"
+      | "carousel"
+      | "reel"
+      | "video"
+      | "story"
+      | "text_post",
     scheduledDate: post.scheduledDate as string,
     scheduledTime: post.scheduledTime as string,
     caption: post.caption as string,
@@ -115,7 +133,8 @@ export async function generateCalendar(
 
   return {
     calendarId: calendar.id,
-    calendarPosts: savedPosts as unknown as CalendarAgentStateType["calendarPosts"],
+    calendarPosts:
+      savedPosts as unknown as CalendarAgentStateType["calendarPosts"],
     contentPillars: calendarData!.contentPillars,
   };
 }

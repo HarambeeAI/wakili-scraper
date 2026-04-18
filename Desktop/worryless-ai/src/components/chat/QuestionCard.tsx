@@ -142,7 +142,7 @@ export default function QuestionCard({
                   const meta =
                     PLATFORM_META[opt.value as SocialPlatform] ?? null;
                   const selected = answers.platforms.includes(
-                    opt.value as SocialPlatform
+                    opt.value as SocialPlatform,
                   );
                   return (
                     <button
@@ -183,10 +183,7 @@ export default function QuestionCard({
                   {answers.platforms.map((platform) => {
                     const meta = PLATFORM_META[platform];
                     return (
-                      <div
-                        key={platform}
-                        className="flex items-center gap-3"
-                      >
+                      <div key={platform} className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 w-28 flex-shrink-0">
                           <span
                             className={`w-3 h-3 rounded-[3px] ${meta.bg}`}
@@ -236,7 +233,9 @@ export default function QuestionCard({
                 rows={3}
                 placeholder="Share any additional context..."
                 value={
-                  (answers as Record<string, unknown>)[q.id] as string ?? ""
+                  ((answers as unknown as Record<string, unknown>)[
+                    q.id
+                  ] as string) ?? ""
                 }
                 onChange={(e) =>
                   setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
