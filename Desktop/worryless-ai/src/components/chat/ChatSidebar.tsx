@@ -7,12 +7,14 @@ interface ChatSidebarProps {
   orgName: string;
   orgSlug: string;
   logoUrl: string | null;
+  activePage?: "chat" | "calendar";
 }
 
 export default function ChatSidebar({
   orgName,
   orgSlug,
   logoUrl,
+  activePage = "chat",
 }: ChatSidebarProps) {
   return (
     <div className="w-[248px] border-r border-border bg-white flex flex-col">
@@ -58,12 +60,21 @@ export default function ChatSidebar({
         <p className="text-[10px] uppercase font-semibold text-muted tracking-wider mb-2 px-1">
           Channels
         </p>
-        <a
-          href="#"
-          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] text-dark bg-light font-medium mb-1"
+        <Link
+          href={`/app/${orgSlug}/chat`}
+          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] mb-1 transition-colors ${
+            activePage === "chat"
+              ? "text-dark bg-light font-medium"
+              : "text-muted-dark hover:bg-light"
+          }`}
         >
-          <span className="text-muted-dark">#</span> main
-        </a>
+          <span
+            className={activePage === "chat" ? "text-muted-dark" : "text-muted"}
+          >
+            #
+          </span>{" "}
+          main
+        </Link>
         <a
           href="#"
           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-muted-dark hover:bg-light transition-colors"
@@ -72,9 +83,20 @@ export default function ChatSidebar({
         </a>
         <Link
           href={`/app/${orgSlug}/calendar`}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-muted-dark hover:bg-light transition-colors"
+          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-colors ${
+            activePage === "calendar"
+              ? "text-dark bg-light font-medium"
+              : "text-muted-dark hover:bg-light"
+          }`}
         >
-          <span className="text-muted">#</span> calendar
+          <span
+            className={
+              activePage === "calendar" ? "text-muted-dark" : "text-muted"
+            }
+          >
+            #
+          </span>{" "}
+          calendar
         </Link>
 
         <p className="text-[10px] uppercase font-semibold text-muted tracking-wider mt-6 mb-2 px-1">
