@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import AgentAvatar from "./AgentAvatar";
 
 interface ChatSidebarProps {
@@ -69,12 +70,12 @@ export default function ChatSidebar({
         >
           <span className="text-muted">#</span> performance
         </a>
-        <a
-          href="#"
+        <Link
+          href={`/app/${orgSlug}/calendar`}
           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-muted-dark hover:bg-light transition-colors"
         >
           <span className="text-muted">#</span> calendar
-        </a>
+        </Link>
 
         <p className="text-[10px] uppercase font-semibold text-muted tracking-wider mt-6 mb-2 px-1">
           Direct Messages
