@@ -80,7 +80,8 @@ Return a JSON object with this exact structure:
   ]
 }
 
-Generate posts for 4 full weeks starting from the next Monday. Use real dates.
+TODAY'S DATE IS: ${new Date().toISOString().split("T")[0]}
+Generate posts for 4 full weeks starting from the next Monday AFTER today's date. Use real dates in YYYY-MM-DD format.
 Each post MUST have a complete, publish-ready caption (not a placeholder).
 Include the correct number of posts per platform per week matching the user's frequency.
 mediaDescription should be vivid enough to generate a compelling image or video from.`;
