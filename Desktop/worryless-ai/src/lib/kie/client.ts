@@ -8,15 +8,16 @@ interface KieTaskResponse {
 }
 
 export class KieClient {
-  private apiKey: string;
-
-  constructor() {
+  private get apiKey(): string {
     const key = process.env.KIE_API_KEY;
     if (!key) throw new Error("KIE_API_KEY not set");
-    this.apiKey = key;
+    return key;
   }
 
-  async request(endpoint: string, body: Record<string, unknown>): Promise<KieTaskResponse> {
+  async request(
+    endpoint: string,
+    body: Record<string, unknown>,
+  ): Promise<KieTaskResponse> {
     const res = await fetch(`${KIE_BASE_URL}${endpoint}`, {
       method: "POST",
       headers: {
