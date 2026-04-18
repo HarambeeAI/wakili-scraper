@@ -107,7 +107,13 @@ export async function POST(req: NextRequest) {
 
   const emitEvent = (event: string, data: Record<string, unknown>) => {
     const listeners = getEventEmitters(run.id);
-    listeners.forEach((listener) => listener(event, data));
+    listeners.forEach((listener) => {
+      try {
+        listener(event, data);
+      } catch {
+        // SSE connection may have closed — don't crash the agent
+      }
+    });
 
     // Persist chat messages to DB
     if (event === "message" || event === "status") {
@@ -161,11 +167,13 @@ export async function POST(req: NextRequest) {
       organizationId,
       emitEvent,
     })
-    .then(() => {
+    .then(async () => {
       db.update(agentRuns)
         .set({ status: "completed", completedAt: new Date() })
         .where(eq(agentRuns.id, run.id))
         .catch(console.error);
+      // Delay complete event so the client can process start_calendar_wizard first
+      await new Promise((r) => setTimeout(r, 2000));
       emitEvent("complete", { status: "completed", filesGenerated: 4 });
     })
     .catch((error) => {
