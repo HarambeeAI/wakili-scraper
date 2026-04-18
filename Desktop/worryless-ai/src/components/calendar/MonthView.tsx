@@ -1,12 +1,13 @@
 "use client";
 
 import type { CalendarPost } from "@/types/calendar";
-import PostCell from "./PostCell";
+import PlatformIcon from "./PlatformIcon";
 
 interface MonthViewProps {
   currentDate: Date;
   posts: CalendarPost[];
   onPostClick: (post: CalendarPost) => void;
+  onDayClick?: (date: Date) => void;
 }
 
 function getMonthDays(date: Date): Date[] {
@@ -26,7 +27,7 @@ function formatDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export default function MonthView({ currentDate, posts, onPostClick }: MonthViewProps) {
+export default function MonthView({ currentDate, posts, onPostClick, onDayClick }: MonthViewProps) {
   const days = getMonthDays(currentDate);
   const today = formatDateKey(new Date());
   const currentMonth = currentDate.getMonth();
@@ -51,13 +52,28 @@ export default function MonthView({ currentDate, posts, onPostClick }: MonthView
           const isToday = key === today;
           const isCurrentMonth = day.getMonth() === currentMonth;
           return (
-            <div key={idx} className={`border-b border-r border-border p-1.5 min-h-[100px] ${isCurrentMonth ? "bg-white" : "bg-light/40"}`}>
-              <div className={`text-[11px] mb-1 ${isToday ? "w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center font-medium" : isCurrentMonth ? "text-dark" : "text-muted"}`}>{day.getDate()}</div>
-              <div className="flex flex-col gap-0.5">
-                {dayPosts.slice(0, 3).map((post) => (<PostCell key={post.id} post={post} compact onClick={onPostClick} />))}
-                {dayPosts.length > 3 && <span className="text-[9px] text-muted px-1">+{dayPosts.length - 3} more</span>}
+            <button
+              type="button"
+              key={idx}
+              onClick={() => onDayClick?.(day)}
+              className={`border-b border-r border-border p-1.5 min-h-[100px] text-left transition-colors hover:bg-light/60 cursor-pointer ${isCurrentMonth ? "bg-white" : "bg-light/40"}`}
+            >
+              <div className={`text-[11px] mb-1.5 ${isToday ? "w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center font-medium" : isCurrentMonth ? "text-dark" : "text-muted"}`}>
+                {day.getDate()}
               </div>
-            </div>
+              <div className="flex flex-wrap gap-1">
+                {dayPosts.slice(0, 6).map((post) => (
+                  <PlatformIcon
+                    key={post.id}
+                    platform={post.platform}
+                    size="sm"
+                    hasPost={true}
+                    onClick={() => onPostClick(post)}
+                  />
+                ))}
+                {dayPosts.length > 6 && <span className="text-[9px] text-muted self-center">+{dayPosts.length - 6}</span>}
+              </div>
+            </button>
           );
         })}
       </div>
