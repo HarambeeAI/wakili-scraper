@@ -58,34 +58,40 @@ export async function POST(req: NextRequest) {
     });
   };
 
-  const { askCalendarQuestions } = await import("@/lib/agent/nodes/ask-calendar-questions");
+  const { askCalendarQuestions } =
+    await import("@/lib/agent/nodes/ask-calendar-questions");
 
-  askCalendarQuestions({
-    organizationId,
-    wizardAnswers: null,
-    businessProfile: "",
-    brandGuidelines: "",
-    marketResearch: "",
-    marketingStrategy: "",
-    calendarId: "",
-    calendarPosts: [],
-    contentPillars: [],
-    calendarApproved: false,
-    generatedContentCount: 0,
-    emitEvent,
-  } as any).then(() => {
-    db.update(agentRuns)
-      .set({
-        tasks: {
-          ask_calendar_questions: "completed",
-          generate_calendar: "pending",
-          present_calendar: "pending",
-          generate_content_batch: "pending",
-        },
-      })
-      .where(eq(agentRuns.id, run.id))
-      .catch(console.error);
-  });
+  // Delay node execution to give the client time to connect the SSE stream
+  setTimeout(
+    () =>
+      askCalendarQuestions({
+        organizationId,
+        wizardAnswers: null,
+        businessProfile: "",
+        brandGuidelines: "",
+        marketResearch: "",
+        marketingStrategy: "",
+        calendarId: "",
+        calendarPosts: [],
+        contentPillars: [],
+        calendarApproved: false,
+        generatedContentCount: 0,
+        emitEvent,
+      } as any).then(() => {
+        db.update(agentRuns)
+          .set({
+            tasks: {
+              ask_calendar_questions: "completed",
+              generate_calendar: "pending",
+              present_calendar: "pending",
+              generate_content_batch: "pending",
+            },
+          })
+          .where(eq(agentRuns.id, run.id))
+          .catch(console.error);
+      }),
+    3000,
+  );
 
   return NextResponse.json({ runId: run.id });
 }
