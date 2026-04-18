@@ -12,6 +12,8 @@ interface ChatMessagesProps {
   status: string | null;
   onWizardSubmit?: (answers: WizardAnswers) => void;
   onCalendarApprove?: () => void;
+  orgSlug?: string;
+  orgId?: string;
 }
 
 export default function ChatMessages({
@@ -19,6 +21,8 @@ export default function ChatMessages({
   status,
   onWizardSubmit,
   onCalendarApprove,
+  orgSlug,
+  orgId,
 }: ChatMessagesProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +74,8 @@ export default function ChatMessages({
             message={msg}
             onWizardSubmit={onWizardSubmit}
             onCalendarApprove={onCalendarApprove}
+            orgSlug={orgSlug}
+            orgId={orgId}
           />
         ))}
 

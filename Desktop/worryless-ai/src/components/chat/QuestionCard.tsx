@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import type {
   WizardQuestion,
   WizardAnswers,
@@ -11,14 +12,16 @@ interface QuestionCardProps {
   questions: WizardQuestion[];
   wizardId: string;
   onSubmit: (answers: WizardAnswers) => void;
+  orgSlug?: string;
+  orgId?: string;
   disabled?: boolean;
 }
 
-const PLATFORM_META: Record<
-  SocialPlatform,
-  { label: string; bg: string }
-> = {
-  instagram: { label: "Instagram", bg: "bg-gradient-to-br from-pink-500 to-purple-600" },
+const PLATFORM_META: Record<SocialPlatform, { label: string; bg: string }> = {
+  instagram: {
+    label: "Instagram",
+    bg: "bg-gradient-to-br from-pink-500 to-purple-600",
+  },
   tiktok: { label: "TikTok", bg: "bg-black" },
   linkedin: { label: "LinkedIn", bg: "bg-blue-600" },
   facebook: { label: "Facebook", bg: "bg-blue-500" },
@@ -26,12 +29,12 @@ const PLATFORM_META: Record<
   youtube: { label: "YouTube", bg: "bg-red-600" },
 };
 
-const PLATFORMS: SocialPlatform[] = ["instagram", "tiktok", "linkedin", "facebook", "x", "youtube"];
-
 export default function QuestionCard({
   questions,
   wizardId: _wizardId,
   onSubmit,
+  orgSlug,
+  orgId,
   disabled = false,
 }: QuestionCardProps) {
   const [step, setStep] = useState(0);
@@ -42,21 +45,126 @@ export default function QuestionCard({
   const [contentGoals, setContentGoals] = useState<string[]>([]);
   const [additionalContext, setAdditionalContext] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [calendarReady, setCalendarReady] = useState(false);
+  const [generatingDots, setGeneratingDots] = useState("");
 
   const totalSteps = questions.length;
   const currentQuestion = questions[step];
-  // step === totalSteps means we're on the review screen
   const isReview = step === totalSteps;
 
+  // Poll for calendar completion after submission
+  useEffect(() => {
+    if (!submitted || calendarReady) return;
+
+    const interval = setInterval(async () => {
+      try {
+        // Check if the calendar has been created by querying the API
+        if (!orgId) return;
+
+        const res = await fetch(`/api/calendar/${orgId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.calendar && data.posts?.length > 0) {
+          setCalendarReady(true);
+        }
+      } catch {
+        // Silently retry
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [submitted, calendarReady, orgSlug]);
+
+  // Animate dots while generating
+  useEffect(() => {
+    if (!submitted || calendarReady) return;
+    const interval = setInterval(() => {
+      setGeneratingDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 500);
+    return () => clearInterval(interval);
+  }, [submitted, calendarReady]);
+
+  // --- Submitted state ---
   if (submitted) {
     return (
-      <div className="ml-9 max-w-[560px] rounded-2xl border border-[#e3e3e8] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] px-5 py-4 flex items-center gap-2.5">
-        <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span className="text-[13.5px] text-muted-dark">
-          Preferences submitted &mdash; generating your calendar&hellip;
-        </span>
+      <div className="ml-9 max-w-[560px] rounded-2xl border border-[#e3e3e8] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+        {calendarReady ? (
+          // Calendar is ready -- show success + CTA
+          <div className="px-5 py-5">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <svg
+                  className="w-4.5 h-4.5 text-emerald-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4.5 12.75l6 6 9-13.5"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-[14px] font-semibold text-dark">
+                  Your content calendar is ready!
+                </p>
+                <p className="text-[12px] text-muted mt-0.5">
+                  I&apos;ve planned your posts across all platforms for the next
+                  4 weeks.
+                </p>
+              </div>
+            </div>
+            <Link
+              href={`/app/${orgSlug}/calendar`}
+              className="block w-full py-2.5 rounded-lg text-[13px] font-semibold text-white bg-primary hover:bg-primary/90 transition-colors text-center"
+            >
+              View Your Calendar
+            </Link>
+          </div>
+        ) : (
+          // Still generating -- show pulse animation
+          <div className="px-5 py-5">
+            <div className="flex items-center gap-3">
+              <div className="relative flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-4 h-4 rounded-full bg-primary animate-pulse" />
+                </div>
+                <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+              </div>
+              <div>
+                <p className="text-[13.5px] font-medium text-dark">
+                  Building your content calendar{generatingDots}
+                </p>
+                <p className="text-[11.5px] text-muted mt-0.5">
+                  Helena is crafting 4 weeks of strategic content tailored to
+                  your brand
+                </p>
+              </div>
+            </div>
+
+            {/* Summary of what was submitted */}
+            <div className="mt-4 pt-3 border-t border-[#f0f0f3]">
+              <div className="flex flex-wrap gap-1.5">
+                {answers.platforms.map((p) => {
+                  const meta = PLATFORM_META[p];
+                  return (
+                    <span
+                      key={p}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-light text-muted-dark border border-[#e3e3e8]"
+                    >
+                      <span className={`w-2 h-2 rounded-[2px] ${meta.bg}`} />
+                      {meta.label} &middot; {answers.frequency[p]}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -93,7 +201,7 @@ export default function QuestionCard({
       return answers.platforms.every((p) => answers.frequency[p]);
     }
     if (currentQuestion.id === "contentGoals") return contentGoals.length > 0;
-    return true; // text fields are optional
+    return true;
   }
 
   function handleNext() {
@@ -129,14 +237,18 @@ export default function QuestionCard({
         </div>
 
         <div className="px-5 py-4 space-y-4">
-          {/* Platforms */}
           <div>
-            <p className="text-[11px] text-muted uppercase tracking-wider font-semibold mb-1.5">Platforms</p>
+            <p className="text-[11px] text-muted uppercase tracking-wider font-semibold mb-1.5">
+              Platforms
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {answers.platforms.map((p) => {
                 const meta = PLATFORM_META[p];
                 return (
-                  <span key={p} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium border border-[#e3e3e8] bg-light text-dark">
+                  <span
+                    key={p}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium border border-[#e3e3e8] bg-light text-dark"
+                  >
                     <span className={`w-2.5 h-2.5 rounded-[2px] ${meta.bg}`} />
                     {meta.label}
                   </span>
@@ -145,32 +257,44 @@ export default function QuestionCard({
             </div>
           </div>
 
-          {/* Frequency */}
           <div>
-            <p className="text-[11px] text-muted uppercase tracking-wider font-semibold mb-1.5">Posting Frequency</p>
+            <p className="text-[11px] text-muted uppercase tracking-wider font-semibold mb-1.5">
+              Posting Frequency
+            </p>
             <div className="space-y-1">
               {answers.platforms.map((p) => {
                 const meta = PLATFORM_META[p];
                 return (
-                  <div key={p} className="flex items-center justify-between text-[12.5px]">
+                  <div
+                    key={p}
+                    className="flex items-center justify-between text-[12.5px]"
+                  >
                     <span className="flex items-center gap-1.5 text-dark">
-                      <span className={`w-2.5 h-2.5 rounded-[2px] ${meta.bg}`} />
+                      <span
+                        className={`w-2.5 h-2.5 rounded-[2px] ${meta.bg}`}
+                      />
                       {meta.label}
                     </span>
-                    <span className="text-muted-dark font-medium">{answers.frequency[p]}</span>
+                    <span className="text-muted-dark font-medium">
+                      {answers.frequency[p]}
+                    </span>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Goals */}
           {contentGoals.length > 0 && (
             <div>
-              <p className="text-[11px] text-muted uppercase tracking-wider font-semibold mb-1.5">Content Goals</p>
+              <p className="text-[11px] text-muted uppercase tracking-wider font-semibold mb-1.5">
+                Content Goals
+              </p>
               <div className="flex flex-wrap gap-1.5">
                 {contentGoals.map((g) => (
-                  <span key={g} className="px-2.5 py-1 rounded-full text-[12px] font-medium border border-[#e3e3e8] bg-light text-dark capitalize">
+                  <span
+                    key={g}
+                    className="px-2.5 py-1 rounded-full text-[12px] font-medium border border-[#e3e3e8] bg-light text-dark capitalize"
+                  >
                     {g.replace(/_/g, " ")}
                   </span>
                 ))}
@@ -178,11 +302,14 @@ export default function QuestionCard({
             </div>
           )}
 
-          {/* Additional context */}
           {additionalContext && (
             <div>
-              <p className="text-[11px] text-muted uppercase tracking-wider font-semibold mb-1.5">Additional Context</p>
-              <p className="text-[12.5px] text-dark leading-relaxed">{additionalContext}</p>
+              <p className="text-[11px] text-muted uppercase tracking-wider font-semibold mb-1.5">
+                Additional Context
+              </p>
+              <p className="text-[12.5px] text-dark leading-relaxed">
+                {additionalContext}
+              </p>
             </div>
           )}
         </div>
@@ -211,7 +338,6 @@ export default function QuestionCard({
   // --- Individual question card ---
   return (
     <div className="ml-9 max-w-[560px] rounded-2xl border border-[#e3e3e8] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
-      {/* Progress */}
       <div className="px-5 pt-4 pb-3 border-b border-[#e3e3e8]">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-[14px] font-semibold text-dark leading-tight">
@@ -221,7 +347,6 @@ export default function QuestionCard({
             {step + 1} of {totalSteps}
           </span>
         </div>
-        {/* Progress bar */}
         <div className="h-1 bg-[#f0f0f3] rounded-full overflow-hidden">
           <div
             className="h-full bg-primary rounded-full transition-all duration-300"
@@ -235,7 +360,6 @@ export default function QuestionCard({
           {currentQuestion.question}
         </p>
 
-        {/* --- Platforms (multi_select with id=platforms) --- */}
         {currentQuestion.id === "platforms" && currentQuestion.options && (
           <div className="flex flex-wrap gap-2">
             {currentQuestion.options.map((opt) => {
@@ -255,7 +379,9 @@ export default function QuestionCard({
                   }`}
                 >
                   {meta && (
-                    <span className={`w-4 h-4 rounded-[4px] ${meta.bg} flex-shrink-0`} />
+                    <span
+                      className={`w-4 h-4 rounded-[4px] ${meta.bg} flex-shrink-0`}
+                    />
                   )}
                   {opt.label}
                   {opt.recommended && (
@@ -264,8 +390,18 @@ export default function QuestionCard({
                     </span>
                   )}
                   {selected && (
-                    <svg className="w-3.5 h-3.5 text-primary ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    <svg
+                      className="w-3.5 h-3.5 text-primary ml-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4.5 12.75l6 6 9-13.5"
+                      />
                     </svg>
                   )}
                 </button>
@@ -274,7 +410,6 @@ export default function QuestionCard({
           </div>
         )}
 
-        {/* --- Frequency grid --- */}
         {currentQuestion.id === "frequency" &&
           answers.platforms.length > 0 &&
           currentQuestion.frequencyOptions && (
@@ -291,7 +426,8 @@ export default function QuestionCard({
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {currentQuestion.frequencyOptions!.map((opt) => {
-                        const chosen = answers.frequency[platform] === opt.value;
+                        const chosen =
+                          answers.frequency[platform] === opt.value;
                         return (
                           <button
                             key={opt.value}
@@ -306,7 +442,9 @@ export default function QuestionCard({
                           >
                             {opt.label}
                             {opt.recommended && (
-                              <span className="ml-1 text-[9px] text-amber-500 font-semibold">Recommended</span>
+                              <span className="ml-1 text-[9px] text-amber-500 font-semibold">
+                                Recommended
+                              </span>
                             )}
                           </button>
                         );
@@ -318,7 +456,6 @@ export default function QuestionCard({
             </div>
           )}
 
-        {/* --- Content goals (multi_select with id=contentGoals) --- */}
         {currentQuestion.id === "contentGoals" && currentQuestion.options && (
           <div className="flex flex-wrap gap-2">
             {currentQuestion.options.map((opt) => {
@@ -342,8 +479,18 @@ export default function QuestionCard({
                     </span>
                   )}
                   {selected && (
-                    <svg className="w-3.5 h-3.5 text-primary ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    <svg
+                      className="w-3.5 h-3.5 text-primary ml-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4.5 12.75l6 6 9-13.5"
+                      />
                     </svg>
                   )}
                 </button>
@@ -352,7 +499,6 @@ export default function QuestionCard({
           </div>
         )}
 
-        {/* --- Text input (additionalContext) --- */}
         {currentQuestion.type === "text" && (
           <textarea
             disabled={disabled}
@@ -365,7 +511,6 @@ export default function QuestionCard({
         )}
       </div>
 
-      {/* Navigation */}
       <div className="px-5 pb-4 flex gap-2">
         {step > 0 && (
           <button

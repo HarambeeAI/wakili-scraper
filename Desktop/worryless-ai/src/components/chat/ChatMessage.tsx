@@ -12,6 +12,8 @@ interface ChatMessageProps {
   message: ChatMessageData;
   onWizardSubmit?: (answers: WizardAnswers) => void;
   onCalendarApprove?: () => void;
+  orgSlug?: string;
+  orgId?: string;
 }
 
 function inlineMarkdown(text: string): string {
@@ -28,6 +30,8 @@ export default function ChatMessage({
   message,
   onWizardSubmit,
   onCalendarApprove,
+  orgSlug,
+  orgId,
 }: ChatMessageProps) {
   if (message.type === "question_card" && message.questionData) {
     return (
@@ -38,6 +42,8 @@ export default function ChatMessage({
             questions={message.questionData.questions}
             wizardId={message.questionData.wizardId}
             onSubmit={onWizardSubmit || (() => {})}
+            orgSlug={orgSlug}
+            orgId={orgId}
           />
         </div>
       </div>
