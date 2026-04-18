@@ -9,7 +9,10 @@ interface ChatPageProps {
   searchParams: Promise<{ runId?: string }>;
 }
 
-export default async function ChatPage({ params, searchParams }: ChatPageProps) {
+export default async function ChatPage({
+  params,
+  searchParams,
+}: ChatPageProps) {
   const { orgSlug } = await params;
   const { runId: queryRunId } = await searchParams;
 
@@ -29,8 +32,8 @@ export default async function ChatPage({ params, searchParams }: ChatPageProps) 
       .where(
         and(
           eq(agentRuns.organizationId, org.id),
-          eq(agentRuns.status, "running")
-        )
+          eq(agentRuns.status, "running"),
+        ),
       )
       .orderBy(desc(agentRuns.startedAt))
       .limit(1);
@@ -40,7 +43,9 @@ export default async function ChatPage({ params, searchParams }: ChatPageProps) 
   return (
     <ChatLayout
       runId={runId}
+      orgSlug={orgSlug}
       orgName={org.name}
+      orgId={org.id}
       logoUrl={org.logoUrl}
     />
   );
